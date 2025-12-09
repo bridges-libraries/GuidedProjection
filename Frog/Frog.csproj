@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <Title>Frog</Title>
+	  <Authors>Nicolas MONTAGNE, Romain MESNIL</Authors>
+	  <Company>ENPC - Build'In</Company>
+	  <Description>Grasshopper library for the Guided Projection Algorithm implemented in BRIDGES.</Description>
+	  
+      <TargetFramework>net8.0</TargetFramework>
+      <ImplicitUsings>disable</ImplicitUsings>
+      <Nullable>enable</Nullable>
+	  <LangVersion>latest</LangVersion>
+	  <OutputType>Library</OutputType>
+
+	  <RepositoryUrl>https://github.com/bridges-libraries/GuidedProjection</RepositoryUrl>
+	  <RepositoryType>git</RepositoryType>
+
+	  <PackageId>Frog</PackageId>
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+	  <!-- Prepares the project so that it can be used as a plugin. Among other things, this will copy all of its dependencies to the output directory of the project -->
+	  <EnableDynamicLoading>true</EnableDynamicLoading>
+	  <!-- Changes the extension of this library from .dll to .gha -->
+	  <TargetExt>.gha</TargetExt>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BRIDGES.Solvers.GuidedProjection\BRIDGES.Solvers.GuidedProjection.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Adds the NuGet Package as a reference, but excludes it from being copied to the output directory -->
+	<PackageReference Include="Grasshopper" Version="8.24.25281.15001" ExcludeAssets="runtime" />
+  </ItemGroup>
+</Project>
