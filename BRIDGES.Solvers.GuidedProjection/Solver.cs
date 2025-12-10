@@ -435,7 +435,6 @@ namespace BRIDGES.Solvers.GuidedProjection
         /// <summary>
         /// Runs one iteration.
         /// </summary>
-        /// <param name="useAsync"> Evaluates whether the iteration should use asynchronous programming or not. </param>
         public void RunIteration()
         {
             // ----- Iteration Updates ----- //

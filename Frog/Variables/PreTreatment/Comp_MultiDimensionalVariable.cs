@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using GP = BRIDGES.Solvers.GuidedProjection;
 
 using GH_Kernel = Grasshopper.Kernel;
+using Grasshopper.Kernel.Types;
 
 
 namespace Frog.Variables.PreTreatment
@@ -34,13 +35,15 @@ namespace Frog.Variables.PreTreatment
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterInputParams(GH_InputParamManager)"/>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddNumberParameter("Component Values", "V", "Component values of the variable.", GH_Kernel.GH_ParamAccess.list);
+            pManager.AddTextParameter("Name", "N", "Name of the set of variables.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddNumberParameter("Component Values", "V", "Component values of the variable.", GH_Kernel.GH_ParamAccess.tree);
         }
 
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new Parameters.Variables.Param_IVariable(), "Variable", "V", "Newly created variable.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Parameters.Variables.Param_SetOfVariables(), "Set", "S", "Set of variables for the Guided Projection Algorithm solver.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Parameters.Variables.Param_IVariable(), "Variable", "V", "Newly created variable.", GH_Kernel.GH_ParamAccess.list);
         }
 
 
@@ -49,22 +52,43 @@ namespace Frog.Variables.PreTreatment
         {
             //     -----     Initialisation     -----     //
 
-            List<double> components = new List<double>();
+            string name = "";
+            GH_Kernel.Data.GH_Structure<GH_Number> gh_Structure = new GH_Kernel.Data.GH_Structure<GH_Number>();
 
 
             //     -----      Get Inputs     -----     //
 
-            if (!DA.GetDataList(0, components)) { return; };
+            if (!DA.GetData(0, ref name)) { return; };
+            if (!DA.GetDataTree(1, out gh_Structure)) { return; };
+
+            //     -----     Verifications
+
+            ArgumentNullException.ThrowIfNull(name);
+            ArgumentNullException.ThrowIfNull(gh_Structure);
 
 
             //     -----     Core     -----    //
 
-            GP.Variable variable = new GP.Variable(components);
+            List<GP.Variable> variables = new List<GP.Variable>(gh_Structure.PathCount);
+
+            for (int i_Branch = 0; i_Branch < gh_Structure.PathCount; i_Branch++)
+            {
+                List<GH_Number> gh_Branch = gh_Structure.Branches[i_Branch];
+
+                List<double> components = new List<double>(gh_Branch.Count);
+                for (int i_Item = 0; i_Item < gh_Branch.Count; i_Item++){ components.Add(gh_Branch[i_Item].Value); }
+
+                GP.Variable variable = new GP.Variable(components);
+                variables.Add(variable);
+            }
 
 
             //     -----     Set Output     -----     //
 
-            DA.SetData(0, variable);
+            Types.Variables.Gh_SetOfVariables set = new Types.Variables.Gh_SetOfVariables(name, variables);
+
+            DA.SetData(0, set);
+            DA.SetDataList(1, variables);
         }
 
         #endregion

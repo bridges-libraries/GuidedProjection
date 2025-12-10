@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using GH_Kernel = Grasshopper.Kernel;
 
@@ -33,13 +34,15 @@ namespace Frog.Variables.PreTreatment
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterInputParams(GH_InputParamManager)"/>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddNumberParameter("Numeric Value", "V", "Value of the variable.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddTextParameter("Name", "N", "Name of the set of variables.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddNumberParameter("Numeric Values", "V", "Values of the variables.", GH_Kernel.GH_ParamAccess.list);
         }
 
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new Parameters.Variables.Param_IVariable(), "Variable", "V", "Newly created variable.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Parameters.Variables.Param_SetOfVariables(), "Set", "S", "Set of variables for the Guided Projection Algorithm solver.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Parameters.Variables.Param_IVariable(), "Variables", "V", "Newly created variables for the Constraints and Energies.", GH_Kernel.GH_ParamAccess.list);
         }
 
 
@@ -48,22 +51,38 @@ namespace Frog.Variables.PreTreatment
         {
             //     -----     Initialisation     -----     //
 
-            double value = 0d;
+            string name = "";
+            List<double> values = new List<double>();
 
 
             //     -----      Get Inputs     -----     //
 
-            if (!DA.GetData(0, ref value)) { return; };
+            if (!DA.GetData(0, ref name)) { return; };
+            if (!DA.GetDataList(1, values)) { return; };
+
+            //     -----     Verifications
+
+            ArgumentNullException.ThrowIfNull(name);
+            ArgumentNullException.ThrowIfNull(values);
 
 
             //     -----     Core     -----    //
 
-            GP.Variable variable = new GP.Variable(value);
+            List<GP.Variable> variables = new List<GP.Variable>(values.Count);
+
+            for (int i = 0; i < values.Count; i++)
+            {
+                GP.Variable variable = new GP.Variable(values[i]);
+                variables.Add(variable);
+            }
 
 
             //     -----     Set Output     -----     //
 
-            DA.SetData(0, variable);
+            Types.Variables.Gh_SetOfVariables set = new Types.Variables.Gh_SetOfVariables(name, variables);
+
+            DA.SetData(0, set);
+            DA.SetDataList(1, variables);
         }
 
         #endregion
