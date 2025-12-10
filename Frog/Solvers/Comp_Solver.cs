@@ -20,6 +20,10 @@ namespace Frog.Models
         /// </summary>
         private List<double>? X { get; set; }
 
+        //     -----     For Gh_Model
+
+        Dictionary<string, List<GP.Variable>>? _setsOfVariables;
+
         #endregion
 
         #region Constructors
@@ -47,7 +51,7 @@ namespace Frog.Models
         {
             //     -----     Initialisation     -----     //
 
-            List<Types.Variables.Gh_IVariable> gh_Variables = new List<Types.Variables.Gh_IVariable>();
+            List<Types.Variables.Gh_SetOfVariables> gh_SetsOfVariables = new List<Types.Variables.Gh_SetOfVariables>();
             List<Types.Constraints.Gh_Constraint> gh_Constraints = new List<Types.Constraints.Gh_Constraint>();
             List<Types.Energies.Gh_Energy> gh_Energies = new List<Types.Energies.Gh_Energy>();
 
@@ -55,7 +59,7 @@ namespace Frog.Models
 
             //     -----     Get Inputs     -----     //
 
-            DA.GetDataList(0, gh_Variables);
+            DA.GetDataList(0, gh_SetsOfVariables);
             if (!DA.GetDataList(1, gh_Constraints)) { return; }
             DA.GetDataList(2, gh_Energies);
 
@@ -72,7 +76,7 @@ namespace Frog.Models
 
             double epsilon = 1e-5;
 
-            GP.Solver gpa = CreateModel(epsilon, iterationCount, gh_Variables, gh_Constraints, gh_Energies);
+            GP.Solver gpa = CreateModel(epsilon, iterationCount, gh_SetsOfVariables, gh_Constraints, gh_Energies);
 
             gpa.InitialiseX();
 
@@ -100,11 +104,11 @@ namespace Frog.Models
         /// <param name="gh_Constraints"></param>
         /// <param name="gh_Energies"></param>
         /// <returns></returns>
-        private GP.Solver CreateModel(double epsilon, int maxIteration, List<Types.Variables.Gh_IVariable> gh_Variables, List<Types.Constraints.Gh_Constraint> gh_Constraints, List<Types.Energies.Gh_Energy> gh_Energies)
+        private GP.Solver CreateModel(double epsilon, int maxIteration, List<Types.Variables.Gh_SetOfVariables> gh_SetsOfVariables, List<Types.Constraints.Gh_Constraint> gh_Constraints, List<Types.Energies.Gh_Energy> gh_Energies)
         {
             GP.Solver gpa = new GP.Solver(epsilon, maxIteration);
 
-            AddVariablesToModel(gh_Variables, ref gpa, out Dictionary<GP.Variable, GP.Variable> oldToNew);
+            AddVariablesToModel(gh_SetsOfVariables, ref gpa, out Dictionary<GP.Variable, GP.Variable> oldToNew);
 
             AddConstraintsToModel(gh_Constraints, ref gpa, ref oldToNew);
             AddEnergiesToModel(gh_Energies, ref gpa, ref oldToNew);
@@ -120,25 +124,43 @@ namespace Frog.Models
         /// <param name="gpa"> The model to operate on. </param>
         /// <param name="oldToNew"> The dictionary translating the input variables into model variables. </param>
         /// <returns> A dictionary translating the input variables into model variables. </returns>
-        private void AddVariablesToModel(List<Types.Variables.Gh_IVariable> gh_Variables, ref GP.Solver gpa, out Dictionary<GP.Variable, GP.Variable> oldToNew)
+        private void AddVariablesToModel(List<Types.Variables.Gh_SetOfVariables> gh_SetsOfVariables, ref GP.Solver gpa, out Dictionary<GP.Variable, GP.Variable> oldToNew)
         {
             oldToNew = new Dictionary<GP.Variable, GP.Variable>();
-            foreach (Types.Variables.Gh_IVariable gh_Variable in gh_Variables)
+            _setsOfVariables = new Dictionary<string, List<GP.Variable>>();
+
+            for (int i_Set = 0; i_Set < gh_SetsOfVariables.Count; i_Set++)
             {
-                GP.Interfaces.IVariable iVariable = gh_Variable.Value;
+                Types.Variables.Gh_SetOfVariables gh_SetOfVariable = gh_SetsOfVariables[i_Set];
 
-                if (iVariable is not GP.Variable) { continue; }
 
-                GP.Variable variable = (iVariable as GP.Variable)!;
-                if (oldToNew.ContainsKey(variable))
+                //     -----     Verifications
+
+                string? setName = gh_SetOfVariable.Name;
+                if (setName is not null && setName != "")
                 {
-                    this.AddRuntimeMessage(GH_Kernel.GH_RuntimeMessageLevel.Remark, "A variable is contained twice in the input V.");
+                    _setsOfVariables.Add(gh_SetOfVariable.Name!, new List<GP.Variable>(gh_SetOfVariable.Count));
                 }
-                else
-                {
-                    GP.Variable modelVariable = gpa.AddVariable(variable.ToArray());
+                else { throw new ArgumentException("A set of variables does not have a name."); }
 
-                    oldToNew.Add(variable, modelVariable);
+
+                //     -----     Create the Model Variables
+
+                for (int i_SetVariable = 0; i_SetVariable < gh_SetOfVariable.Count; i_SetVariable++)
+                {
+                    GP.Variable variable = gh_SetOfVariable[i_SetVariable];
+
+                    if (oldToNew.ContainsKey(variable))
+                    {
+                        throw new ArgumentException("A variable is contained twice in the input S.");
+                    }
+                    else
+                    {
+                        GP.Variable modelVariable = gpa.AddVariable(variable.ToArray());
+
+                        oldToNew.Add(variable, modelVariable);
+                        _setsOfVariables[setName].Add(modelVariable);
+                    }
                 }
             }
         }
@@ -161,56 +183,13 @@ namespace Frog.Models
                 if (constraints.Contains(constraint)) { throw new ArgumentException("A constraint is contained twice in the input C"); }
 
                 //     -----     Manage constraint type
+
                 GP.Interfaces.IConstraintType cloneConstraintType = (GP.Interfaces.IConstraintType)constraint.ConstraintType.Clone();
 
+
                 //     -----     Manage constraint variables
-                List<GP.Interfaces.IVariable> modelIVariables = new List<GP.Interfaces.IVariable>(constraint.Variables.Count);
-                for (int i = 0; i < constraint.Variables.Count; i++)
-                {
-                    GP.Interfaces.IVariable iVariable = constraint.Variables[i];
 
-                    if (iVariable is GP.Variable variable)
-                    {
-                        if (oldToNew.ContainsKey(variable))
-                        {
-                            GP.Variable modelVariable = oldToNew[variable];
-
-                            modelIVariables.Add(modelVariable);
-                        }
-                        else
-                        {
-                            GP.Variable modelVariable = gpa.AddVariable(variable.ToArray());
-
-                            oldToNew.Add(variable, modelVariable);
-                            modelIVariables.Add(modelVariable);
-
-                            this.AddRuntimeMessage(GH_Kernel.GH_RuntimeMessageLevel.Remark, "A variable is not contained in the input V but is used in a constraint. It may be a dummy variable.");
-                        }
-                    }
-                    else if (iVariable is GP.SubVariable subVariable)
-                    {
-                        if (oldToNew.ContainsKey(subVariable.ReferenceVariable))
-                        {
-                            GP.Variable modelVariable = oldToNew[subVariable.ReferenceVariable];
-                            GP.SubVariable modelSubVariable = new GP.SubVariable(modelVariable, subVariable.ReferenceIndices());
-
-                            modelIVariables.Add(modelSubVariable);
-                        }
-                        else
-                        {
-                            GP.Variable modelVariable = gpa.AddVariable(subVariable.ReferenceVariable.ToArray());
-
-                            oldToNew.Add(subVariable.ReferenceVariable, modelVariable);
-
-                            GP.SubVariable modelSubVariable = new GP.SubVariable(modelVariable, subVariable.ReferenceIndices());
-
-                            modelIVariables.Add(modelSubVariable);
-
-                            this.AddRuntimeMessage(GH_Kernel.GH_RuntimeMessageLevel.Remark, "A variable is not contained in the input V but is used in a constraint. It may be a dummy variable.");
-                        }
-                    }
-                    else { throw new Exception($"A constraint's variable was not recognised as either a {typeof(GP.Variable)} or a {typeof(GP.SubVariable)}."); }
-                }
+                List<GP.Interfaces.IVariable> modelIVariables = UpdateVariables(constraint.Variables, ref gpa, ref oldToNew);
 
 
                 gpa.AddConstraint(cloneConstraintType, modelIVariables, constraint.Weight);
@@ -220,7 +199,7 @@ namespace Frog.Models
         /// <summary>
         /// Sorts and adds the input grasshopper energies to the model.
         /// </summary>
-        /// <param name="gh_Constraints"> The list of input grasshopper energies. </param>
+        /// <param name="gh_Energies"> The list of input grasshopper energies. </param>
         /// <param name="gpa"> The model to operate on. </param>
         /// <param name="oldToNew"> The dictionary translating the input variables into model variables. </param>
         /// <exception cref="ArgumentException"> An energy is contained twice in the input C. </exception>
@@ -240,57 +219,75 @@ namespace Frog.Models
 
                 //     -----     Manage energy variables
 
-                List<GP.Interfaces.IVariable> modelIVariables = new List<GP.Interfaces.IVariable>(energy.Variables.Count);
-                for (int i = 0; i < energy.Variables.Count; i++)
-                {
-                    GP.Interfaces.IVariable iVariable = energy.Variables[i];
-
-                    if (iVariable is GP.Variable variable)
-                    {
-                        if (oldToNew.ContainsKey(variable))
-                        {
-                            GP.Variable modelVariable = oldToNew[variable];
-
-                            modelIVariables.Add(modelVariable);
-                        }
-                        else
-                        {
-                            GP.Variable modelVariable = gpa.AddVariable(variable.ToArray());
-
-                            oldToNew.Add(variable, modelVariable);
-                            modelIVariables.Add(modelVariable);
-
-                            this.AddRuntimeMessage(GH_Kernel.GH_RuntimeMessageLevel.Remark, "A variable is not contained in the input V but is used in an energy. It may be a dummy variable.");
-                        }
-                    }
-                    else if (iVariable is GP.SubVariable subVariable)
-                    {
-                        if (oldToNew.ContainsKey(subVariable.ReferenceVariable))
-                        {
-                            GP.Variable modelVariable = oldToNew[subVariable.ReferenceVariable];
-                            GP.SubVariable modelSubVariable = new GP.SubVariable(modelVariable, subVariable.ReferenceIndices());
-
-                            modelIVariables.Add(modelSubVariable);
-                        }
-                        else
-                        {
-                            GP.Variable modelVariable = gpa.AddVariable(subVariable.ReferenceVariable.ToArray());
-
-                            oldToNew.Add(subVariable.ReferenceVariable, modelVariable);
-
-                            GP.SubVariable modelSubVariable = new GP.SubVariable(modelVariable, subVariable.ReferenceIndices());
-
-                            modelIVariables.Add(modelSubVariable);
-
-                            this.AddRuntimeMessage(GH_Kernel.GH_RuntimeMessageLevel.Remark, "A variable is not contained in the input V but is used in an energy. It may be a dummy variable.");
-                        }
-                    }
-                    else { throw new Exception($"An energy's variable was not recognised as either a {typeof(GP.Variable)} or a {typeof(GP.SubVariable)}."); }
-                }
+                List<GP.Interfaces.IVariable> modelIVariables = UpdateVariables(energy.Variables, ref gpa, ref oldToNew);
 
 
                 gpa.AddEnergy(cloneEnergyType, modelIVariables, energy.Weight);
             }
+        }
+
+
+        /// <summary>
+        /// Creates a list of model variables from a list of input variables. 
+        /// </summary>
+        /// <remarks> Variable that are not contained in the model will be create and added. </remarks>
+        /// <param name="variables"> Input variables to review.</param>
+        /// <param name="gpa"> The model to operate on. </param>
+        /// <param name="oldToNew"> The dictionary translating the input variables into model variables. </param>
+        /// <returns> The list of model variables, to replacethe input one. </returns>
+        /// <exception cref="Exception"> A variable was not recognised as either a <see cref="GP.Variable"/> or a <see cref="GP.SubVariable"/>. </exception>
+        private List<GP.Interfaces.IVariable> UpdateVariables(IReadOnlyList<GP.Interfaces.IVariable> variables, ref GP.Solver gpa, ref Dictionary<GP.Variable, GP.Variable> oldToNew)
+        {
+            List<GP.Interfaces.IVariable> modelIVariables = new List<GP.Interfaces.IVariable>(variables.Count);
+
+            for (int i = 0; i < variables.Count; i++)
+            {
+                GP.Interfaces.IVariable iVariable = variables[i];
+
+                if (iVariable is GP.Variable variable)
+                {
+                    if (oldToNew.ContainsKey(variable))
+                    {
+                        GP.Variable modelVariable = oldToNew[variable];
+
+                        modelIVariables.Add(modelVariable);
+                    }
+                    else
+                    {
+                        GP.Variable modelVariable = gpa.AddVariable(variable.ToArray());
+
+                        oldToNew.Add(variable, modelVariable);
+                        modelIVariables.Add(modelVariable);
+
+                        this.AddRuntimeMessage(GH_Kernel.GH_RuntimeMessageLevel.Remark, "A variable is not contained in a set but is used in a constraint or an energy. It may be a dummy variable.");
+                    }
+                }
+                else if (iVariable is GP.SubVariable subVariable)
+                {
+                    if (oldToNew.ContainsKey(subVariable.ReferenceVariable))
+                    {
+                        GP.Variable modelVariable = oldToNew[subVariable.ReferenceVariable];
+                        GP.SubVariable modelSubVariable = new GP.SubVariable(modelVariable, subVariable.ReferenceIndices());
+
+                        modelIVariables.Add(modelSubVariable);
+                    }
+                    else
+                    {
+                        //GP.Variable modelVariable = gpa.AddVariable(subVariable.ReferenceVariable.ToArray());
+
+                        //oldToNew.Add(subVariable.ReferenceVariable, modelVariable);
+
+                        //GP.SubVariable modelSubVariable = new GP.SubVariable(modelVariable, subVariable.ReferenceIndices());
+
+                        //modelIVariables.Add(modelSubVariable);
+
+                        throw new ArgumentException("A sub-variable is not contained in a set but is used in a constraint or an energy.");
+                    }
+                }
+                else { throw new Exception($"A variable was not recognised as either a {typeof(GP.Variable)} or a {typeof(GP.SubVariable)}."); }
+            }
+
+            return modelIVariables;
         }
 
         #endregion
@@ -301,7 +298,7 @@ namespace Frog.Models
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterInputParams(GH_InputParamManager)"/>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddParameter(new Parameters.Variables.Param_IVariable(), "Variables", "V", "Variables used by the energies and constraints. \r\n The order with which the variables are given will be preserved.", GH_Kernel.GH_ParamAccess.list);
+            pManager.AddParameter(new Parameters.Variables.Param_SetOfVariables(), "Sets of Variables", "S", "Sets of variables used by the energies and constraints.", GH_Kernel.GH_ParamAccess.list);
             pManager.AddParameter(new Parameters.Constraints.Param_Constraint(), "Constraints", "C", "Constraints", GH_Kernel.GH_ParamAccess.list);
             pManager.AddParameter(new Parameters.Energies.Param_Energy(), "Energies", "E", "Energies", GH_Kernel.GH_ParamAccess.list);
 
