@@ -10,8 +10,8 @@ namespace Frog.Variables
     /// </summary>
     enum TabExposure
     {
-        PreTreatment = GH_Kernel.GH_Exposure.primary,
-        PostTreatment = GH_Kernel.GH_Exposure.secondary,
+        Construct = GH_Kernel.GH_Exposure.primary,
+        Deconstruct = GH_Kernel.GH_Exposure.secondary,
     }
 }
  

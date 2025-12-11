@@ -110,7 +110,14 @@ namespace Frog.Types.Constraints
         #region Override : Object
 
         /// <inheritdoc cref="GH_Types.GH_Goo{T}.ToString"/>
-        public override string ToString() => $"Constraint (T:{Value.ConstraintType}; S:{Value.Size})";
+        public override string ToString()
+        {
+            if (IsValid)
+            {
+                 return $"Constraint (T:{Value.ConstraintType}; S:{Value.Size})";
+            }
+            else { return $"Invalid {TypeName}"; }
+        }
 
         #endregion
     }

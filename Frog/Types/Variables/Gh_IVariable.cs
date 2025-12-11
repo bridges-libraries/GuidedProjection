@@ -45,7 +45,7 @@ namespace Frog.Types.Variables
         //     -----     Properties     -----     //
 
         /// <inheritdoc cref="GH_Types.GH_Goo{T}.IsValid"/>
-        public override bool IsValid => !(Value is null);
+        public override bool IsValid => Value is not null;
 
         /// <inheritdoc cref="GH_Types.GH_Goo{T}.TypeDescription"/>
         public override string TypeDescription => $"Grasshopper type containing a {typeof(GP.Interfaces.IVariable)}.";
@@ -143,22 +143,24 @@ namespace Frog.Types.Variables
         /// <inheritdoc cref="GH_Types.GH_Goo{T}.ToString"/>
         public override string ToString()
         {
-            if (Value is null) { return null; }
-
-            string text = "";
-
-            if (Value is GP.Variable) { text += "Variable"; }
-            else if (Value is GP.SubVariable) { text += "Sub-Variable"; }
-            else { text += "IVariable"; }
-
-            text += ": [" + Value[0];
-            for (int i = 1; i < Value.Size; i++)
+            if (IsValid)
             {
-                text += ", " + Value[i];
-            }
-            text += "]";
+                string text = "";
 
-            return text;
+                if (Value is GP.Variable) { text += "Variable"; }
+                else if (Value is GP.SubVariable) { text += "Sub-Variable"; }
+                else { text += "IVariable"; }
+
+                text += ": [" + Value[0];
+                for (int i = 1; i < Value.Size; i++)
+                {
+                    text += ", " + Value[i];
+                }
+                text += "]";
+
+                return text;
+            }
+            else { return $"Invalid {TypeName}"; }
         }
 
         #endregion

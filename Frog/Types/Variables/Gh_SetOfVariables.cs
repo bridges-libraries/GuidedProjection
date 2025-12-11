@@ -12,14 +12,13 @@ namespace Frog.Types.Variables
     /// <summary>
     /// Class defining a grasshopper type containing an indexed collection of <see cref="GP.Variable"/>.
     /// </summary>
-    public class Gh_SetOfVariables :
-        IEnumerable<GP.Variable>,
-        GH_Types.IGH_Goo
+    public class Gh_SetOfVariables : GH_Types.IGH_Goo,
+        IEnumerable<GP.Variable>
     {
         #region Fields
 
         /// <summary>
-        /// Contains the set variables.
+        /// Variables from the set.
         /// </summary>
         private List<GP.Variable> _variables = new List<GP.Variable>();
 
@@ -28,7 +27,7 @@ namespace Frog.Types.Variables
         #region Properties
 
         /// <summary>
-        /// Custom name of the set of variables.
+        /// Gets the name of the set of variables.
         /// </summary>
         public string? Name { get; private set; }
 
@@ -60,22 +59,31 @@ namespace Frog.Types.Variables
         /// <summary>
         /// Initialises a new instance of <see cref= "Gh_SetOfVariables" /> class from another <see cref="Gh_SetOfVariables"/>.
         /// </summary>
-        /// <param name="gh_SetOfVariable"> <see cref="Gh_SetOfVariables"/> to duplicate. </param>
-        public Gh_SetOfVariables(Gh_SetOfVariables gh_SetOfVariable)
+        /// <param name="gh_SetOfVariables"> <see cref="Gh_SetOfVariables"/> to deep copy. </param>
+        public Gh_SetOfVariables(Gh_SetOfVariables gh_SetOfVariables)
         {
-            _variables = new List<GP.Variable>(gh_SetOfVariable._variables);
+            //     -----     Initialise fields
 
-            Name = gh_SetOfVariable.Name;
+            _variables = new List<GP.Variable>(gh_SetOfVariables._variables);
+
+
+            //     -----     Initialise properties
+
+            Name = gh_SetOfVariables.Name;
         }
 
         /// <summary>
-        /// Initialises a new instance of <see cref= "Gh_SetOfVariables" /> class from an ordered collection of <see cref="GP.Variable"/>.
+        /// Initialises a new instance of <see cref= "Gh_SetOfVariables" /> class from an indexed collection of <see cref="GP.Variable"/>.
         /// </summary>
-        /// <param name="variables"> Set variables. </param>
         /// <param name="name"> Custom name of the set. </param>
+        /// <param name="variables"> Variables of the set. </param>
         public Gh_SetOfVariables(string name, IReadOnlyList<GP.Variable> variables)
         {
+            //     -----     Initialise fields
+
             _variables = new List<GP.Variable>(variables);
+
+            //     -----     Initialise properties
 
             Name = name;
         }
@@ -86,7 +94,14 @@ namespace Frog.Types.Variables
         #region Override : Object
 
         /// <inheritdoc cref="GH_Types.IGH_Goo.ToString()"/>
-        public override string ToString() => Name is null ? $"Set of Variable (C:{Count})" : $"{Name} (C:{Count})";
+        public override string ToString()
+        {
+            if (IsValid)
+            {
+                return $"{Name} (C:{Count})";
+            }
+            else { return $"Invalid {TypeName}"; }
+        }
 
         #endregion
 
@@ -96,10 +111,7 @@ namespace Frog.Types.Variables
         //     -----     Properties     -----     //
 
         /// <inheritdoc cref="GH_Types.IGH_Goo.IsValid"/>
-        public bool IsValid
-        {
-            get { return _variables is null ? false : _variables.Count != 0; }
-        }
+        public bool IsValid => _variables.Count != 0 & (Name is not null && Name != string.Empty);
 
         /// <inheritdoc cref="GH_Types.IGH_Goo.IsValidWhyNot"/>
         public string IsValidWhyNot
@@ -107,8 +119,15 @@ namespace Frog.Types.Variables
             get
             {
                 if (IsValid) { return string.Empty; }
-
-                return $"The variable set is null or empty.";
+                else if (_variables.Count == 0)
+                {
+                    return $"The set of variables is empty.";
+                }
+                else if (Name is not null && Name != string.Empty)
+                {
+                    return $"The set name is null or empty.";
+                }
+                else { return $"This {TypeName} is not valid, but I don't know why"; }
             }
         }
 
@@ -116,7 +135,7 @@ namespace Frog.Types.Variables
         public string TypeName => nameof(Gh_SetOfVariables);
 
         /// <inheritdoc cref="GH_Types.IGH_Goo.TypeDescription"/>
-        public string TypeDescription => string.Format($"Grasshopper type representing a named set of variables.");
+        public string TypeDescription => string.Format($"Grasshopper type representing a set of indexed variables.");
 
 
         //     -----     Methods     -----     //
@@ -155,8 +174,12 @@ namespace Frog.Types.Variables
         }
 
 
+#pragma warning disable CS8603 // Possible null reference return.
+
         /// <inheritdoc cref="GH_Types.IGH_Goo.EmitProxy()"/>
         public GH_Types.IGH_GooProxy EmitProxy() => null;
+
+#pragma warning restore CS8603 // Possible null reference return.
 
 
         /// <inheritdoc cref="GH_IO.GH_ISerializable.Read(GH_IO.Serialization.GH_IReader)"/>

@@ -13,16 +13,31 @@ namespace Frog.Models
     /// </summary>
     public class Comp_Solver : GH_Kernel.GH_Component
     {
-        #region Private Properties
+        #region Private Fields
 
         /// <summary>
-        /// Result vector of the guided projection algorithm.
+        /// Sets of variables of the computed model.
         /// </summary>
-        private List<double>? X { get; set; }
+        private Dictionary<string, List<GP.Variable>>? _setsOfVariables;
 
-        //     -----     For Gh_Model
+        #endregion
 
-        Dictionary<string, List<GP.Variable>>? _setsOfVariables;
+        #region Properties
+
+        /// <summary>
+        /// Gets the number of variables of the computed model.  
+        /// </summary>
+        public int VariableCount { get; private set; }
+
+        /// <summary>
+        /// Gets the number of energies of the computed model.  
+        /// </summary>
+        public int EnergyCount { get; private set; }
+
+        /// <summary>
+        /// Gets the number of constraints of the computed model.  
+        /// </summary>
+        public int ConstraintCount { get; private set; }
 
         #endregion
 
@@ -32,7 +47,7 @@ namespace Frog.Models
         /// Initialises a new instance of the <see cref="Comp_Solver"/> class.
         /// </summary>
         public Comp_Solver()
-          : base("GPA Solver", "GPA", "Creates and solves the model using the Guided Projection Algorithm (GPA).",
+          : base("GPA Solver", "GPA", "Creates and solves a model using the Guided Projection Algorithm (GPA).",
               GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Solvers])
         {
             // Nothing To Do
@@ -84,14 +99,6 @@ namespace Frog.Models
             {
                 gpa.RunIteration();
             }
-
-            //     -----     Set Persistent Datas     -----     //
-
-            X = new List<double>(gpa.ComponentCount);
-            for (int i = 0; i < gpa.ComponentCount; i++)
-            {
-                X.Add(gpa.X[i]);
-            }
         }
 
 
@@ -113,6 +120,11 @@ namespace Frog.Models
             AddConstraintsToModel(gh_Constraints, ref gpa, ref oldToNew);
             AddEnergiesToModel(gh_Energies, ref gpa, ref oldToNew);
 
+
+            VariableCount = gpa.VariableCount;
+            ConstraintCount = gpa.ConstraintCount;
+            EnergyCount = gpa.EnergyCount;
+
             return gpa;
         }
 
@@ -132,7 +144,6 @@ namespace Frog.Models
             for (int i_Set = 0; i_Set < gh_SetsOfVariables.Count; i_Set++)
             {
                 Types.Variables.Gh_SetOfVariables gh_SetOfVariable = gh_SetsOfVariables[i_Set];
-
 
                 //     -----     Verifications
 
@@ -189,7 +200,9 @@ namespace Frog.Models
 
                 //     -----     Manage constraint variables
 
-                List<GP.Interfaces.IVariable> modelIVariables = UpdateVariables(constraint.Variables, ref gpa, ref oldToNew);
+                string constraintTypeName = constraint.ConstraintType.ToString() is not null ? constraint.ConstraintType.ToString()! : constraint.ConstraintType.GetType().ToString();
+
+                List<GP.Interfaces.IVariable> modelIVariables = UpdateVariables(constraint.Variables, constraintTypeName, ref gpa, ref oldToNew);
 
 
                 gpa.AddConstraint(cloneConstraintType, modelIVariables, constraint.Weight);
@@ -219,7 +232,9 @@ namespace Frog.Models
 
                 //     -----     Manage energy variables
 
-                List<GP.Interfaces.IVariable> modelIVariables = UpdateVariables(energy.Variables, ref gpa, ref oldToNew);
+                string energyTypeName = energy.EnergyType.ToString() is not null ? energy.EnergyType.ToString()! : energy.EnergyType.GetType().ToString();
+
+                List<GP.Interfaces.IVariable> modelIVariables = UpdateVariables(energy.Variables, energyTypeName, ref gpa, ref oldToNew);
 
 
                 gpa.AddEnergy(cloneEnergyType, modelIVariables, energy.Weight);
@@ -232,12 +247,14 @@ namespace Frog.Models
         /// </summary>
         /// <remarks> Variable that are not contained in the model will be create and added. </remarks>
         /// <param name="variables"> Input variables to review.</param>
+        /// <param name="setName"> Name of the set to use if a variable needs to be adde to the model </param>
         /// <param name="gpa"> The model to operate on. </param>
         /// <param name="oldToNew"> The dictionary translating the input variables into model variables. </param>
         /// <returns> The list of model variables, to replacethe input one. </returns>
         /// <exception cref="Exception"> A variable was not recognised as either a <see cref="GP.Variable"/> or a <see cref="GP.SubVariable"/>. </exception>
-        private List<GP.Interfaces.IVariable> UpdateVariables(IReadOnlyList<GP.Interfaces.IVariable> variables, ref GP.Solver gpa, ref Dictionary<GP.Variable, GP.Variable> oldToNew)
+        private List<GP.Interfaces.IVariable> UpdateVariables(IReadOnlyList<GP.Interfaces.IVariable> variables, string setName, ref GP.Solver gpa, ref Dictionary<GP.Variable, GP.Variable> oldToNew)
         {
+            setName += " - Dummy Variables";
             List<GP.Interfaces.IVariable> modelIVariables = new List<GP.Interfaces.IVariable>(variables.Count);
 
             for (int i = 0; i < variables.Count; i++)
@@ -257,6 +274,9 @@ namespace Frog.Models
                         GP.Variable modelVariable = gpa.AddVariable(variable.ToArray());
 
                         oldToNew.Add(variable, modelVariable);
+                        if(_setsOfVariables!.ContainsKey(setName)) { _setsOfVariables[setName].Add(modelVariable); }
+                        else { _setsOfVariables.Add(setName, new List<GP.Variable>() { modelVariable }); }
+
                         modelIVariables.Add(modelVariable);
 
                         this.AddRuntimeMessage(GH_Kernel.GH_RuntimeMessageLevel.Remark, "A variable is not contained in a set but is used in a constraint or an energy. It may be a dummy variable.");
@@ -273,15 +293,7 @@ namespace Frog.Models
                     }
                     else
                     {
-                        //GP.Variable modelVariable = gpa.AddVariable(subVariable.ReferenceVariable.ToArray());
-
-                        //oldToNew.Add(subVariable.ReferenceVariable, modelVariable);
-
-                        //GP.SubVariable modelSubVariable = new GP.SubVariable(modelVariable, subVariable.ReferenceIndices());
-
-                        //modelIVariables.Add(modelSubVariable);
-
-                        throw new ArgumentException("A sub-variable is not contained in a set but is used in a constraint or an energy.");
+                        throw new ArgumentException("A reference variable of a sub-variable is not contained in a set but is used in a constraint or an energy.");
                     }
                 }
                 else { throw new Exception($"A variable was not recognised as either a {typeof(GP.Variable)} or a {typeof(GP.SubVariable)}."); }
@@ -299,21 +311,20 @@ namespace Frog.Models
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddParameter(new Parameters.Variables.Param_SetOfVariables(), "Sets of Variables", "S", "Sets of variables used by the energies and constraints.", GH_Kernel.GH_ParamAccess.list);
-            pManager.AddParameter(new Parameters.Constraints.Param_Constraint(), "Constraints", "C", "Constraints", GH_Kernel.GH_ParamAccess.list);
-            pManager.AddParameter(new Parameters.Energies.Param_Energy(), "Energies", "E", "Energies", GH_Kernel.GH_ParamAccess.list);
+            pManager.AddParameter(new Parameters.Constraints.Param_Constraint(), "Constraints", "C", "Constraints for the model.", GH_Kernel.GH_ParamAccess.list);
+            pManager.AddParameter(new Parameters.Energies.Param_Energy(), "Energies", "E", "Energies for the model.", GH_Kernel.GH_ParamAccess.list);
 
-            pManager.AddIntegerParameter("Number of Iterations", "I", "Number of iterations of the Guided Projection Algorithm.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddIntegerParameter("Number of Iterations", "I", "Number of iterations for the Guided Projection Algorithm.", GH_Kernel.GH_ParamAccess.item);
 
             pManager.AddBooleanParameter("Run", "R", "Run the solver of the Guided Projection Algorithm.", GH_Kernel.GH_ParamAccess.item);
 
-            pManager[0].Optional = true;
             pManager[2].Optional = true;
         }
 
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("Result", "X", "Result vector.", GH_Kernel.GH_ParamAccess.list);
+            pManager.AddParameter(new Parameters.Models.Param_Model(), "Computed Model", "M", "The computed model using the Guided Projection Algorithm.", GH_Kernel.GH_ParamAccess.item);
         }
 
         /// <inheritdoc cref="GH_Kernel.GH_Component.SolveInstance(GH_Kernel.IGH_DataAccess)"/>
@@ -323,9 +334,11 @@ namespace Frog.Models
 
             bool run = false;
 
+
             //     -----     Get Inputs     -----     //
 
             if (!DA.GetData(4, ref run)) { return; }
+
 
             //     -----     Core     -----     //
 
@@ -334,15 +347,30 @@ namespace Frog.Models
                 ActualSolveInstance(DA);
                 this.Message = null;
             }
-            /*else
-            {
-                if (X is null) { this.Message = "To Run"; }
-                else { this.Message = "To Update"; }
-            }*/
 
             //     -----     Set Output     -----     //
 
-            DA.SetDataList(0, X);
+            if (_setsOfVariables is null)
+            {
+                this.AddRuntimeMessage(GH_Kernel.GH_RuntimeMessageLevel.Warning, string.Empty);
+                this.Message = "Not Runned";
+
+                this.OnPingDocument().RequestAbortSolution();
+                return;
+            }
+            else
+            {
+                Dictionary<string, List<GP.Constraint>>? _setsOfConstraints = new Dictionary<string, List<GP.Constraint>>();
+                _setsOfConstraints.Add("Temporary", new List<GP.Constraint>());
+
+                Dictionary<string, List<GP.Energy>>? _setsOfEnergies = new Dictionary<string, List<GP.Energy>>();
+                _setsOfEnergies.Add("Temporary", new List<GP.Energy>());
+
+
+                Types.Models.Gh_Model gh_Model = new Types.Models.Gh_Model(ref _setsOfVariables, ref _setsOfConstraints, ref _setsOfEnergies);
+
+                DA.SetData(0, gh_Model);
+            }
         }
 
         #endregion

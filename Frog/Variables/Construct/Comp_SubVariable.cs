@@ -1,6 +1,4 @@
-﻿using Grasshopper.Kernel.Geometry.SpatialTrees;
-using Grasshopper.Kernel.Types.Transforms;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 using GH_Kernel = Grasshopper.Kernel;
@@ -8,7 +6,7 @@ using GH_Kernel = Grasshopper.Kernel;
 using GP = BRIDGES.Solvers.GuidedProjection;
 
 
-namespace Frog.Variables.PreTreatment
+namespace Frog.Variables.Construct
 {
     /// <summary>
     /// A grasshopper component creating a <see cref="GP.SubVariable"/>.
@@ -102,7 +100,7 @@ namespace Frog.Variables.PreTreatment
         }
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Exposure"/>
-        public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.PreTreatment;
+        public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Construct;
 
         #endregion
     }

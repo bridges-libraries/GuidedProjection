@@ -109,7 +109,14 @@ namespace Frog.Types.Energies
         #region Override : Object
 
         /// <inheritdoc cref="GH_Types.GH_Goo{T}.ToString"/>
-        public override string ToString() => $"Energy (T:{Value.EnergyType})";
+        public override string ToString()
+        {
+            if (IsValid)
+            {
+                return $"Energy (T:{Value.EnergyType})";
+            }
+            else { return $"Invalid {TypeName}"; }
+        }
 
         #endregion
     }
