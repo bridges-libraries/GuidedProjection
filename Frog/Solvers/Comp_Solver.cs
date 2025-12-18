@@ -20,6 +20,10 @@ namespace Frog.Models
         /// </summary>
         private Dictionary<string, List<GP.Variable>>? _setsOfVariables;
 
+        //     -----     GH_Component Utilities     -----     //
+
+        private Dictionary<GH_Kernel.GH_RuntimeMessageLevel, IList<string>> _runtimeMessages = new Dictionary<GH_Kernel.GH_RuntimeMessageLevel, IList<string>>();
+
         #endregion
 
         #region Properties
@@ -56,6 +60,8 @@ namespace Frog.Models
         #endregion
 
         #region Private Methods
+
+        //     -----     For the Solving     -----     //
 
         /// <summary>
         /// Contains the actual content for creating and solving the model with the Guided Projection Algorithm.
@@ -302,6 +308,28 @@ namespace Frog.Models
             return modelIVariables;
         }
 
+
+        //     -----     Other Methods     -----     //
+
+        private void SaveRuntimeMessages()
+        {
+            foreach (GH_Kernel.GH_RuntimeMessageLevel level in Enum.GetValues(typeof(GH_Kernel.GH_RuntimeMessageLevel)))
+            {
+                _runtimeMessages.Add(level, this.RuntimeMessages(level));
+            }
+        }
+
+        private void RepeatRuntimeMessages()
+        {
+            foreach(GH_Kernel.GH_RuntimeMessageLevel level in _runtimeMessages.Keys)
+            {
+                IList<string> messages = _runtimeMessages[level];
+                foreach(string message in messages) { this.AddRuntimeMessage(level, message); }
+            }
+
+            _runtimeMessages = new Dictionary<GH_Kernel.GH_RuntimeMessageLevel, IList<string>>();
+        }
+
         #endregion
 
 
@@ -345,8 +373,26 @@ namespace Frog.Models
             if (run)
             {
                 ActualSolveInstance(DA);
-                this.Message = null;
+
+                SaveRuntimeMessages();
+                this.Message = "Up-to-date" + " ";
             }
+            if(!run)
+            {
+                // Case where "run" switches from true to false
+                if (this.Message == ("Up-to-date" + " ")) 
+                {
+                    RepeatRuntimeMessages();
+                    this.Message = "Up-to-date"; 
+                }
+                // Case where "run" was already false
+                else
+                {
+                    this.AddRuntimeMessage(GH_Kernel.GH_RuntimeMessageLevel.Warning, "An input has changed. The model needs to be updated.");
+                    this.Message = "To Update"; 
+                }
+            }
+
 
             //     -----     Set Output     -----     //
 
@@ -355,7 +401,6 @@ namespace Frog.Models
                 this.AddRuntimeMessage(GH_Kernel.GH_RuntimeMessageLevel.Warning, string.Empty);
                 this.Message = "Not Runned";
 
-                this.OnPingDocument().RequestAbortSolution();
                 return;
             }
             else
