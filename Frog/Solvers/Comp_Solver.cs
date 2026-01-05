@@ -20,6 +20,7 @@ namespace Frog.Models
         /// </summary>
         private Dictionary<string, List<GP.Variable>>? _setsOfVariables;
 
+
         //     -----     GH_Component Utilities     -----     //
 
         private Dictionary<GH_Kernel.GH_RuntimeMessageLevel, IList<string>> _runtimeMessages = new Dictionary<GH_Kernel.GH_RuntimeMessageLevel, IList<string>>();
@@ -42,6 +43,11 @@ namespace Frog.Models
         /// Gets the number of constraints of the computed model.  
         /// </summary>
         public int ConstraintCount { get; private set; }
+
+        /// <summary>
+        /// Gets the weight for the regulariser.
+        /// </summary>
+        public double Epsilon { get; private set; } = 1e-5;
 
         #endregion
 
@@ -95,9 +101,7 @@ namespace Frog.Models
 
             //     -----     Core     -----     //
 
-            double epsilon = 1e-5;
-
-            GP.Solver gpa = CreateModel(epsilon, iterationCount, gh_SetsOfVariables, gh_Constraints, gh_Energies);
+            GP.Solver gpa = CreateModel(Epsilon, iterationCount, gh_SetsOfVariables, gh_Constraints, gh_Energies);
 
             gpa.InitialiseX();
 
@@ -375,12 +379,12 @@ namespace Frog.Models
                 ActualSolveInstance(DA);
 
                 SaveRuntimeMessages();
-                this.Message = "Up-to-date" + " ";
+                this.Message = " " + "Up-to-date" + " ";
             }
             if(!run)
             {
                 // Case where "run" switches from true to false
-                if (this.Message == ("Up-to-date" + " ")) 
+                if (this.Message == (" " + "Up-to-date" + " ")) 
                 {
                     RepeatRuntimeMessages();
                     this.Message = "Up-to-date"; 
@@ -418,6 +422,35 @@ namespace Frog.Models
             }
         }
 
+
+
+        /// <inheritdoc cref="GH_Kernel.GH_Component.AppendAdditionalComponentMenuItems(System.Windows.Forms.ToolStripDropDown)"/>
+        protected override void AppendAdditionalComponentMenuItems(System.Windows.Forms.ToolStripDropDown menu)
+        {
+            // Append the item to the menu
+            System.Windows.Forms.ToolStripTextBox menuItem = Menu_AppendTextItem(menu, "Epsilon", null, null, false);
+
+            // Manage the bejavior of the text box.
+            menuItem.Name = "Epsilon";
+            menuItem.LostFocus += MenuItem_Epsilon_LostFocus;
+            menuItem.AcceptsReturn = false;
+
+            // Assign the default value to the text box.
+            menuItem.Text = Epsilon.ToString();
+        }
+
+        private void MenuItem_Epsilon_LostFocus(object? sender, EventArgs e)
+        {
+            System.Windows.Forms.ToolStripTextBox menuItem = (System.Windows.Forms.ToolStripTextBox)sender!;
+
+            RecordUndoEvent("Epsilon");
+
+            double newValue = Convert.ToDouble(menuItem.Text);
+            Epsilon = newValue;
+
+            ExpireSolution(true);
+        }
+
         #endregion
 
         #region Override : GH_DocumentObject
@@ -433,6 +466,29 @@ namespace Frog.Models
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
         protected override System.Drawing.Bitmap Icon => null;
+
+
+        //     -----     Methods     -----     //
+
+        /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Write(GH_IO.Serialization.GH_IWriter)"/>
+        public override bool Write(GH_IO.Serialization.GH_IWriter writer)
+        {
+            // Add custom fields.
+            writer.SetDouble("Epsilon", Epsilon);
+
+            // Call the base class implementation.
+            return base.Write(writer);
+        }
+
+        /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Read(GH_IO.Serialization.GH_IReader)"/>
+        public override bool Read(GH_IO.Serialization.GH_IReader reader)
+        {
+            // Read custom fields.
+            Epsilon = reader.GetDouble("Epsilon");
+
+            // Call the base class implementation.
+            return base.Read(reader);
+        }
 
         #endregion
     }
