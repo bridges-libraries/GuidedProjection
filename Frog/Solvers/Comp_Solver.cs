@@ -13,6 +13,27 @@ namespace Frog.Models
     /// </summary>
     public class Comp_Solver : GH_Kernel.GH_Component
     {
+        #region EventHandlers
+
+        /// <summary>
+        /// EventHandler for the text box defining the value of <see cref="Epsilon"/>.
+        /// </summary>
+        /// <param name="sender"> A <see cref="System.Windows.Forms.TextBox"/> for the value of <see cref="Epsilon"/>. </param>
+        /// <param name="e"> An <see cref="EventArgs"/>. </param>
+        private void TextBox_Epsilon_LostFocus(object? sender, EventArgs e)
+        {
+            System.Windows.Forms.TextBox textBox = (System.Windows.Forms.TextBox)sender!;
+
+            RecordUndoEvent("Epsilon");
+
+            double newValue = Convert.ToDouble(textBox.Text);
+            Epsilon = newValue;
+
+            ExpireSolution(true);
+        }
+
+        #endregion
+
         #region Private Fields
 
         /// <summary>
@@ -428,28 +449,15 @@ namespace Frog.Models
         protected override void AppendAdditionalComponentMenuItems(System.Windows.Forms.ToolStripDropDown menu)
         {
             // Append the item to the menu
-            System.Windows.Forms.ToolStripTextBox menuItem = Menu_AppendTextItem(menu, "Epsilon", null, null, false);
+            LabeledTextBox customItem = new LabeledTextBox("ε : ", Epsilon.ToString());
+
+            Menu_AppendCustomItem(menu, customItem);
 
             // Manage the bejavior of the text box.
-            menuItem.Name = "Epsilon";
-            menuItem.LostFocus += MenuItem_Epsilon_LostFocus;
-            menuItem.AcceptsReturn = false;
+            customItem.TextBox.LostFocus += TextBox_Epsilon_LostFocus;
 
-            // Assign the default value to the text box.
-            menuItem.Text = Epsilon.ToString();
         }
 
-        private void MenuItem_Epsilon_LostFocus(object? sender, EventArgs e)
-        {
-            System.Windows.Forms.ToolStripTextBox menuItem = (System.Windows.Forms.ToolStripTextBox)sender!;
-
-            RecordUndoEvent("Epsilon");
-
-            double newValue = Convert.ToDouble(menuItem.Text);
-            Epsilon = newValue;
-
-            ExpireSolution(true);
-        }
 
         #endregion
 
@@ -488,6 +496,63 @@ namespace Frog.Models
 
             // Call the base class implementation.
             return base.Read(reader);
+        }
+
+        #endregion
+    }
+
+
+    /// <summary>
+    /// Composite control that shows a Label next to a TextBox.
+    /// </summary>
+    public class LabeledTextBox : System.Windows.Forms.UserControl
+    {
+        #region Properties
+        
+        public System.Windows.Forms.Label Label { get; init; }
+
+        public System.Windows.Forms.TextBox TextBox { get; init; }
+
+        #endregion
+
+        #region Constructors
+
+        public LabeledTextBox(string label, string initialText)
+        {
+            // ----- Create sub‑controls -----
+            Label = new System.Windows.Forms.Label
+            {
+                // Context
+                Text = label,
+                // Display
+                Width = label.Length * 4,
+                Height = 20,
+                Location = new System.Drawing.Point(5, 2),
+            };
+
+            TextBox = new System.Windows.Forms.TextBox
+            {
+                // Context
+                Text = initialText,
+                // Display
+                Width = 150,
+                Height = Label.Height,
+                Location = new System.Drawing.Point(Label.Right + 5, 0),
+                // Feature
+                AcceptsTab = false,
+                Multiline = false,
+                AcceptsReturn = false,
+            };
+
+            // ----- Add them to the UserControl -----
+
+            Controls.Add(Label);
+            Controls.Add(TextBox);
+
+            // Display
+            Height = Label.Height + 3;
+            Width = TextBox.Right;
+            BackColor = System.Drawing.Color.Transparent;
         }
 
         #endregion
