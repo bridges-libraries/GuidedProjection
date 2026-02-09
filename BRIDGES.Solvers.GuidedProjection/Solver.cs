@@ -511,7 +511,7 @@ namespace BRIDGES.Solvers.GuidedProjection
 
             if (constraint.ConstraintType is IUpdatedConstraintType updatedConstraintType)
             {
-                ConstraintUpdate += () => updatedConstraintType.UpdateMembers(); ;
+                ConstraintUpdate += () => updatedConstraintType.UpdateMembers(constraint.Variables); ;
             }
         }
 
