@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using Mat = BRIDGES.Numerics.LinearAlgebra.Matrices;
 using Vect = BRIDGES.Numerics.LinearAlgebra.Vectors;
 
-using BRIDGES.Solvers.GuidedProjection.Interfaces;
+using BRIDGES.Solvers.GuidedProjection.Abstracts;
 
 
-namespace BRIDGES.Solvers.GuidedProjection.ConstraintTypes
+namespace BRIDGES.Solvers.GuidedProjection.ConstraintTypes.Segment
 {
     /// <summary>
     /// Constraint enforcing a segment to be parallel to a fixed direction <em>V</em>. The list of variables of this constraint consists in:
@@ -26,35 +25,16 @@ namespace BRIDGES.Solvers.GuidedProjection.ConstraintTypes
     ///     </item>
     /// </list>
     /// </summary>
-    /// <remarks> The definition of a variable representing the length between to other variables must be accompanied by the use of the <see cref="CoherentLength"/> constraint. </remarks>
-    public class SegmentParallelity : IConstraintType
+    /// <remarks> The definition of a variable representing the length between to other variables must be accompanied by the use of the <see cref="Length_Variable"/> constraint. </remarks>
+    public class Direction : ConstraintType
     {
-        #region Properties
-
-        /// <summary>
-        /// Gets the local symmetric matrix Hi of the constraint.
-        /// </summary>
-        public Mat.SparseMatrix<double>? LocalHi { get; }
-
-        /// <summary>
-        /// Gets the local vector Bi of the constraint.
-        /// </summary>
-        public Vect.SparseVector<double>? LocalBi { get; }
-
-        /// <summary>
-        /// Gets the scalar value Ci of the constraint.
-        /// </summary>
-        public double Ci { get; }
-
-        #endregion
-
         #region Constructors
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="SegmentParallelity"/> class.
+        /// Initialises a new instance of the <see cref="Direction"/> class.
         /// </summary>
         /// <param name="direction"> Coordinates of the direction vector to which the segment must be parallel. </param>
-        public SegmentParallelity(double[] direction)
+        public Direction(double[] direction)
         {
             // ----- Unitise the direction ----- //
 
@@ -62,7 +42,7 @@ namespace BRIDGES.Solvers.GuidedProjection.ConstraintTypes
             double length = 0d;
             for (int i = 0; i < direction.Length; i++)
             {
-                if (isZero & BRIDGES.Solvers.GuidedProjection.Helpers.Settings.AbsolutePrecision < Math.Abs(direction[i])) { isZero = false; }
+                if (isZero & Helpers.Settings.AbsolutePrecision < Math.Abs(direction[i])) { isZero = false; }
 
                 length += direction[i] * direction[i];
             }
@@ -107,26 +87,11 @@ namespace BRIDGES.Solvers.GuidedProjection.ConstraintTypes
 
         #endregion
 
-        #region Public Methods
 
-        /// <summary>
-        /// Creates a new object that is a deep copy of the current instance.
-        /// </summary>
-        /// <returns> A new object that is a copy of this instance. </returns>
-        public object Clone()
-        {
-            double[] direction = new double[(LocalBi!.Size - 1) / 2];
-            for (int i = 0; i < direction.Length; i++)
-            {
-                direction[i] = -LocalBi[i];
-            }
+        #region Override : Object
 
-            return new SegmentParallelity(direction);
-        }
-
-
-        /// <inheritdoc cref="Object.ToString()"/>
-        public override string ToString() => "Segment Parallelity";
+        /// <inheritdoc cref="object.ToString()"/>
+        public override string ToString() => "Segment - Parallel - Fixed Direction";
 
         #endregion
     }

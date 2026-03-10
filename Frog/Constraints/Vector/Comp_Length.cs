@@ -11,18 +11,18 @@ using Params_Var = Frog.Parameters.Variables;
 namespace Frog.Constraints.Vector
 {
     /// <summary>
-    /// A grasshopper component creating a <see cref="GP.ConstraintTypes.VectorLength"/>-based <see cref="GP.Constraint"/>..
+    /// A grasshopper component creating a <see cref="GP.ConstraintTypes.Vector.Length"/>-based <see cref="GP.Constraint"/>..
     /// </summary>
-    public class Comp_VectorLength : GH_Kernel.GH_Component
+    public class Comp_Length : GH_Kernel.GH_Component
     {
         #region Constructors
 
         /// <summary>
         /// Initialises a new instance of the <see cref="Comp_VectorLength"/> class.
         /// </summary>
-        public Comp_VectorLength()
-          : base("Vector Length", "Length",
-              "Create a Vector Length constraint for the Guided Projection Algorithm.",
+        public Comp_Length()
+          : base("Vector - Length", "Length",
+              "Constraint enforcing the length a vector variable to be equal to a fixed value.",
               GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Constraints])
         {
             /* Do Nothing */
@@ -36,7 +36,7 @@ namespace Frog.Constraints.Vector
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterInputParams(GH_InputParamManager)"/>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddParameter(new Params_Var.Param_IVariable(), "Vector Variable", "V", "Vector-like variable whose length should equal a specified target length", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_Var.Param_IVariable(), "Vector Variable", "V", "Variable representing a vector whose length should equal a fixed value.", GH_Kernel.GH_ParamAccess.item);
             pManager.AddNumberParameter("Target Length", "L", "Target length of the vector variable.", GH_Kernel.GH_ParamAccess.item);
 
             pManager.AddNumberParameter("Weight", "W", "Weight of the constraint.", GH_Kernel.GH_ParamAccess.item, 1.0);
@@ -45,7 +45,7 @@ namespace Frog.Constraints.Vector
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new Params_Cstr.Param_Constraint(), "Constraint", "C", "Vector Length Constraint", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_Cstr.Param_Constraint(), "Constraint", "C", "Constraint", GH_Kernel.GH_ParamAccess.item);
         }
 
 
@@ -76,7 +76,7 @@ namespace Frog.Constraints.Vector
             int dimension = variable.Size;
             GP.Interfaces.IVariable[] variables = new GP.Interfaces.IVariable[1] { variable };
 
-            GP.ConstraintTypes.VectorLength constraintType = new GP.ConstraintTypes.VectorLength(length, dimension);
+            GP.ConstraintTypes.Vector.Length constraintType = new GP.ConstraintTypes.Vector.Length(length, dimension);
             GP.Constraint constraint = new GP.Constraint(constraintType, variables, weight);
 
 

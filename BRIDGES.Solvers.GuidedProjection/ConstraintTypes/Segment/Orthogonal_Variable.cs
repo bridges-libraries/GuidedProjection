@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using Mat = BRIDGES.Numerics.LinearAlgebra.Matrices;
 using Vect = BRIDGES.Numerics.LinearAlgebra.Vectors;
 
-using BRIDGES.Solvers.GuidedProjection.Interfaces;
+using BRIDGES.Solvers.GuidedProjection.Abstracts;
 
 
-namespace BRIDGES.Solvers.GuidedProjection.ConstraintTypes
+namespace BRIDGES.Solvers.GuidedProjection.ConstraintTypes.Segment
 {
     /// <summary>
     /// Constraint enforcing a segment to be orthogonal to a variable direction. The list of variables for this constraint consists of:
@@ -26,39 +26,20 @@ namespace BRIDGES.Solvers.GuidedProjection.ConstraintTypes
     ///     </item>
     /// </list>
     /// </summary>
-    /// <remarks> If the target direction is fixed, refer to the similar constraint <see cref="SegmentOrthogonality_Fixed"/>. </remarks>
-    public class SegmentOrthogonality_Variable : IConstraintType
+    /// <remarks> If the target direction is fixed, refer to the similar constraint <see cref="Orthogonal_Fixed"/>. </remarks>
+    public class Orthogonal_Variable : ConstraintType
     {
-        #region Properties
-
-        /// <summary>
-        /// Gets the local symmetric matrix Hi of the constraint.
-        /// </summary>
-        public Mat.SparseMatrix<double>? LocalHi { get; }
-
-        /// <summary>
-        /// Gets the local vector Bi of the constraint.
-        /// </summary>
-        public Vect.SparseVector<double>? LocalBi { get; }
-
-        /// <summary>
-        /// Gets the scalar value Ci of the constraint.
-        /// </summary>
-        public double Ci { get; }
-
-        #endregion
-
         #region Constructors
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="SegmentLength"/> class.
+        /// Initialises a new instance of the <see cref="Orthogonal_Variable"/> class.
         /// </summary>
         /// <param name="dimension"> Dimension of the variables representing the start and the end segment. </param>
-        public SegmentOrthogonality_Variable(int dimension)
+        public Orthogonal_Variable(int dimension)
         {
             //     -----     Define LocalHi     -----     //
 
-            int[] columnPointers = new int[(3 * dimension) + 1];
+            int[] columnPointers = new int[3 * dimension + 1];
             int[] rowIndices = new int[(4 * dimension)];
             double[] values = new double[(4 * dimension)];
 
@@ -66,16 +47,16 @@ namespace BRIDGES.Solvers.GuidedProjection.ConstraintTypes
             for (int i_C = 0; i_C < dimension; i_C++)
             {
                 columnPointers[i_C + 1] = i_C + 1;
-                rowIndices[i_C] = (2 * dimension) + i_C;
+                rowIndices[i_C] = 2 * dimension + i_C;
                 values[i_C] = -1;
 
                 columnPointers[dimension + i_C + 1] = dimension + i_C + 1;
-                rowIndices[dimension + i_C] = (2 * dimension) + i_C;
+                rowIndices[dimension + i_C] = 2 * dimension + i_C;
                 values[dimension + i_C] = 1;
 
-                columnPointers[(2 * dimension) + i_C + 1] = 2 * (dimension + i_C + 1);
-                rowIndices[(2 * (dimension + i_C))] = i_C ; rowIndices[(2 * (dimension + i_C)) + 1] = dimension + i_C;
-                values[(2 * (dimension + i_C))] = -1; values[(2 * (dimension + i_C)) + 1] = 1;
+                columnPointers[2 * dimension + i_C + 1] = 2 * (dimension + i_C + 1);
+                rowIndices[2 * (dimension + i_C)] = i_C ; rowIndices[2 * (dimension + i_C) + 1] = dimension + i_C;
+                values[2 * (dimension + i_C)] = -1; values[2 * (dimension + i_C) + 1] = 1;
             }
 
             List<int> list_RowIndices = new List<int>(rowIndices);
@@ -99,20 +80,11 @@ namespace BRIDGES.Solvers.GuidedProjection.ConstraintTypes
 
         #endregion
 
-        #region Public Methods
 
-        /// <summary>
-        /// Creates a new object that is a deep copy of the current instance.
-        /// </summary>
-        /// <returns> A new object that is a copy of this instance. </returns>
-        public object Clone()
-        {
-            return new SegmentOrthogonality_Variable(LocalHi!.RowCount / 3);
-        }
+        #region Override : Object
 
-
-        /// <inheritdoc cref="Object.ToString()"/>
-        public override string ToString() => "Segment Orthogonality - Variable";
+        /// <inheritdoc cref="object.ToString()"/>
+        public override string ToString() => "Segment - Orthogonal - Variable Direction";
 
         #endregion
     }

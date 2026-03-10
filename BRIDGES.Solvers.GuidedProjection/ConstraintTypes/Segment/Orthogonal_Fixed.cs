@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using Mat = BRIDGES.Numerics.LinearAlgebra.Matrices;
 using Vect = BRIDGES.Numerics.LinearAlgebra.Vectors;
 
-using BRIDGES.Solvers.GuidedProjection.Interfaces;
+using BRIDGES.Solvers.GuidedProjection.Abstracts;
 
 
-namespace BRIDGES.Solvers.GuidedProjection.ConstraintTypes
+namespace BRIDGES.Solvers.GuidedProjection.ConstraintTypes.Segment
 {
     /// <summary>
     /// Constraint enforcing a segment to be orthogonal to a fixed direction <em>V</em>. The list of variables of this constraint consists in:
@@ -22,35 +21,16 @@ namespace BRIDGES.Solvers.GuidedProjection.ConstraintTypes
     ///     </item>
     /// </list>
     /// </summary>
-    /// <remarks> If the target direction is a variable, refer to the similar constraint <see cref="SegmentOrthogonality_Variable"/>. </remarks>
-    public class SegmentOrthogonality_Fixed : IConstraintType
+    /// <remarks> If the target direction is a variable, refer to the similar constraint <see cref="Orthogonal_Variable"/>. </remarks>
+    public class Orthogonal_Fixed : ConstraintType
     {
-        #region Properties
-
-        /// <summary>
-        /// Gets the local symmetric matrix Hi of the constraint.
-        /// </summary>
-        public Mat.SparseMatrix<double>? LocalHi { get; }
-
-        /// <summary>
-        /// Gets the local vector Bi of the constraint.
-        /// </summary>
-        public Vect.SparseVector<double>? LocalBi { get; }
-
-        /// <summary>
-        /// Gets the scalar value Ci of the constraint.
-        /// </summary>
-        public double Ci { get; }
-
-        #endregion
-
         #region Constructors
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="SegmentOrthogonality_Fixed"/> class.
+        /// Initialises a new instance of the <see cref="Orthogonal_Fixed"/> class.
         /// </summary>
         /// <param name="direction"> Coordinates of the direction vector to which the segment must be orthogonal. </param>
-        public SegmentOrthogonality_Fixed(double[] direction)
+        public Orthogonal_Fixed(double[] direction)
         {
             // ----- Unitise the direction ----- //
 
@@ -58,7 +38,7 @@ namespace BRIDGES.Solvers.GuidedProjection.ConstraintTypes
             double length = 0d;
             for (int i = 0; i < direction.Length; i++)
             {
-                if (isZero & BRIDGES.Solvers.GuidedProjection.Helpers.Settings.AbsolutePrecision < Math.Abs(direction[i])) { isZero = false; }
+                if (isZero & Helpers.Settings.AbsolutePrecision < Math.Abs(direction[i])) { isZero = false; }
 
                 length += direction[i] * direction[i];
             }
@@ -102,26 +82,11 @@ namespace BRIDGES.Solvers.GuidedProjection.ConstraintTypes
 
         #endregion
 
-        #region Public Methods
 
-        /// <summary>
-        /// Creates a new object that is a deep copy of the current instance.
-        /// </summary>
-        /// <returns> A new object that is a copy of this instance. </returns>
-        public object Clone()
-        {
-            double[] direction = new double[LocalBi!.Size / 2];
-            for (int i = 0; i < direction.Length; i++)
-            {
-                direction[i] = -LocalBi[i];
-            }
+        #region Override : Object
 
-            return new SegmentOrthogonality_Fixed(direction);
-        }
-
-
-        /// <inheritdoc cref="Object.ToString()"/>
-        public override string ToString() => "Segment Orthogonality - Fixed";
+        /// <inheritdoc cref="object.ToString()"/>
+        public override string ToString() => "Segment - Orthogonal - Fixed Direction";
 
         #endregion
     }

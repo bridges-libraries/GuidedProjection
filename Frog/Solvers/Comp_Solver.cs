@@ -6,7 +6,7 @@ using GH_Kernel = Grasshopper.Kernel;
 using GP = BRIDGES.Solvers.GuidedProjection;
 
 
-namespace Frog.Models
+namespace Frog.Solvers
 {
     /// <summary>
     /// A grasshopper component creating a <see cref="GP.Solver"/> model.
@@ -226,8 +226,15 @@ namespace Frog.Models
 
                 //     -----     Manage constraint type
 
-                GP.Interfaces.IConstraintType cloneConstraintType = (GP.Interfaces.IConstraintType)constraint.ConstraintType.Clone();
-
+                GP.Interfaces.IConstraintType cloneConstraintType;
+                if (constraint.ConstraintType is GP.Abstracts.UpdatedConstraintType updatedConstraintType)
+                {
+                    cloneConstraintType = new CloneUpdatedConstraintType(updatedConstraintType);
+                }
+                else
+                {
+                    cloneConstraintType = new CloneConstraintType(constraint.ConstraintType);
+                }
 
                 //     -----     Manage constraint variables
 
@@ -259,7 +266,7 @@ namespace Frog.Models
 
                 //     -----     Manage energy type
 
-                GP.Interfaces.IEnergyType cloneEnergyType = (GP.Interfaces.IEnergyType)energy.EnergyType.Clone();
+                GP.Interfaces.IEnergyType cloneEnergyType = new CloneEnergyType(energy.EnergyType);
 
                 //     -----     Manage energy variables
 
@@ -501,60 +508,4 @@ namespace Frog.Models
         #endregion
     }
 
-
-    /// <summary>
-    /// Composite control that shows a Label next to a TextBox.
-    /// </summary>
-    public class LabeledTextBox : System.Windows.Forms.UserControl
-    {
-        #region Properties
-        
-        public System.Windows.Forms.Label Label { get; init; }
-
-        public System.Windows.Forms.TextBox TextBox { get; init; }
-
-        #endregion
-
-        #region Constructors
-
-        public LabeledTextBox(string label, string initialText)
-        {
-            // ----- Create sub‑controls -----
-            Label = new System.Windows.Forms.Label
-            {
-                // Context
-                Text = label,
-                // Display
-                Width = label.Length * 4,
-                Height = 20,
-                Location = new System.Drawing.Point(5, 2),
-            };
-
-            TextBox = new System.Windows.Forms.TextBox
-            {
-                // Context
-                Text = initialText,
-                // Display
-                Width = 150,
-                Height = Label.Height,
-                Location = new System.Drawing.Point(Label.Right + 5, 0),
-                // Feature
-                AcceptsTab = false,
-                Multiline = false,
-                AcceptsReturn = false,
-            };
-
-            // ----- Add them to the UserControl -----
-
-            Controls.Add(Label);
-            Controls.Add(TextBox);
-
-            // Display
-            Height = Label.Height + 3;
-            Width = TextBox.Right;
-            BackColor = System.Drawing.Color.Transparent;
-        }
-
-        #endregion
-    }
 }

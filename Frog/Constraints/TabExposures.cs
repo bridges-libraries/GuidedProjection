@@ -10,7 +10,7 @@ namespace Frog.Constraints
     /// </summary>
     enum TabExposure
     {
-        Numeric = GH_Kernel.GH_Exposure.primary,
+        Scalar = GH_Kernel.GH_Exposure.primary,
         Vector = GH_Kernel.GH_Exposure.secondary,
         Segment = GH_Kernel.GH_Exposure.tertiary,
         Others = GH_Kernel.GH_Exposure.octonary

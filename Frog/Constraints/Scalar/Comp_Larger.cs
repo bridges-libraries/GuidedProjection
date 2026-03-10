@@ -8,21 +8,21 @@ using Params_Var = Frog.Parameters.Variables;
 using Params_Cstr = Frog.Parameters.Constraints;
 
 
-namespace Frog.Constraints.Numeric
+namespace Frog.Constraints.Scalar
 {
     /// <summary>
-    /// A grasshopper component creating a <see cref="GP.ConstraintTypes.LowerBound"/>-based <see cref="GP.Constraint"/>..
+    /// A grasshopper component creating a <see cref="GP.ConstraintTypes.Scalar.Larger"/>-based <see cref="GP.Constraint"/>..
     /// </summary>
-    public class Comp_LowerBound : GH_Kernel.GH_Component
+    public class Comp_Larger : GH_Kernel.GH_Component
     {
         #region Constructors
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="Comp_LowerBound"/> class.
+        /// Initialises a new instance of the <see cref="Comp_Larger"/> class.
         /// </summary>
-        public Comp_LowerBound()
-          : base("Lower Bound", "Lower Bound",
-              "Create an Lower Bound constraint for the Guided Projection Algorithm.",
+        public Comp_Larger()
+          : base("Larger", "Larger",
+              "Constraint enforcing a scalar variable to be larger than a fixed value.",
               GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Constraints])
         {
             /* Do Nothing */
@@ -36,7 +36,7 @@ namespace Frog.Constraints.Numeric
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterInputParams(GH_InputParamManager)"/>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddParameter(new Params_Var.Param_IVariable(), "Scalar Variable", "V", "Scalar variable whose value should be larger than a specified value.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_Var.Param_IVariable(), "Scalar Variable", "V", "Scalar variable whose value should be larger than a fixed value.", GH_Kernel.GH_ParamAccess.item);
             pManager.AddNumberParameter("Lower Bound", "B", "Lower Bound of the scalar variable.", GH_Kernel.GH_ParamAccess.item);
 
             pManager.AddNumberParameter("Weight", "W", "Weight of the constraint.", GH_Kernel.GH_ParamAccess.item, 1.0);
@@ -45,7 +45,7 @@ namespace Frog.Constraints.Numeric
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new Params_Cstr.Param_Constraint(), "Constraint", "C", "Vector Length Constraint", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_Cstr.Param_Constraint(), "Constraint", "C", "Constraint", GH_Kernel.GH_ParamAccess.item);
         }
 
 
@@ -82,7 +82,7 @@ namespace Frog.Constraints.Numeric
             GP.Variable dummy = new GP.Variable(dummyValue);
             GP.Interfaces.IVariable[] variables = new GP.Interfaces.IVariable[2] { scalar, dummy };
 
-            GP.ConstraintTypes.LowerBound constraintType = new GP.ConstraintTypes.LowerBound(bound);
+            GP.ConstraintTypes.Scalar.Larger constraintType = new GP.ConstraintTypes.Scalar.Larger(bound);
             GP.Constraint constraint = new GP.Constraint(constraintType, variables, weight);
 
             //     -----     Set Output     -----     //
@@ -100,7 +100,7 @@ namespace Frog.Constraints.Numeric
         public override Guid ComponentGuid => new Guid("{B885A300-C37E-41AF-A441-47F5FC25E8B7}");
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Exposure"/>
-        public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Numeric;
+        public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Scalar;
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
         protected override System.Drawing.Bitmap Icon => null;

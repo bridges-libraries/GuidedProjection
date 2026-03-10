@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using Vect = BRIDGES.Numerics.LinearAlgebra.Vectors;
 using Mat = BRIDGES.Numerics.LinearAlgebra.Matrices;
 
-using BRIDGES.Solvers.GuidedProjection.Interfaces;
+using BRIDGES.Solvers.GuidedProjection.Abstracts;
 
 
-namespace BRIDGES.Solvers.GuidedProjection.ConstraintTypes
+namespace BRIDGES.Solvers.GuidedProjection.ConstraintTypes.Scalar
 {
     /// <summary>
     /// Constraint enforcing a scalar variable to be smaller than a fixed upper bound. The list of variables of this constraint consists in:
@@ -22,34 +22,15 @@ namespace BRIDGES.Solvers.GuidedProjection.ConstraintTypes
     ///     </item>
     /// </list>
     /// </summary>
-    public class UpperBound : IConstraintType
+    public class Smaller : ConstraintType
     {
-        #region Properties
-
-        /// <summary>
-        /// Gets the local symmetric matrix Hi of the constraint.
-        /// </summary>
-        public Mat.SparseMatrix<double>? LocalHi { get; }
-
-        /// <summary>
-        /// Gets the local vector Bi of the constraint.
-        /// </summary>
-        public Vect.SparseVector<double>? LocalBi { get; }
-
-        /// <summary>
-        /// Gets the scalar value Ci of the constraint.
-        /// </summary>
-        public double Ci { get; }
-
-        #endregion
-
         #region Constructors
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="UpperBound"/> class.
+        /// Initialises a new instance of the <see cref="Smaller"/> class.
         /// </summary>
         /// <param name="bound"> Value of the upper bound. </param>
-        public UpperBound(double bound)
+        public Smaller(double bound)
         {
             //     -----     Define LocalHi     -----     //
 
@@ -78,20 +59,11 @@ namespace BRIDGES.Solvers.GuidedProjection.ConstraintTypes
 
         #endregion
 
-        #region Public Methods
 
-        /// <summary>
-        /// Creates a new object that is a deep copy of the current instance.
-        /// </summary>
-        /// <returns> A new object that is a copy of this instance. </returns>
-        public object Clone()
-        {
-            return new UpperBound(Ci);
-        }
+        #region Override : Object
 
-
-        /// <inheritdoc cref="Object.ToString()"/>
-        public override string ToString() => "Upper Bound";
+        /// <inheritdoc cref="object.ToString()"/>
+        public override string ToString() => "Scalar - Smaller - Fixed Bound";
 
         #endregion
     }

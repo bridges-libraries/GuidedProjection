@@ -1,27 +1,27 @@
 ﻿using System;
 
-using BRIDGES.Numerics.LinearAlgebra.Vectors;
-using BRIDGES.Numerics.LinearAlgebra.Matrices;
+using Mat = BRIDGES.Numerics.LinearAlgebra.Matrices;
+using Vect = BRIDGES.Numerics.LinearAlgebra.Vectors;
 
 
 namespace BRIDGES.Solvers.GuidedProjection.Interfaces
 {
     /// <summary>
-    /// Abstract class defining a constraint type.
+    /// Interface defining a constraint type.
     /// </summary>
-    public interface IConstraintType : ICloneable
+    public interface IConstraintType
     {
         #region Properties
 
         /// <summary>
         /// Gets the local symmetric matrix Hi of the constraint.
         /// </summary>
-        public SparseMatrix<double>? LocalHi { get; }
+        public Mat.SparseMatrix<double>? LocalHi { get; }
 
         /// <summary>
         /// Gets the local vector Bi of the constraint.
         /// </summary>
-        public SparseVector<double>? LocalBi { get; }
+        public Vect.SparseVector<double>? LocalBi { get; }
 
         /// <summary>
         /// Gets the scalar value Ci of the constraint.

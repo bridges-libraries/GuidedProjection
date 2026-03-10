@@ -1,21 +1,21 @@
 ﻿using System;
 
-using BRIDGES.Numerics.LinearAlgebra.Vectors;
+using Vect = BRIDGES.Numerics.LinearAlgebra.Vectors;
 
 
 namespace BRIDGES.Solvers.GuidedProjection.Interfaces
 {
     /// <summary>
-    /// Abstract class defining an energy type.
+    /// Interface defining an energy type.
     /// </summary>
-    public interface IEnergyType : ICloneable
+    public interface IEnergyType
     {
         #region Properties
 
         /// <summary>
         /// Gets the local vector Ki of this energy.
         /// </summary>
-        public SparseVector<double> LocalKi { get; }
+        public Vect.SparseVector<double> LocalKi { get; }
 
         /// <summary>
         /// Gets the scalar value Si of this energy.

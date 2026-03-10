@@ -3,7 +3,7 @@
 using GH_Kernel = Grasshopper.Kernel;
 
 
-namespace Frog.Models
+namespace Frog.Solvers
 {
     /// <summary>
     /// Exposure of the current subcategory tabs.

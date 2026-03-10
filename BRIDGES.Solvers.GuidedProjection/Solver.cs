@@ -7,6 +7,8 @@ using Vect = BRIDGES.Numerics.LinearAlgebra.Vectors;
 using BRIDGES.Numerics.LinearAlgebra.Matrices.Double;
 
 using BRIDGES.Solvers.GuidedProjection.Interfaces;
+using BRIDGES.Solvers.GuidedProjection.Abstracts;
+
 using Helpers = BRIDGES.Solvers.GuidedProjection.Helpers;
 
 
@@ -41,12 +43,12 @@ namespace BRIDGES.Solvers.GuidedProjection
         //     -----     For Quadratic Constraints     -----     //
 
         /// <summary>
-        /// Event raised whenever the members of <see cref="IUpdatedConstraintType"/> needs to be updated.
+        /// Event raised whenever the members of <see cref="UpdatedConstraintType"/> needs to be updated.
         /// </summary>
         private event Action? ConstraintUpdate;
 
         /// <summary>
-        /// Raises the event which updates the members of <see cref="IUpdatedConstraintType"/>.
+        /// Raises the event which updates the members of <see cref="UpdatedConstraintType"/>.
         /// </summary>
         private void OnConstraintUpdate()
         {
@@ -137,7 +139,10 @@ namespace BRIDGES.Solvers.GuidedProjection
 
 
         //     -----     For Results     -----     //
-
+        
+        /// <summary>
+        /// Vector containg the variables.
+        /// </summary>
         public IReadOnlyList<double> X => _x; 
 
         #endregion
@@ -509,9 +514,16 @@ namespace BRIDGES.Solvers.GuidedProjection
         {
             _constraints.Add(constraint);
 
-            if (constraint.ConstraintType is IUpdatedConstraintType updatedConstraintType)
+            if (constraint.ConstraintType is UpdatedConstraintType updatedConstraintType)
             {
-                ConstraintUpdate += () => updatedConstraintType.UpdateMembers(constraint.Variables); ;
+                ConstraintUpdate += () =>
+                {
+                    updatedConstraintType.ComputeMembers(constraint.Variables, out Mat.SparseMatrix<double>? localHi, out Vect.SparseVector<double>? localBi, out double ci);
+
+                    updatedConstraintType.LocalHi = localHi;
+                    updatedConstraintType.LocalBi = localBi;
+                    updatedConstraintType.Ci = ci;
+                };
             }
         }
 
