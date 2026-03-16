@@ -1,23 +1,81 @@
-﻿using System;
-
-using GP = BRIDGES.Solvers.GuidedProjection;
-
+﻿using BRIDGES.Solvers.GuidedProjection.Interfaces;
+using Frog.Types.Variables;
+using System;
+using System.Collections.Generic;
 using GH_Types = Grasshopper.Kernel.Types;
+using GP = BRIDGES.Solvers.GuidedProjection;
 
 
 namespace Frog.Types.Constraints
 {
     /// <summary>
-    /// Class defining a grasshopper type, which represents a constraint.
+    /// Class defining a grasshopper type, representing a <see cref="GP.Constraint"/>.
     /// </summary>
-    public class Gh_Constraint : GH_Types.GH_Goo<GP.Constraint>
+    public class Gh_Constraint : GH_Types.IGH_Goo
     {
+        #region Fields
+
+        /// <summary>
+        /// Gh_IVariables composing the local vector localX on which the <see cref="Gh_IConstraintType"/> is defined.
+        /// </summary>
+        private readonly Gh_IVariable[] _variables;
+
+        #endregion
+
+        #region Properties
+
+        /// <summary>
+        /// Gets the cumulated size of the <see cref="Variables"/>
+        /// </summary>
+        /// <remarks> It corresponds to the size of the square matrix <see cref="IConstraintType.LocalHi"/> and of the column vector <see cref="IConstraintType.LocalBi"/>. </remarks>
+        public int Size { get; init; }
+
+
+        /// /// <summary>
+        /// Gets the constraint type defining the local constraint members
+        /// <list type="table">
+        ///     <item>
+        ///         <term> <see cref="IConstraintType.LocalHi"/> </term>
+        ///         <description> Square matrix whose size is defined by the cumulated size of the <see cref="Variables"/>. </description>
+        ///     </item>
+        ///     <item>
+        ///         <term> <see cref="IConstraintType.LocalBi"/> </term>
+        ///         <description> Column vector whose size is defined by the cumulated size of the <see cref="Variables"/>. </description>
+        ///     </item>
+        ///     <item>
+        ///         <term> <see cref="IConstraintType.Ci"/> </term>
+        ///         <description> Scalar value. </description>
+        ///     </item>
+        /// </list>
+        /// </summary>
+        public Gh_IConstraintType? ConstraintType { get; private set; }
+
+        /// <summary>
+        /// Gets the variables composing the local vector localX.
+        /// </summary>
+        public IReadOnlyList<Gh_IVariable> Variables => _variables;
+
+
+        /// <summary>
+        /// Gets or sets the weight of this constraint.
+        /// </summary>
+        public double Weight { get; internal set; }
+
+        #endregion
+
         #region Constructors
 
         /// <summary>
         /// Initialises a new instance of <see cref= "Gh_Constraint" /> class.
         /// </summary>
-        public Gh_Constraint() { /* Do Nothing */ }
+        public Gh_Constraint() 
+        {
+            // Initialise Fields
+            _variables = new Gh_IVariable[0];
+
+            // Initialise Properties
+            ConstraintType = null;
+        }
 
         /// <summary>
         /// Initialises a new instance of <see cref= "Gh_Constraint" /> class from another <see cref="Gh_Constraint"/>.

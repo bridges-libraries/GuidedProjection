@@ -8,33 +8,85 @@ using GP = BRIDGES.Solvers.GuidedProjection;
 namespace Frog.Types.Variables
 {
     /// <summary>
-    /// Class defining a grasshopper type, representing a <see cref="GP.Interfaces.IVariable"/>.
+    /// Class defining a grasshopper type containing a <see cref="GP.Interfaces.IVariable"/>, enhanced with additional information.
     /// </summary>
     public class Gh_IVariable : GH_Types.GH_Goo<GP.Interfaces.IVariable>
     {
+        #region Properties
+
+        /// <summary>
+        /// Gets the set name of this Gh_IVariable.
+        /// </summary>
+        public string SetName { get; init; }
+
+        /// <summary>
+        /// Gets the index of this Gh_IVariable in the set.
+        /// </summary>
+        /// <remarks> If the index is equal to -1, there is two possibilities :
+        /// <list type="number">
+        ///     <item>
+        ///         <description> The contained <see cref="GP.Interfaces.IVariable"/> is a SubVariable. </description>
+        ///     </item>
+        ///     <item>
+        ///         <description> The contained <see cref="GP.Interfaces.IVariable"/> is null. </description>
+        ///     </item>
+        /// </list>either</remarks>
+        public int IndexInSet { get; init; }
+
+
+        /// <summary>
+        /// Gets the Rhino data type to which the Gh_IVariable corresponds.
+        /// </summary>
+        public Type? RhDataType { get; init; }
+
+        #endregion
+
         #region Constructors
 
         /// <summary>
         /// Initialises a new instance of <see cref= "Gh_IVariable" /> class.
         /// </summary>
-        public Gh_IVariable() { /* Do Nothing */ }
-
-        /// <summary>
-        /// Initialises a new instance of <see cref= "Gh_IVariable" /> class from another <see cref="Gh_IVariable"/>.
-        /// </summary>
-        /// <param name="gh_Variable"> <see cref="Gh_IVariable"/> to shallow copy. </param>
-        public Gh_IVariable(Gh_IVariable gh_Variable)
+        public Gh_IVariable()
         {
-            Value = gh_Variable.Value;
+            // Initialise Properties
+            SetName = string.Empty;
+            IndexInSet = -1;
         }
 
         /// <summary>
         /// Initialises a new instance of <see cref= "Gh_IVariable" /> class from a <see cref="GP.Interfaces.IVariable"/>.
         /// </summary>
-        /// <param name="iVariable"> <see cref="GP.Interfaces.IVariable"/> for the energies and constraints. </param>
-        public Gh_IVariable(ref GP.Interfaces.IVariable iVariable)
+        /// <param name="iVariable"> <see cref="GP.Interfaces.IVariable"/> to contain in the Gh_IVariable. </param>
+        /// <param name="name"> Name of the set to which the Gh_IVariable belongs. </param>
+        /// <param name="index"> Index of the Gh_IVariable in the set. </param>
+        /// <param name="type"> Gets the Rhino data type to which the IVariable corresponds.</param>
+        public Gh_IVariable(ref GP.Interfaces.IVariable iVariable, string name, int index, Type? type)
         {
-            Value = iVariable;
+            // Initialise Fields
+            m_value = iVariable;
+
+            // Initialise Properties
+            SetName = name;
+            IndexInSet = index;
+
+            RhDataType = type;
+        }
+
+
+        /// <summary>
+        /// Initialises a new instance of <see cref= "Gh_IVariable" /> class from another <see cref="Gh_IVariable"/>.
+        /// </summary>
+        /// <param name="gh_IVariable"> <see cref="Gh_IVariable"/> to shallow copy. </param>
+        public Gh_IVariable(Gh_IVariable gh_IVariable)
+        {
+            // Initialise Fields
+            Value = gh_IVariable.Value;
+
+            // Initialise Properties
+            SetName = gh_IVariable.SetName;
+            IndexInSet = gh_IVariable.IndexInSet;
+
+            RhDataType = gh_IVariable.RhDataType;
         }
 
         #endregion

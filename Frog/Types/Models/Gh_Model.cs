@@ -163,7 +163,7 @@ namespace Frog.Types.Models
                 {
                     return $"The model does not contain any energies.";
                 }
-                else { return $"This {TypeName} is not valid, but I don't know why"; }
+                else { return $"This {TypeName} is not valid, but the reason is not detailed"; }
                     
             }
         }
