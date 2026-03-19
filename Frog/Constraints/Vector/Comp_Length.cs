@@ -4,8 +4,10 @@ using GH_Kernel = Grasshopper.Kernel;
 
 using GP = BRIDGES.Solvers.GuidedProjection;
 
-using Params_Cstr = Frog.Parameters.Constraints;
+using Types_Var = Frog.Types.Variables;
+using Types_Cstr = Frog.Types.Constraints;
 using Params_Var = Frog.Parameters.Variables;
+using Params_Cstr = Frog.Parameters.Constraints;
 
 
 namespace Frog.Constraints.Vector
@@ -25,7 +27,7 @@ namespace Frog.Constraints.Vector
               "Constraint enforcing the length a vector variable to be equal to a fixed value.",
               GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Constraints])
         {
-            /* Do Nothing */
+            // Do Nothing
         }
 
         #endregion
@@ -54,35 +56,42 @@ namespace Frog.Constraints.Vector
         {
             //     -----     Initialisation     -----     //
 
-            GP.Interfaces.IVariable? variable = null;
+            Types_Var.Gh_IVariable vector = new Types_Var.Gh_IVariable();
             double length = 0d;
 
             double weight = 0d;
 
+
             //     -----     Get Inputs     -----     //
 
-            if (!DA.GetData(0, ref variable)) { return; };
+            if (!DA.GetData(0, ref vector)) { return; };
             if (!DA.GetData(1, ref length)) { return; };
 
             if (!DA.GetData(2, ref weight)) { weight = 1d; };
 
             //     -----     Verifications
 
-            ArgumentNullException.ThrowIfNull(variable, "The input V is null");
+            ArgumentNullException.ThrowIfNull(vector, "The input V is null");
 
 
             //     -----     Core     -----     //
 
-            int dimension = variable.Size;
-            GP.Interfaces.IVariable[] variables = new GP.Interfaces.IVariable[1] { variable };
+            int dimension = vector.Value.Size;
 
+            // Create the list of variables
+            Types_Var.Gh_IVariable[] gh_Variables = new Types_Var.Gh_IVariable[1] { vector };
+
+            // Create the constraint type
             GP.ConstraintTypes.Vector.Length constraintType = new GP.ConstraintTypes.Vector.Length(length, dimension);
-            GP.Constraint constraint = new GP.Constraint(constraintType, variables, weight);
+            Types_Cstr.Gh_IConstraintType gh_ConstraintType = new Types_Cstr.Gh_IConstraintType(constraintType);
+
+            // Create the constraint
+            Types_Cstr.Gh_Constraint gh_Constraint = new Types_Cstr.Gh_Constraint(gh_Variables, gh_ConstraintType, weight);
 
 
             //     -----     Set Output     -----     //
 
-            DA.SetData(0, constraint);
+            DA.SetData(0, gh_Constraint);
         }
 
         #endregion
@@ -95,7 +104,7 @@ namespace Frog.Constraints.Vector
         public override Guid ComponentGuid => new Guid("{3925C384-0698-405D-9C77-ACD0A85AC720}");
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Exposure"/>
-        public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Vector;
+        public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Others;
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
         protected override System.Drawing.Bitmap Icon => null;

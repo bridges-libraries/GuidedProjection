@@ -4,6 +4,8 @@ using GH_Kernel = Grasshopper.Kernel;
 
 using GP = BRIDGES.Solvers.GuidedProjection;
 
+using Types_Var = Frog.Types.Variables;
+using Types_Cstr = Frog.Types.Constraints;
 using Params_Var = Frog.Parameters.Variables;
 using Params_Cstr = Frog.Parameters.Constraints;
 
@@ -25,7 +27,7 @@ namespace Frog.Constraints.Segment
               "Constraint enforcing a segment (defined from two point variables) to be orthogonal to a vector variable.",
               GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Constraints])
         {
-            /* Do Nothing */
+            // Do Nothing
         }
 
         #endregion
@@ -54,9 +56,9 @@ namespace Frog.Constraints.Segment
         {
             //     -----     Initialisation     -----     //
 
-            GP.Interfaces.IVariable? start = null;
-            GP.Interfaces.IVariable? end = null;
-            GP.Interfaces.IVariable? normal = null;
+            Types_Var.Gh_IVariable start = new Types_Var.Gh_IVariable();
+            Types_Var.Gh_IVariable end = new Types_Var.Gh_IVariable();
+            Types_Var.Gh_IVariable normal = new Types_Var.Gh_IVariable();
 
             double weight = 0d;
 
@@ -75,24 +77,28 @@ namespace Frog.Constraints.Segment
             ArgumentNullException.ThrowIfNull(end, "The input E is null");
             ArgumentNullException.ThrowIfNull(normal, "The input V is null");
 
-            if (start.Size != end.Size) { throw new ArgumentException("The input variables S and E must have the same size."); }
-            if (start.Size != normal.Size) { throw new ArgumentException("The input variables S and V must have the same size."); }
+            if (start.Value.Size != end.Value.Size) { throw new ArgumentException("The input variables S and E don't have the same size."); }
+            if (start.Value.Size != normal.Value.Size) { throw new ArgumentException("The input variables S and V don't have the same size."); }
 
 
             //     -----     Core     -----    //
 
-            int dimension = normal.Size;
+            int dimension = normal.Value.Size;
 
+            // Create the list of variables
+            Types_Var.Gh_IVariable[] gh_Variables = new Types_Var.Gh_IVariable[3] { start, end, normal };
+
+            // Create the constraint type
             GP.ConstraintTypes.Segment.Orthogonal_Variable constraintType = new GP.ConstraintTypes.Segment.Orthogonal_Variable(dimension);
+            Types_Cstr.Gh_IConstraintType gh_ConstraintType = new Types_Cstr.Gh_IConstraintType(constraintType);
 
-            GP.Interfaces.IVariable[] variables = new GP.Interfaces.IVariable[3] { start, end, normal };
-
-            GP.Constraint constraint = new GP.Constraint(constraintType, variables, weight);
+            // Create the constraint
+            Types_Cstr.Gh_Constraint gh_Constraint = new Types_Cstr.Gh_Constraint(gh_Variables, gh_ConstraintType, weight);
 
 
             //     -----     Set Output     -----     //
 
-            DA.SetData(0, constraint);
+            DA.SetData(0, gh_Constraint);
         }
 
         #endregion

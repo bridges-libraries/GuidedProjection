@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Grasshopper.GUI;
+using System;
 
 using GH_Types = Grasshopper.Kernel.Types;
 
@@ -8,7 +9,7 @@ using GP = BRIDGES.Solvers.GuidedProjection;
 namespace Frog.Types.Variables
 {
     /// <summary>
-    /// Class defining a grasshopper type containing a <see cref="GP.Interfaces.IVariable"/>, enhanced with additional information.
+    /// Class defining a grasshopper type which contains a <see cref="GP.Interfaces.IVariable"/>, enhanced with additional information.
     /// </summary>
     public class Gh_IVariable : GH_Types.GH_Goo<GP.Interfaces.IVariable>
     {
@@ -28,6 +29,9 @@ namespace Frog.Types.Variables
         ///         <description> The contained <see cref="GP.Interfaces.IVariable"/> is a SubVariable. </description>
         ///     </item>
         ///     <item>
+        ///         <description> The contained <see cref="GP.Interfaces.IVariable"/> is a Variable but the indexing could not be achieved. </description>
+        ///     </item>
+        ///     <item>
         ///         <description> The contained <see cref="GP.Interfaces.IVariable"/> is null. </description>
         ///     </item>
         /// </list>either</remarks>
@@ -37,7 +41,7 @@ namespace Frog.Types.Variables
         /// <summary>
         /// Gets the Rhino data type to which the Gh_IVariable corresponds.
         /// </summary>
-        public Type? RhDataType { get; init; }
+        public RhinoDataType DataType { get; init; }
 
         #endregion
 
@@ -60,8 +64,11 @@ namespace Frog.Types.Variables
         /// <param name="name"> Name of the set to which the Gh_IVariable belongs. </param>
         /// <param name="index"> Index of the Gh_IVariable in the set. </param>
         /// <param name="type"> Gets the Rhino data type to which the IVariable corresponds.</param>
-        public Gh_IVariable(ref GP.Interfaces.IVariable iVariable, string name, int index, Type? type)
+        public Gh_IVariable(ref GP.Interfaces.IVariable iVariable, string name, int index, RhinoDataType type)
         {
+            //     -----     Verifications
+            if (type == RhinoDataType.Point & iVariable.Size != 3 ) { throw new ArgumentException("The size of the point variable is not equal three"); }
+
             // Initialise Fields
             m_value = iVariable;
 
@@ -69,7 +76,7 @@ namespace Frog.Types.Variables
             SetName = name;
             IndexInSet = index;
 
-            RhDataType = type;
+            DataType = type;
         }
 
 
@@ -86,7 +93,7 @@ namespace Frog.Types.Variables
             SetName = gh_IVariable.SetName;
             IndexInSet = gh_IVariable.IndexInSet;
 
-            RhDataType = gh_IVariable.RhDataType;
+            DataType = gh_IVariable.DataType;
         }
 
         #endregion
@@ -97,7 +104,22 @@ namespace Frog.Types.Variables
         //     -----     Properties     -----     //
 
         /// <inheritdoc cref="GH_Types.GH_Goo{T}.IsValid"/>
-        public override bool IsValid => Value is not null;
+        public override bool IsValid => Value is not null && Value.Size != 0;
+
+        /// <inheritdoc cref="GH_Types.GH_Goo{T}.IsValidWhyNot"/>
+        public override string IsValidWhyNot
+        {
+            get
+            {
+                if (IsValid) { return string.Empty; }
+                else
+                {
+                    if (Value is null) { return "The contained IVariable is null."; }
+                    else if (Value.Size == 0) { return "The containe IVariable is empty."; }
+                    else { return $"This {TypeName} is not valid, but the reason is not detailed"; }
+                }
+            }
+        }
 
         /// <inheritdoc cref="GH_Types.GH_Goo{T}.TypeDescription"/>
         public override string TypeDescription => $"Grasshopper type containing a {typeof(GP.Interfaces.IVariable)}.";
@@ -119,32 +141,6 @@ namespace Frog.Types.Variables
 
             var type = source.GetType();
 
-            //     -----     BRIDGES Objects     -----     //
-
-            // Cast a GP.Interfaces.IVariable to a Gh_Variable
-            if (typeof(GP.Interfaces.IVariable).IsAssignableFrom(type))
-            {
-                Value = (GP.Interfaces.IVariable)source;
-
-                return true;
-            }
-
-            // Cast a GP.Variable to a Gh_Variable
-            if (typeof(GP.Variable).IsAssignableFrom(type))
-            {
-                Value = (GP.Variable)source;
-
-                return true;
-            }
-
-            // Cast a GP.SubVariable to a Gh_Variable
-            if (typeof(GP.SubVariable).IsAssignableFrom(type))
-            {
-                Value = (GP.SubVariable)source;
-
-                return true;
-            }
-
             //     -----     Otherwise     -----     //
 
             return false;
@@ -153,32 +149,25 @@ namespace Frog.Types.Variables
         /// <inheritdoc cref="GH_Types.GH_Goo{T}.CastTo{Q}(ref Q)"/>
         public override bool CastTo<T>(ref T target)
         {
+            //     -----     Grasshopper Objects     -----     //
 
-            //     -----     BRIDGES Objects     -----     //
-
-            // Casts a Gh_Variable to a GP.Interfaces.IVariable
-            if (typeof(T).IsAssignableFrom(typeof(GP.Interfaces.IVariable)))
+            // Casts a Gh_IVariable to a Rhino.Geometry.Point3d
+            if (DataType == RhinoDataType.Point & typeof(T).IsAssignableFrom(typeof(GH_Types.GH_Point)) )
             {
-                GP.Interfaces.IVariable iVariable = Value;
-                target = (T)iVariable;
+                Rhino.Geometry.Point3d point = new Rhino.Geometry.Point3d(Value[0], Value[1], Value[2]);
+                GH_Types.GH_Point gh_Point = new GH_Types.GH_Point(point);
+                target = (T)(object)gh_Point;
 
                 return true;
             }
 
-            // Casts a Gh_Variable to a GP.Variable
-            if (typeof(T).IsAssignableFrom(typeof(GP.Variable)))
-            {
-                object variable = (GP.Variable)Value;
-                target = (T)variable;
+            //     -----     Rhino Objects     -----     //
 
-                return true;
-            }
-
-            // Casts a Gh_Variable to a GP.SubVariable
-            if (typeof(T).IsAssignableFrom(typeof(GP.SubVariable)))
+            // Casts a Gh_IVariable to a Rhino.Geometry.Point3d
+            if (typeof(T).IsAssignableFrom(typeof(Rhino.Geometry.Point3d)) & DataType == RhinoDataType.Point)
             {
-                object subvariable = (GP.SubVariable)Value;
-                target = (T)subvariable;
+                Rhino.Geometry.Point3d point = new Rhino.Geometry.Point3d(Value[0], Value[1], Value[2]);
+                target = (T)(object)point;
 
                 return true;
             }

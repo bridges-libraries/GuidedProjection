@@ -1,10 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 
 using GH_Kernel = Grasshopper.Kernel;
 
 using GP = BRIDGES.Solvers.GuidedProjection;
 
+using Types_Var = Frog.Types.Variables;
+using Types_Cstr = Frog.Types.Constraints;
 using Params_Var = Frog.Parameters.Variables;
 using Params_Cstr = Frog.Parameters.Constraints;
 
@@ -26,7 +27,7 @@ namespace Frog.Constraints.Scalar
               "Constraint enforcing a vector variable to be equal to a fixed vector.",
               GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Constraints])
         {
-            /* Do Nothing */
+            // Do Nothing
         }
 
         #endregion
@@ -54,36 +55,41 @@ namespace Frog.Constraints.Scalar
         {
             //     -----     Initialisation     -----     //
 
-            GP.Interfaces.IVariable? variable = null;
+            Types_Var.Gh_IVariable scalar = new Types_Var.Gh_IVariable();
             double target = 0d;
 
             double weight = 0d;
 
+
             //     -----     Get Inputs     -----     //
 
-            if (!DA.GetData(0, ref variable)) { return; }
+            if (!DA.GetData(0, ref scalar)) { return; }
             if (!DA.GetData(1, ref target)) { return; }
 
             if (!DA.GetData(2, ref weight)) { return; }
 
             //     -----     Verifications
 
-            ArgumentNullException.ThrowIfNull(variable, "The input V is null");
-            if (variable.Size != 1) { throw new ArgumentException("The inputs V and T do not have the same length."); }
+            ArgumentNullException.ThrowIfNull(scalar, "The input V is null");
+            if (scalar.Value.Size != 1) { throw new ArgumentException("The input V is not a scalar variable."); }
 
 
             //     -----     Core     -----     //
 
+            // Create the list of variables
+            Types_Var.Gh_IVariable[] gh_Variables = new Types_Var.Gh_IVariable[1] { scalar };
+
+            // Create the constraint type
             GP.ConstraintTypes.Scalar.Equal constraintType = new GP.ConstraintTypes.Scalar.Equal(target);
+            Types_Cstr.Gh_IConstraintType gh_ConstraintType = new Types_Cstr.Gh_IConstraintType(constraintType);
 
-            GP.Interfaces.IVariable[] variables = new GP.Interfaces.IVariable[1] { variable };
-
-            GP.Constraint constraint = new GP.Constraint(constraintType, variables, weight);
+            // Create the constraint
+            Types_Cstr.Gh_Constraint gh_Constraint = new Types_Cstr.Gh_Constraint(gh_Variables, gh_ConstraintType, weight);
 
 
             //     -----     Set Output     -----     //
 
-            DA.SetData(0, constraint);
+            DA.SetData(0, gh_Constraint);
         }
 
         #endregion

@@ -1,11 +1,13 @@
 ﻿using System;
 
-using GP = BRIDGES.Solvers.GuidedProjection;
-
 using GH_Kernel = Grasshopper.Kernel;
 
-using Params_Cstr = Frog.Parameters.Constraints;
+using GP = BRIDGES.Solvers.GuidedProjection;
+
+using Types_Var = Frog.Types.Variables;
+using Types_Cstr = Frog.Types.Constraints;
 using Params_Var = Frog.Parameters.Variables;
+using Params_Cstr = Frog.Parameters.Constraints;
 
 
 namespace Frog.Constraints.Segment
@@ -25,7 +27,7 @@ namespace Frog.Constraints.Segment
               "Constraint enforcing the length of a segment (defined from two point variables) to be equal to a scalar variable.",
               GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Constraints])
         {
-            /* Do Nothing */
+            // Do Nothing
         }
 
         #endregion
@@ -55,9 +57,9 @@ namespace Frog.Constraints.Segment
         {
             //     -----     Initialisation     -----     //
 
-            GP.Interfaces.IVariable? start = null;
-            GP.Interfaces.IVariable? end = null;
-            GP.Interfaces.IVariable? length = null;
+            Types_Var.Gh_IVariable start = new Types_Var.Gh_IVariable() ;
+            Types_Var.Gh_IVariable end = new Types_Var.Gh_IVariable();
+            Types_Var.Gh_IVariable length = new Types_Var.Gh_IVariable();
 
             double weight = 0d;
 
@@ -76,21 +78,27 @@ namespace Frog.Constraints.Segment
             ArgumentNullException.ThrowIfNull(end, "The input E is null");
             ArgumentNullException.ThrowIfNull(length, "The input L is null");
 
-            if (start.Size != end.Size) { throw new ArgumentException("The input variables S and E must have the same size."); } 
+            if (start.Value.Size != end.Value.Size) { throw new ArgumentException("The input variables S and E don't have the same size."); } 
 
 
             //     -----     Core     -----    //
 
-            int dimension = start.Size;
-            GP.Interfaces.IVariable[] variables = new GP.Interfaces.IVariable[3] { start, end, length };
+            int dimension = start.Value.Size;
 
+            // Create the list of variables
+            Types_Var.Gh_IVariable[] gh_Variables = new Types_Var.Gh_IVariable[3] { start, end, length };
+
+            // Create the constraint type
             GP.ConstraintTypes.Segment.Length_Variable constraintType = new GP.ConstraintTypes.Segment.Length_Variable(dimension);
-            GP.Constraint constraint = new GP.Constraint(constraintType, variables, weight);
+            Types_Cstr.Gh_IConstraintType gh_ConstraintType = new Types_Cstr.Gh_IConstraintType(constraintType);
+
+            // Create the constraint
+            Types_Cstr.Gh_Constraint gh_Constraint = new Types_Cstr.Gh_Constraint(gh_Variables, gh_ConstraintType, weight);
 
 
             //     -----     Set Output     -----     //
 
-            DA.SetData(0, constraint);
+            DA.SetData(0, gh_Constraint);
         }
 
         #endregion

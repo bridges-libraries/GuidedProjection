@@ -29,7 +29,7 @@ namespace Frog.Parameters.Variables
           : base("Variable", "Variable", "Contains a collection of variables or sub-variables for the constraints and energies",
                 GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Parameters], GH_Kernel.GH_ParamAccess.item)
         {
-            /* Do Nothing */
+            // Do Nothing
         }
 
         #endregion
@@ -38,7 +38,7 @@ namespace Frog.Parameters.Variables
         #region Override : GH_DocumentObject
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.ComponentGuid"/>
-        public override Guid ComponentGuid => new Guid("{5FD2AD0A-F0FD-4C60-8C37-284BD546A7C9}");
+        public override Guid ComponentGuid => new Guid("{00AE904F-69E5-4CEE-AD27-2A5F79F5D724}");
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Exposure"/>
         public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Variables;

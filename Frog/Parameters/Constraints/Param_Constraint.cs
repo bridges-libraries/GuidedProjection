@@ -26,10 +26,10 @@ namespace Frog.Parameters.Constraints
         /// Creates a new instance of <see cref="Param_Constraint"/>.
         /// </summary>
         public Param_Constraint()
-          : base("Constraint", "Constraint", "Contains a collection of constraints for the Guided Projection Algorithm.",
+          : base("Constraint", "Constraint", "Contains a collection of constraints.",
                 GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Parameters], GH_Kernel.GH_ParamAccess.item)
         {
-            /* Do Nothing */
+            // Do Nothing
         }
 
         #endregion

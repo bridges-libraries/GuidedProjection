@@ -27,13 +27,14 @@ namespace Frog.Parameters.Models
         /// Creates a new instance of <see cref="Param_Model"/>.
         /// </summary>
         public Param_Model()
-          : base("Model", "Model", "Contains a computed model using the Guided Projection Algorithm.",
+          : base("Model", "Model", "Contains a computed model.",
                 GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Parameters], GH_Kernel.GH_ParamAccess.item)
         {
             /* Do Nothing */
         }
 
         #endregion
+
 
         #region Override : GH_DocumentObject
 

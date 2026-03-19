@@ -32,7 +32,7 @@ namespace Frog.Types.Constraints
         /// <summary>
         /// Initialises a new instance of <see cref= "Gh_IConstraintType" /> class from another <see cref="Gh_IConstraintType"/>.
         /// </summary>
-        /// <param name="gh_IConstraintType"> <see cref="Gh_IConstraintType"/> to duplicate. </param>
+        /// <param name="gh_IConstraintType"> <see cref="Gh_IConstraintType"/> to shallow copy. </param>
         public Gh_IConstraintType(Gh_IConstraintType gh_IConstraintType)
         {
             Value = gh_IConstraintType.Value;

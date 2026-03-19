@@ -3,12 +3,12 @@
 using GH_Kernel = Grasshopper.Kernel;
 
 
-namespace Frog.Parameters.Variables
+namespace Frog.Parameters.Constraints
 {
     /// <summary>
-    /// A <see cref="Types.Variables.Gh_SetOfVariables"/> grasshopper parameter.
+    /// A <see cref="Types.Constraints.Gh_IConstraintType"/> grasshopper parameter.
     /// </summary>
-    public class Param_SetOfVariables : GH_Kernel.GH_Param<Types.Variables.Gh_SetOfVariables>
+    public class Param_ConstraintType : GH_Kernel.GH_Param<Types.Constraints.Gh_IConstraintType>
     {
         #region Properties
 
@@ -23,13 +23,13 @@ namespace Frog.Parameters.Variables
         #region Constructors
 
         /// <summary>
-        /// Creates a new instance of <see cref="Param_SetOfVariables"/>.
+        /// Creates a new instance of <see cref="Param_ConstraintType"/>.
         /// </summary>
-        public Param_SetOfVariables()
-          : base("Set of Variables", "Var. Set", "Contains a collection of sets of variables for the Guided Projection Algorithm.",
+        public Param_ConstraintType()
+          : base("Constraint Type", "Constraint Type", "Contains a collection of constraint types.",
                 GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Parameters], GH_Kernel.GH_ParamAccess.item)
         {
-            /* Do Nothing */
+            // Do Nothing
         }
 
         #endregion
@@ -38,10 +38,10 @@ namespace Frog.Parameters.Variables
         #region Override : GH_DocumentObject
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.ComponentGuid"/>
-        public override Guid ComponentGuid => new Guid("{FD42CE01-3191-40FA-9784-D2A1520DD1E7}");
+        public override Guid ComponentGuid => new Guid("{CE714A8B-8A94-4880-8B14-DE54C0B69976}");
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Exposure"/>
-        public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Variables;
+        public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Constraints;
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
         protected override System.Drawing.Bitmap Icon => null;

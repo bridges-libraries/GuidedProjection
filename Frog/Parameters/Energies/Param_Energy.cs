@@ -26,10 +26,10 @@ namespace Frog.Parameters.Energies
         /// Creates a new instance of <see cref="Param_Energy"/>.
         /// </summary>
         public Param_Energy()
-          : base("Energy", "Energy", "Contains a collection of energies for the Guided Projection Algorithm.",
+          : base("Energy", "Energy", "Contains a collection of energies.",
                 GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Parameters], GH_Kernel.GH_ParamAccess.item)
         {
-            /* Do Nothing */
+            // Do Nothing
         }
 
         #endregion

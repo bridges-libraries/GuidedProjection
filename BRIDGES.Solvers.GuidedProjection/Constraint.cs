@@ -91,7 +91,7 @@ namespace BRIDGES.Solvers.GuidedProjection
                 throw new ArgumentException($"The square matrix {nameof(ConstraintType.LocalHi)} and the column vector {nameof(ConstraintType.LocalBi)} cannot be both null."); 
             }
 
-            if (ConstraintType.LocalHi is not null && (ConstraintType.LocalHi.RowCount != Size | ConstraintType.LocalHi.RowCount != Size))
+            if (ConstraintType.LocalHi is not null && (ConstraintType.LocalHi.RowCount != Size | ConstraintType.LocalHi.ColumnCount != Size))
             {
                 throw new ArgumentException($"The size of the square matrix {nameof(ConstraintType.LocalHi)} must be equal to the cumulated size of the {nameof(Variables)}");
             }

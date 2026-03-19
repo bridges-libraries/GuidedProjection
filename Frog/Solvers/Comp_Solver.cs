@@ -1,13 +1,18 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 
 using GH_Kernel = Grasshopper.Kernel;
 
 using GP = BRIDGES.Solvers.GuidedProjection;
 
+using Types_Var = Frog.Types.Variables;
+using Types_Cstr = Frog.Types.Constraints;
+
 
 namespace Frog.Solvers
 {
+/*
     /// <summary>
     /// A grasshopper component creating a <see cref="GP.Solver"/> model.
     /// </summary>
@@ -40,6 +45,11 @@ namespace Frog.Solvers
         /// Sets of variables of the computed model.
         /// </summary>
         private Dictionary<string, List<GP.Variable>>? _setsOfVariables;
+
+        /// <summary>
+        /// Sets of constraints of the computed model.
+        /// </summary>
+        private Dictionary<string, List<GP.Constraint>>? _setsOfConstraints;
 
 
         //     -----     GH_Component Utilities     -----     //
@@ -81,7 +91,7 @@ namespace Frog.Solvers
           : base("GPA Solver", "GPA", "Creates and solves a model using the Guided Projection Algorithm (GPA).",
               GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Solvers])
         {
-            // Nothing To Do
+            // Do Nothing
         }
 
         #endregion
@@ -99,7 +109,6 @@ namespace Frog.Solvers
         {
             //     -----     Initialisation     -----     //
 
-            List<Types.Variables.Gh_SetOfVariables> gh_SetsOfVariables = new List<Types.Variables.Gh_SetOfVariables>();
             List<Types.Constraints.Gh_Constraint> gh_Constraints = new List<Types.Constraints.Gh_Constraint>();
             List<Types.Energies.Gh_Energy> gh_Energies = new List<Types.Energies.Gh_Energy>();
 
@@ -107,11 +116,10 @@ namespace Frog.Solvers
 
             //     -----     Get Inputs     -----     //
 
-            DA.GetDataList(0, gh_SetsOfVariables);
-            if (!DA.GetDataList(1, gh_Constraints)) { return; }
-            DA.GetDataList(2, gh_Energies);
+            if (!DA.GetDataList(0, gh_Constraints)) { return; }
+            DA.GetDataList(1, gh_Energies);
 
-            if (!DA.GetData(3, ref iterationCount)) { return; }
+            if (!DA.GetData(2, ref iterationCount)) { return; }
 
             //     -----     Verifications
 
@@ -122,7 +130,7 @@ namespace Frog.Solvers
 
             //     -----     Core     -----     //
 
-            GP.Solver gpa = CreateModel(Epsilon, iterationCount, gh_SetsOfVariables, gh_Constraints, gh_Energies);
+            GP.Solver gpa = CreateModel(Epsilon, iterationCount, gh_Constraints, gh_Energies);
 
             gpa.InitialiseX();
 
@@ -142,11 +150,12 @@ namespace Frog.Solvers
         /// <param name="gh_Constraints"></param>
         /// <param name="gh_Energies"></param>
         /// <returns></returns>
-        private GP.Solver CreateModel(double epsilon, int maxIteration, List<Types.Variables.Gh_SetOfVariables> gh_SetsOfVariables, List<Types.Constraints.Gh_Constraint> gh_Constraints, List<Types.Energies.Gh_Energy> gh_Energies)
+        private GP.Solver CreateModel(double epsilon, int maxIteration, List<Types_Cstr.Gh_Constraint> gh_Constraints, List<Types.Energies.Gh_Energy> gh_Energies)
         {
             GP.Solver gpa = new GP.Solver(epsilon, maxIteration);
 
-            AddVariablesToModel(gh_SetsOfVariables, ref gpa, out Dictionary<GP.Variable, GP.Variable> oldToNew);
+
+            AddVariablesToModel(ref gpa, out Dictionary<GP.Variable, GP.Variable> oldToNew);
 
             AddConstraintsToModel(gh_Constraints, ref gpa, ref oldToNew);
             AddEnergiesToModel(gh_Energies, ref gpa, ref oldToNew);
@@ -167,7 +176,7 @@ namespace Frog.Solvers
         /// <param name="gpa"> The model to operate on. </param>
         /// <param name="oldToNew"> The dictionary translating the input variables into model variables. </param>
         /// <returns> A dictionary translating the input variables into model variables. </returns>
-        private void AddVariablesToModel(List<Types.Variables.Gh_SetOfVariables> gh_SetsOfVariables, ref GP.Solver gpa, out Dictionary<GP.Variable, GP.Variable> oldToNew)
+        private void AddVariablesToModel(ref GP.Solver gpa, out Dictionary<GP.Variable, GP.Variable> oldToNew)
         {
             oldToNew = new Dictionary<GP.Variable, GP.Variable>();
             _setsOfVariables = new Dictionary<string, List<GP.Variable>>();
@@ -206,6 +215,17 @@ namespace Frog.Solvers
                 }
             }
         }
+
+
+        private void AddConstraints(GP.Solver gpa, List<Types_Cstr.Gh_Constraint> gh_Constraints)
+        {
+            foreach(Types_Cstr.Gh_Constraint gh_Constraint in gh_Constraints)
+            {
+                IReadOnlyList<Types_Var.Gh_IVariable> gh_Variables = gh_Constraint.Variables;
+                Types_Cstr.Gh_IConstraintType gh_ConstraintType = gh_Constraint.ConstraintType;
+            }
+        }
+
 
         /// <summary>
         /// Sorts and adds the input grasshopper constraints to the model.
@@ -370,7 +390,6 @@ namespace Frog.Solvers
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterInputParams(GH_InputParamManager)"/>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddParameter(new Parameters.Variables.Param_SetOfVariables(), "Sets of Variables", "S", "Sets of variables used by the energies and constraints.", GH_Kernel.GH_ParamAccess.list);
             pManager.AddParameter(new Parameters.Constraints.Param_Constraint(), "Constraints", "C", "Constraints for the model.", GH_Kernel.GH_ParamAccess.list);
             pManager.AddParameter(new Parameters.Energies.Param_Energy(), "Energies", "E", "Energies for the model.", GH_Kernel.GH_ParamAccess.list);
 
@@ -397,7 +416,7 @@ namespace Frog.Solvers
 
             //     -----     Get Inputs     -----     //
 
-            if (!DA.GetData(4, ref run)) { return; }
+            if (!DA.GetData(3, ref run)) { return; }
 
 
             //     -----     Core     -----     //
@@ -507,5 +526,5 @@ namespace Frog.Solvers
 
         #endregion
     }
-
+*/
 }

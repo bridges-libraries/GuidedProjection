@@ -4,6 +4,8 @@ using GP = BRIDGES.Solvers.GuidedProjection;
 
 using GH_Kernel = Grasshopper.Kernel;
 
+using Types_Var = Frog.Types.Variables;
+using Types_Cstr = Frog.Types.Constraints;
 using Params_Var = Frog.Parameters.Variables;
 using Params_Cstr = Frog.Parameters.Constraints;
 
@@ -25,7 +27,7 @@ namespace Frog.Constraints.Scalar
               "Constraint enforcing a scalar variable to be smaller than a fixed value.",
               GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Constraints])
         {
-            /* Do Nothing */
+            // Do Nothing
         }
 
         #endregion
@@ -54,7 +56,7 @@ namespace Frog.Constraints.Scalar
         {
             //     -----     Initialisation     -----     //
 
-            GP.Interfaces.IVariable? scalar = null;
+            Types_Var.Gh_IVariable scalar = new Types_Var.Gh_IVariable();
             double bound = 0d;
 
             double weight = 0d;
@@ -70,25 +72,33 @@ namespace Frog.Constraints.Scalar
             //    ----    Verifications
 
             ArgumentNullException.ThrowIfNull(scalar, "The input V is null");
-            if (scalar.Size != 1) { throw new ArgumentException("The input V is not a scalar variable."); }
+            if (scalar.Value.Size != 1) { throw new ArgumentException("The input V is not a scalar variable."); }
 
 
             //     -----     Core     -----    //
 
-            double dummyValue = scalar[0] - bound;
+            // Create a dummy variable
+            double dummyValue = scalar.Value[0] - bound;
             if (dummyValue > 0) { dummyValue = Math.Sqrt(dummyValue); }
             else { dummyValue = Math.Sqrt(-dummyValue); }
 
-            GP.Variable dummy = new GP.Variable(dummyValue);
-            GP.Interfaces.IVariable[] variables = new GP.Interfaces.IVariable[2] { scalar, dummy };
+            GP.Interfaces.IVariable dummy = new GP.Variable(dummyValue);
+            Types_Var.Gh_IVariable gh_Dummy = new Types_Var.Gh_IVariable(ref dummy, "Dummy - Smaller", -1, Types_Var.RhinoDataType.Scalar);
 
+            // Create the list of variables
+            Types_Var.Gh_IVariable[] gh_Variables = new Types_Var.Gh_IVariable[2] { scalar, gh_Dummy };
+
+            // Create the constraint type
             GP.ConstraintTypes.Scalar.Smaller constraintType = new GP.ConstraintTypes.Scalar.Smaller(bound);
-            GP.Constraint constraint = new GP.Constraint(constraintType, variables, weight);
+            Types_Cstr.Gh_IConstraintType gh_ConstraintType = new Types_Cstr.Gh_IConstraintType(constraintType);
+
+            // Create the constraint
+            Types_Cstr.Gh_Constraint gh_Constraint = new Types_Cstr.Gh_Constraint(gh_Variables, gh_ConstraintType, weight);
 
 
             //     -----     Set Output     -----     //
 
-            DA.SetData(0, constraint);
+            DA.SetData(0, gh_Constraint);
         }
 
         #endregion
