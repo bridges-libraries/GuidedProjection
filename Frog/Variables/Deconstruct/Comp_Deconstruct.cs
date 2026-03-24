@@ -5,21 +5,24 @@ using GP = BRIDGES.Solvers.GuidedProjection;
 
 using GH_Kernel = Grasshopper.Kernel;
 
+using Types_Var = Frog.Types.Variables;
+
 
 namespace Frog.Variables.Deconstruct
 {
     /// <summary>
-    /// A grasshopper component creating a multi-dimensional <see cref="GP.Variable"/>.
+    /// A grasshopper component listing the coordinates of the <see cref="GP.Interfaces.IVariable"/>.
     /// </summary>
-    public class Comp_FindSetOfVariables : GH_Kernel.GH_Component
+    public class Comp_DeconstructVariable : GH_Kernel.GH_Component
     {
         #region Constructors
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="Comp_FindSetOfVariables"/> class.
+        /// Initialises a new instance of the <see cref="Comp_DeconstructVariable"/> class.
         /// </summary>
-        public Comp_FindSetOfVariables()
-          : base("Find Set", "Find", "Retrieves the variables of a set.",
+        public Comp_DeconstructVariable()
+          : base("Deconstruct Variable", "Dec. Var.",
+              "Returns the coordinates of the variable or sub-variable.",
               GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Variables])
         {
             /* Do Nothing */
@@ -33,14 +36,13 @@ namespace Frog.Variables.Deconstruct
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterInputParams(GH_InputParamManager)"/>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddTextParameter("Name", "N", "Name of the set of variables to retrieve.", GH_Kernel.GH_ParamAccess.item);
-            pManager.AddParameter(new Parameters.Models.Param_Model(), "Computed Model", "M", "Computed model obtained with the Guided Projection Algorithm.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Parameters.Variables.Param_IVariable(), "Variable", "V", "Variable whose coordinates are listed.", GH_Kernel.GH_ParamAccess.item);
         }
 
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("Variable's Components", "V", "Components of the variables contained in Set.", GH_Kernel.GH_ParamAccess.tree);
+            pManager.AddNumberParameter("Coordinate Values", "C", "Coordinates of the variable.", GH_Kernel.GH_ParamAccess.list);
         }
 
 
@@ -49,39 +51,44 @@ namespace Frog.Variables.Deconstruct
         {
             //     -----     Initialisation     -----     //
 
-            string name = "";
-            Types.Models.Gh_Model gh_Model = new Types.Models.Gh_Model();
+            Types_Var.Gh_IVariable gh_IVariable = new Types_Var.Gh_IVariable();
+
 
             //     -----      Get Inputs     -----     //
 
-            if (!DA.GetData(0, ref name)) { return; };
-            if (!DA.GetData(1, ref gh_Model)) { return; };
+            if (!DA.GetData(0, ref gh_IVariable)) { return; }
+            
 
-            //     -----     Verifications
+            //    ----    Verifications
 
-            ArgumentNullException.ThrowIfNull(name);
-            ArgumentNullException.ThrowIfNull(gh_Model);
+            ArgumentNullException.ThrowIfNull(gh_IVariable, "The input V is null");
+            ArgumentNullException.ThrowIfNull(gh_IVariable.Value, "The input V is null");
 
 
             //     -----     Core     -----    //
 
-            Grasshopper.DataTree<double> tree = new Grasshopper.DataTree<double>();
+            List<double> coordinates = new List<double>(gh_IVariable.Size);
 
-            if (gh_Model.SetsOfVariables is not null && 
-                gh_Model.SetsOfVariables.TryGetValue(name, out List<GP.Variable>? set))
+            if (gh_IVariable.Value is Types_Var.Gh_Variable gh_Variable) 
             {
-                for (int i_Variable = 0; i_Variable < set.Count; i_Variable++)
+                for (int i = 0; i < gh_IVariable.Size; i++)
                 {
-                    GP.Variable variable = set[i_Variable];
-
-                    tree.AddRange(variable.ToArray(), new GH_Kernel.Data.GH_Path(i_Variable));
+                    coordinates.Add(gh_Variable[i]);
                 }
             }
-            else { AddRuntimeMessage(GH_Kernel.GH_RuntimeMessageLevel.Warning, "No set with the specified name was found in the model."); }
+            else if (gh_IVariable.Value is Types_Var.Gh_SubVariable gh_SubVariable)
+            {
+                for (int i = 0; i < gh_IVariable.Size; i++)
+                {
+                    coordinates.Add(gh_SubVariable[i]);
+                }
+            }
+            else { throw new InvalidCastException("The input V could not be casted to a variable or a subvariable"); }
 
+            
             //     -----     Set Output     -----     //
 
-            DA.SetDataTree(0, tree);
+            DA.SetDataList(0, coordinates);
         }
 
         #endregion
@@ -91,10 +98,10 @@ namespace Frog.Variables.Deconstruct
         //     -----     Properties     -----     //
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.ComponentGuid"/>
-        public override Guid ComponentGuid => new Guid("{48082F7A-C36C-431C-88C3-6A52008FCEE5}");
+        public override Guid ComponentGuid => new Guid("{92B3D942-8F43-45E2-971D-338FAA32FB52}");
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
-        protected override System.Drawing.Bitmap Icon
+        protected override System.Drawing.Bitmap? Icon
         {
             get
             {

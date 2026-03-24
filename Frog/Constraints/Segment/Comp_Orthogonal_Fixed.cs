@@ -77,13 +77,13 @@ namespace Frog.Constraints.Segment
             ArgumentNullException.ThrowIfNull(start, "The input S is null");
             ArgumentNullException.ThrowIfNull(end, "The input E is null");
 
-            if (start.Value.Size != end.Value.Size) { throw new ArgumentException("The input variables S and E don't have the same size."); }
-            if (start.Value.Size > 3) { throw new ArgumentException("The size of the input variable S must be lower or equal to 3."); }
+            if (start.Size != end.Size) { throw new ArgumentException("The input variables S and E don't have the same size."); }
+            if (start.Size > 3) { throw new ArgumentException("The size of the input variable S must be lower or equal to 3."); }
 
 
             //     -----     Core     -----    //
 
-            int dimension = start.Value.Size;
+            int dimension = start.Size;
             double[] components = new double[dimension];
             for (int i = 0; i < dimension; i++)
             {
@@ -117,7 +117,7 @@ namespace Frog.Constraints.Segment
         public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Segment;
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
-        protected override System.Drawing.Bitmap Icon => null;
+        protected override System.Drawing.Bitmap? Icon => null;
 
         #endregion
     }

@@ -76,7 +76,7 @@ namespace Frog.Constraints.Vector
 
             //     -----     Core     -----     //
 
-            int dimension = vector.Value.Size;
+            int dimension = vector.Size;
 
             // Create the list of variables
             Types_Var.Gh_IVariable[] gh_Variables = new Types_Var.Gh_IVariable[1] { vector };
@@ -107,7 +107,7 @@ namespace Frog.Constraints.Vector
         public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Others;
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
-        protected override System.Drawing.Bitmap Icon => null;
+        protected override System.Drawing.Bitmap? Icon => null;
 
         #endregion
     }

@@ -15,33 +15,39 @@ namespace Frog.Types.Constraints
         #region Constructors
 
         /// <summary>
-        /// Initialises a new instance of <see cref= "Gh_IConstraintType" /> class.
+        /// Initialises a new instance of <see cref= "Gh_EnergyType" /> class.
         /// </summary>
         public Gh_IConstraintType() { /* Do Nothing */ }
 
         /// <summary>
-        /// Initialises a new instance of <see cref= "Gh_IConstraintType" /> class from a <see cref="GP.Interfaces.IConstraintType"/>.
+        /// Initialises a new instance of <see cref= "Gh_EnergyType" /> class from a <see cref="GP.Interfaces.IConstraintType"/>.
         /// </summary>
-        /// <param name="constraint"> <see cref="GP.Constraint"/> to store. </param>
+        /// <param name="iConstraintType"> <see cref="GP.Interfaces.IConstraintType"/> to store. </param>
         public Gh_IConstraintType(GP.Interfaces.IConstraintType iConstraintType)
         {
-            Value = iConstraintType;
+            //     -----     Initialisations     -----     //
+
+            // Initialise Fields
+            m_value = iConstraintType;
         }
 
 
         /// <summary>
-        /// Initialises a new instance of <see cref= "Gh_IConstraintType" /> class from another <see cref="Gh_IConstraintType"/>.
+        /// Initialises a new instance of <see cref= "Gh_EnergyType" /> class from another <see cref="Gh_EnergyType"/>.
         /// </summary>
         /// <param name="gh_IConstraintType"> <see cref="Gh_IConstraintType"/> to shallow copy. </param>
         public Gh_IConstraintType(Gh_IConstraintType gh_IConstraintType)
         {
-            Value = gh_IConstraintType.Value;
+            //     -----     Initialisations     -----     //
+
+            // Initialise Fields
+            m_value = gh_IConstraintType.Value;
         }
 
         #endregion
 
 
-        #region Override : GH_Goo<>
+        #region Override : GH_Types.GH_Goo<>
 
         // ---------- Properties ---------- //
 
@@ -60,7 +66,7 @@ namespace Frog.Types.Constraints
                 }
                 else if (m_value.LocalHi?.RowCount ==0 & m_value.LocalBi?.Size == 0)
                 {
-                    return "The contained IConstraintType is not valid as defines neither a symmetric square matrix LocalHi, nor a vector LocalBi.";
+                    return "The symmetric square matrix LocalHi and the vector LocalBi of the contained IConstraintType are simultaneously null or empty.";
                 }
                 else { return $"This {TypeName} is not valid, but the reason is not detailed"; }
             }
@@ -113,8 +119,8 @@ namespace Frog.Types.Constraints
             // Casts a Gh_IConstraintType to a GP.Interfaces.IConstraintType
             if (typeof(T).IsAssignableFrom(typeof(GP.Interfaces.IConstraintType)))
             {
-                object constraint = Value;
-                target = (T)constraint;
+                object constraintType = Value;
+                target = (T)constraintType;
 
                 return true;
             }
@@ -124,18 +130,15 @@ namespace Frog.Types.Constraints
             return false;
         }
 
-        #endregion
-        
-        #region Override : Object
 
         /// <inheritdoc cref="GH_Types.GH_Goo{T}.ToString"/>
         public override string ToString()
         {
             if (IsValid)
             {
-                int size = m_value.LocalHi?.RowCount != 0 ? m_value.LocalHi!.RowCount : m_value.LocalBi!.Size ;
+                int size = m_value.LocalHi?.RowCount != 0 ? m_value.LocalHi!.RowCount : m_value.LocalBi!.Size;
 
-                 return $"IConstraintType (Size: {size})";
+                return $"IConstraintType (Size: {size})";
             }
             else { return $"Invalid {TypeName}"; }
         }

@@ -55,7 +55,7 @@ namespace Frog.Constraints.Scalar
         {
             //     -----     Initialisation     -----     //
 
-            Types_Var.Gh_IVariable scalar = new Types_Var.Gh_IVariable();
+            Types_Var.Gh_IVariable gh_Scalar = new Types_Var.Gh_IVariable();
             double target = 0d;
 
             double weight = 0d;
@@ -63,21 +63,21 @@ namespace Frog.Constraints.Scalar
 
             //     -----     Get Inputs     -----     //
 
-            if (!DA.GetData(0, ref scalar)) { return; }
+            if (!DA.GetData(0, ref gh_Scalar)) { return; }
             if (!DA.GetData(1, ref target)) { return; }
 
             if (!DA.GetData(2, ref weight)) { return; }
 
             //     -----     Verifications
 
-            ArgumentNullException.ThrowIfNull(scalar, "The input V is null");
-            if (scalar.Value.Size != 1) { throw new ArgumentException("The input V is not a scalar variable."); }
+            ArgumentNullException.ThrowIfNull(gh_Scalar, "The input V is null");
+            if (gh_Scalar.Size != 1) { throw new ArgumentException("The input V is not a scalar variable."); }
 
 
             //     -----     Core     -----     //
 
             // Create the list of variables
-            Types_Var.Gh_IVariable[] gh_Variables = new Types_Var.Gh_IVariable[1] { scalar };
+            Types_Var.Gh_IVariable[] gh_Variables = new Types_Var.Gh_IVariable[1] { gh_Scalar };
 
             // Create the constraint type
             GP.ConstraintTypes.Scalar.Equal constraintType = new GP.ConstraintTypes.Scalar.Equal(target);
@@ -105,7 +105,7 @@ namespace Frog.Constraints.Scalar
         public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Scalar;
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
-        protected override System.Drawing.Bitmap Icon => null;
+        protected override System.Drawing.Bitmap? Icon => null;
 
         #endregion
     }

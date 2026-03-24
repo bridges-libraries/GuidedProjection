@@ -1,47 +1,37 @@
-﻿using Grasshopper.GUI;
-using System;
+﻿using System;
 
 using GH_Types = Grasshopper.Kernel.Types;
-
-using GP = BRIDGES.Solvers.GuidedProjection;
 
 
 namespace Frog.Types.Variables
 {
     /// <summary>
-    /// Class defining a grasshopper type which contains a <see cref="GP.Interfaces.IVariable"/>, enhanced with additional information.
+    /// General grasshopper type containing either a <see cref="Gh_Variable"/> or a <see cref="Gh_SubVariable"/>
     /// </summary>
-    public class Gh_IVariable : GH_Types.GH_Goo<GP.Interfaces.IVariable>
+    public class Gh_IVariable : GH_Types.IGH_Goo
     {
+        #region Fields
+
+        /// <summary>
+        /// Grasshopper type containing or representing a <see cref="GP.Interfaces.IVariable"/>.
+        /// </summary>
+        protected GH_Types.IGH_Goo? m_value;
+
+        #endregion
+
         #region Properties
 
         /// <summary>
-        /// Gets the set name of this Gh_IVariable.
+        /// Gets the contained grasshopper type.
         /// </summary>
-        public string SetName { get; init; }
-
-        /// <summary>
-        /// Gets the index of this Gh_IVariable in the set.
-        /// </summary>
-        /// <remarks> If the index is equal to -1, there is two possibilities :
-        /// <list type="number">
-        ///     <item>
-        ///         <description> The contained <see cref="GP.Interfaces.IVariable"/> is a SubVariable. </description>
-        ///     </item>
-        ///     <item>
-        ///         <description> The contained <see cref="GP.Interfaces.IVariable"/> is a Variable but the indexing could not be achieved. </description>
-        ///     </item>
-        ///     <item>
-        ///         <description> The contained <see cref="GP.Interfaces.IVariable"/> is null. </description>
-        ///     </item>
-        /// </list>either</remarks>
-        public int IndexInSet { get; init; }
+        /// <remarks> It is either a <see cref="Gh_Variable"/> or a <see cref="Gh_SubVariable"/>. </remarks>
+        public GH_Types.IGH_Goo? Value => m_value;
 
 
         /// <summary>
-        /// Gets the Rhino data type to which the Gh_IVariable corresponds.
+        /// Gets the size of the contained grasshopper type.
         /// </summary>
-        public RhinoDataType DataType { get; init; }
+        public int Size { get; private set; }
 
         #endregion
 
@@ -52,31 +42,50 @@ namespace Frog.Types.Variables
         /// </summary>
         public Gh_IVariable()
         {
-            // Initialise Properties
-            SetName = string.Empty;
-            IndexInSet = -1;
+            //     -----     Initialisations     -----     //
+
+            // Initialise Fields
+            m_value = null;
         }
 
         /// <summary>
-        /// Initialises a new instance of <see cref= "Gh_IVariable" /> class from a <see cref="GP.Interfaces.IVariable"/>.
+        /// Initialises a new instance of <see cref= "Gh_IVariable" /> class from a <see cref="Gh_Variable"/>.
         /// </summary>
-        /// <param name="iVariable"> <see cref="GP.Interfaces.IVariable"/> to contain in the Gh_IVariable. </param>
-        /// <param name="name"> Name of the set to which the Gh_IVariable belongs. </param>
-        /// <param name="index"> Index of the Gh_IVariable in the set. </param>
-        /// <param name="type"> Gets the Rhino data type to which the IVariable corresponds.</param>
-        public Gh_IVariable(ref GP.Interfaces.IVariable iVariable, string name, int index, RhinoDataType type)
+        /// <param name="gh_Variable"> Grasshopper variable. </param>
+        public Gh_IVariable(Gh_Variable gh_Variable)
         {
-            //     -----     Verifications
-            if (type == RhinoDataType.Point & iVariable.Size != 3 ) { throw new ArgumentException("The size of the point variable is not equal three"); }
+            //     -----     Verifications     -----     //
+
+            if (!gh_Variable.IsValid) { throw new ArgumentException("The variable to store is not valid."); }
+
+
+            //     -----     Initialisations     -----     //
 
             // Initialise Fields
-            m_value = iVariable;
+            m_value = gh_Variable;
 
             // Initialise Properties
-            SetName = name;
-            IndexInSet = index;
+            Size = gh_Variable.Size;
+        }
 
-            DataType = type;
+        /// <summary>
+        /// Initialises a new instance of <see cref= "Gh_IVariable" /> class from a <see cref="Gh_SubVariable"/>.
+        /// </summary>
+        /// <param name="gh_SubVariable"> Grasshopper subVariable. </param>
+        public Gh_IVariable(Gh_SubVariable gh_SubVariable)
+        {
+            //     -----     Verifications     -----     //
+
+            if (!gh_SubVariable.IsValid) { throw new ArgumentException("The subvariable to duplicate is not valid."); }
+
+
+            //     -----     Initialisations     -----     //
+
+            // Initialise Fields
+            m_value = gh_SubVariable;
+
+            // Initialise Properties
+            Size = gh_SubVariable.Size;
         }
 
 
@@ -86,123 +95,129 @@ namespace Frog.Types.Variables
         /// <param name="gh_IVariable"> <see cref="Gh_IVariable"/> to shallow copy. </param>
         public Gh_IVariable(Gh_IVariable gh_IVariable)
         {
+            //     -----     Verifications     -----     //
+
+            if (!gh_IVariable.IsValid) { throw new ArgumentException($"The {typeof(Gh_IVariable)} to duplicate is not valid."); }
+
+
+            //     -----     Initialisations     -----     //
+
             // Initialise Fields
-            Value = gh_IVariable.Value;
-
-            // Initialise Properties
-            SetName = gh_IVariable.SetName;
-            IndexInSet = gh_IVariable.IndexInSet;
-
-            DataType = gh_IVariable.DataType;
+            m_value = gh_IVariable.m_value;
         }
+
 
         #endregion
 
 
-        #region Override : GH_Goo<.>
+        #region Implement : GH_Types.IGH_Goo
 
         //     -----     Properties     -----     //
 
-        /// <inheritdoc cref="GH_Types.GH_Goo{T}.IsValid"/>
-        public override bool IsValid => Value is not null && Value.Size != 0;
+        /// <inheritdoc cref="GH_Types.IGH_Goo.IsValid"/>
+        public bool IsValid => m_value is not null && m_value.IsValid;
 
-        /// <inheritdoc cref="GH_Types.GH_Goo{T}.IsValidWhyNot"/>
-        public override string IsValidWhyNot
+        /// <inheritdoc cref="GH_Types.IGH_Goo.IsValidWhyNot"/>
+        public string IsValidWhyNot
         {
             get
             {
                 if (IsValid) { return string.Empty; }
                 else
                 {
-                    if (Value is null) { return "The contained IVariable is null."; }
-                    else if (Value.Size == 0) { return "The containe IVariable is empty."; }
-                    else { return $"This {TypeName} is not valid, but the reason is not detailed"; }
+                    if (m_value is null) { return "The contained type is null."; }
+                    else { return m_value.IsValidWhyNot; }
                 }
             }
         }
 
-        /// <inheritdoc cref="GH_Types.GH_Goo{T}.TypeDescription"/>
-        public override string TypeDescription => $"Grasshopper type containing a {typeof(GP.Interfaces.IVariable)}.";
+        /// <inheritdoc cref="GH_Types.IGH_Goo.TypeDescription"/>
+        public string TypeDescription => $"Grasshopper type containing either a {typeof(Gh_Variable)} or a {typeof(Gh_SubVariable)}.";
 
-        /// <inheritdoc cref="GH_Types.GH_Goo{T}.TypeName"/>
-        public override string TypeName => nameof(Gh_IVariable);
+        /// <inheritdoc cref="GH_Types.IGH_Goo.TypeName"/>
+        public string TypeName => nameof(Gh_IVariable);
 
 
         //     -----     Methods     -----     //
 
-        /// <inheritdoc cref="GH_Types.GH_Goo{T}.Duplicate"/>
-        public override GH_Types.IGH_Goo Duplicate() => new Gh_IVariable(this);
+        /// <inheritdoc cref="GH_Types.IGH_Goo.Duplicate"/>
+        public GH_Types.IGH_Goo Duplicate() => new Gh_IVariable(this);
 
 
-        /// <inheritdoc cref="GH_Types.GH_Goo{T}.CastFrom(object)"/>
-        public override bool CastFrom(object source)
+        /// <inheritdoc cref="GH_Types.IGH_Goo.CastFrom(object)"/>
+        public bool CastFrom(object source)
         {
             if (source == null) { return false; }
 
             var type = source.GetType();
 
+            //     -----     Grasshopper Types     -----     //
+
+            // Cast a Gh_Variable to a Gh_IVariable
+            if (typeof(Gh_Variable).IsAssignableFrom(type))
+            {
+                Gh_Variable gh_Variable = (Gh_Variable)source;
+
+                m_value = gh_Variable;
+                Size = gh_Variable.Size;
+
+
+                return true;
+            }
+
+            // Cast a Gh_SubVariable to a Gh_IVariable
+            if (typeof(Gh_SubVariable).IsAssignableFrom(type))
+            {
+                Gh_SubVariable gh_SubVariable = (Gh_SubVariable)source;
+                m_value = gh_SubVariable;
+                Size = gh_SubVariable.Size;
+
+                return true;
+            }
+
             //     -----     Otherwise     -----     //
 
             return false;
         }
 
-        /// <inheritdoc cref="GH_Types.GH_Goo{T}.CastTo{Q}(ref Q)"/>
-        public override bool CastTo<T>(ref T target)
+        /// <inheritdoc cref="GH_Types.IGH_Goo.CastTo{Q}(ref Q)"/>
+        public bool CastTo<T>(out T? target)
         {
-            //     -----     Grasshopper Objects     -----     //
-
-            // Casts a Gh_IVariable to a Rhino.Geometry.Point3d
-            if (DataType == RhinoDataType.Point & typeof(T).IsAssignableFrom(typeof(GH_Types.GH_Point)) )
-            {
-                Rhino.Geometry.Point3d point = new Rhino.Geometry.Point3d(Value[0], Value[1], Value[2]);
-                GH_Types.GH_Point gh_Point = new GH_Types.GH_Point(point);
-                target = (T)(object)gh_Point;
-
-                return true;
-            }
-
-            //     -----     Rhino Objects     -----     //
-
-            // Casts a Gh_IVariable to a Rhino.Geometry.Point3d
-            if (typeof(T).IsAssignableFrom(typeof(Rhino.Geometry.Point3d)) & DataType == RhinoDataType.Point)
-            {
-                Rhino.Geometry.Point3d point = new Rhino.Geometry.Point3d(Value[0], Value[1], Value[2]);
-                target = (T)(object)point;
-
-                return true;
-            }
+            target = default;
 
             //     -----     Otherwise     -----     //
 
             return false;
         }
 
-        #endregion
 
-        #region Override : Object
-
-        /// <inheritdoc cref="GH_Types.GH_Goo{T}.ToString"/>
+        /// <inheritdoc cref="GH_Types.IGH_Goo.ToString()"/>
         public override string ToString()
         {
-            if (IsValid)
+            if (m_value is null) { return string.Empty; }
+            else 
             {
-                string text = "";
-
-                if (Value is GP.Variable) { text += "Variable"; }
-                else if (Value is GP.SubVariable) { text += "Sub-Variable"; }
-                else { text += "IVariable"; }
-
-                text += ": [" + Value[0];
-                for (int i = 1; i < Value.Size; i++)
-                {
-                    text += ", " + Value[i];
-                }
-                text += "]";
-
-                return text;
+                return m_value.ToString();
             }
-            else { return $"Invalid {TypeName}"; }
         }
+
+
+        /// <inheritdoc cref="GH_Types.IGH_Goo.ScriptVariable()"/>
+        public object ScriptVariable()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        /// <inheritdoc cref="GH_IO.GH_ISerializable.Write(GH_IO.Serialization.GH_IWriter)"/>
+        public bool Write(GH_IO.Serialization.GH_IWriter writer) => true;
+
+        /// <inheritdoc cref="GH_IO.GH_ISerializable.Read(GH_IO.Serialization.GH_IReader)"/>
+        public bool Read(GH_IO.Serialization.GH_IReader reader) => true;
+
+
+        /// <inheritdoc cref="GH_Types.IGH_Goo.EmitProxy()"/>
+        public GH_Types.IGH_GooProxy? EmitProxy() => null;
 
         #endregion
     }

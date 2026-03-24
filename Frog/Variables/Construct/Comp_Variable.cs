@@ -3,10 +3,10 @@ using System.Windows.Forms;
 using System.Collections.Generic;
 using Sys_Drawing = System.Drawing;
 
+using GP = BRIDGES.Solvers.GuidedProjection;
+
 using GH_GUI = Grasshopper.GUI;
 using GH_Kernel = Grasshopper.Kernel;
-
-using GP = BRIDGES.Solvers.GuidedProjection;
 
 using Types_Var = Frog.Types.Variables;
 
@@ -20,6 +20,9 @@ namespace Frog.Variables.Construct
     {
         #region Fields
 
+        /// <summary>
+        /// Type of data that the variable respresents.
+        /// </summary>
         Types_Var.RhinoDataType _dataType;
 
         #endregion
@@ -47,6 +50,10 @@ namespace Frog.Variables.Construct
               "Defines the coordinate of a variable.",
               GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Variables])
         {
+            //     -----     Initialisations     -----     //
+
+            // Initialise Properties
+
             DataType = Types_Var.RhinoDataType.Scalar;
         }
 
@@ -102,7 +109,7 @@ namespace Frog.Variables.Construct
             // Create the parameter for the input values
             GH_Kernel.Parameters.Param_Number parameter = new GH_Kernel.Parameters.Param_Number();
             parameter.Name = "Coordinate Value";
-            parameter.NickName = "V";
+            parameter.NickName = "C";
             parameter.Description = "Value for the coordinate of the scalar variable.";
             parameter.Access = GH_Kernel.GH_ParamAccess.list;
             for (int i = 0; i < sources.Count; i++) { parameter.AddSource(sources[i]); }
@@ -118,7 +125,7 @@ namespace Frog.Variables.Construct
             // Create the parameter for the input values
             GH_Kernel.Parameters.Param_Number parameter = new GH_Kernel.Parameters.Param_Number();
             parameter.Name = "Coordinate Values";
-            parameter.NickName = "V";
+            parameter.NickName = "C";
             parameter.Description = "Values for the coordinates of the array variable.";
             parameter.Access = GH_Kernel.GH_ParamAccess.tree;
             for (int i = 0; i < sources.Count; i++) { parameter.AddSource(sources[i]); }
@@ -145,7 +152,14 @@ namespace Frog.Variables.Construct
 
         //     -----     Create Variables     -----     //
 
-        private bool CreateVariables(GH_Kernel.IGH_DataAccess DA, out GH_Kernel.Data.GH_Structure<Types_Var.Gh_IVariable> gh_Variables)
+        /// <summary>
+        /// Creates the variables from the input values.
+        /// </summary>
+        /// <param name="DA"> <see cref="GH_Kernel.IGH_DataAccess"/> object used to retrieve input parameters or assign output parameters. </param>
+        /// <param name="gh_Variables"> The variables created. </param>
+        /// <returns> <see langword="true"/> if the variables were created, <see langword="false"/> otherwise. </returns>
+        /// <exception cref="NotImplementedException"></exception>
+        private bool CreateVariables(GH_Kernel.IGH_DataAccess DA, out GH_Kernel.Data.GH_Structure<Types_Var.Gh_Variable> gh_Variables)
         {
             switch (DataType)
             {
@@ -161,11 +175,11 @@ namespace Frog.Variables.Construct
         }
 
 
-        private bool CreateScalarVariables(GH_Kernel.IGH_DataAccess DA, out GH_Kernel.Data.GH_Structure<Types_Var.Gh_IVariable> gh_Variables)
+        private bool CreateScalarVariables(GH_Kernel.IGH_DataAccess DA, out GH_Kernel.Data.GH_Structure<Types_Var.Gh_Variable> gh_Variables)
         {
             //     -----      Initialise     -----     //
 
-            gh_Variables = new GH_Kernel.Data.GH_Structure<Types_Var.Gh_IVariable>();
+            gh_Variables = new GH_Kernel.Data.GH_Structure<Types_Var.Gh_Variable>();
 
 
             //     -----      Get Inputs     -----     //
@@ -190,19 +204,20 @@ namespace Frog.Variables.Construct
 
             for (int i = 0; i < values.Count; i++)
             {
-                GP.Interfaces.IVariable variables = new GP.Variable(values[i]);
-                Types_Var.Gh_IVariable gh_Variable = new Types_Var.Gh_IVariable(ref variables, setName, i, Types_Var.RhinoDataType.Scalar);
+                double[] coordinates = new double[1] { values[i] };
+
+                Types_Var.Gh_Variable gh_Variable = new Types_Var.Gh_Variable(coordinates, setName, i, Types_Var.RhinoDataType.Scalar);
                 gh_Variables.Append(gh_Variable);
             }
 
             return true;
         }
         
-        private bool CreateArrayVariables(GH_Kernel.IGH_DataAccess DA, out GH_Kernel.Data.GH_Structure<Types_Var.Gh_IVariable> gh_Variables)
+        private bool CreateArrayVariables(GH_Kernel.IGH_DataAccess DA, out GH_Kernel.Data.GH_Structure<Types_Var.Gh_Variable> gh_Variables)
         {
             //     -----      Initialise     -----     //
 
-            gh_Variables = new GH_Kernel.Data.GH_Structure<Types_Var.Gh_IVariable>();
+            gh_Variables = new GH_Kernel.Data.GH_Structure<Types_Var.Gh_Variable>();
 
 
             //     -----     Get Inputs     -----     //
@@ -233,19 +248,18 @@ namespace Frog.Variables.Construct
                 double[] coordinates = new double[branch_Numbers.Count];
                 for (int j = 0; j < branch_Numbers.Count; j++) { coordinates[j] = branch_Numbers[j].Value; }
 
-                GP.Interfaces.IVariable variable = new GP.Variable(coordinates);
-                Types_Var.Gh_IVariable gh_Variable = new Types_Var.Gh_IVariable(ref variable, setName, i, Types_Var.RhinoDataType.Array);
+                Types_Var.Gh_Variable gh_Variable = new Types_Var.Gh_Variable(coordinates, setName, i, Types_Var.RhinoDataType.Array);
                 gh_Variables.Append(gh_Variable);
             }
 
             return true;
         }
         
-        private bool CreatePointVariables(GH_Kernel.IGH_DataAccess DA, out GH_Kernel.Data.GH_Structure<Types_Var.Gh_IVariable> gh_Variables)
+        private bool CreatePointVariables(GH_Kernel.IGH_DataAccess DA, out GH_Kernel.Data.GH_Structure<Types_Var.Gh_Variable> gh_Variables)
         {
             //     -----      Initialise     -----     //
 
-            gh_Variables = new GH_Kernel.Data.GH_Structure<Types_Var.Gh_IVariable>();
+            gh_Variables = new GH_Kernel.Data.GH_Structure<Types_Var.Gh_Variable>();
 
 
             //     -----      Get Inputs     -----     //
@@ -272,8 +286,7 @@ namespace Frog.Variables.Construct
             {
                 double[] coordinates = new double[3] { points[i].X, points[i].Y, points[i].Z };
 
-                GP.Interfaces.IVariable variable = new GP.Variable(coordinates);
-                Types_Var.Gh_IVariable gh_Variable = new Types_Var.Gh_IVariable(ref variable, setName, i, Types_Var.RhinoDataType.Point);
+                Types_Var.Gh_Variable gh_Variable = new Types_Var.Gh_Variable(coordinates, setName, i, Types_Var.RhinoDataType.Point);
                 gh_Variables.Append(gh_Variable);
             }
 
@@ -290,7 +303,6 @@ namespace Frog.Variables.Construct
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddTextParameter("Name", "N", "Name of the set of variables.", GH_Kernel.GH_ParamAccess.item);
-            //pManager.AddNumberParameter("Coordinate Value", "V", "Value for the coordinate of the scalar variable.", GH_Kernel.GH_ParamAccess.list);
         }
 
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>
@@ -305,7 +317,7 @@ namespace Frog.Variables.Construct
         {
             //     -----     Core     -----    //
 
-            bool created = CreateVariables(DA, out GH_Kernel.Data.GH_Structure<Types_Var.Gh_IVariable> gh_Variables);
+            bool created = CreateVariables(DA, out GH_Kernel.Data.GH_Structure<Types_Var.Gh_Variable> gh_Variables);
 
             //     -----     Set Output     -----     //
 
@@ -330,7 +342,7 @@ namespace Frog.Variables.Construct
         public override Guid ComponentGuid => new Guid("{9D77FFE5-326B-4A3B-B2FE-A75E67E2D09C}");
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
-        protected override Sys_Drawing.Bitmap Icon
+        protected override Sys_Drawing.Bitmap? Icon
         {
             get
             {
@@ -370,7 +382,7 @@ namespace Frog.Variables.Construct
         public bool CanRemoveParameter(GH_Kernel.GH_ParameterSide side, int index) => false;
 
         /// <inheritdoc cref="GH_Kernel.IGH_VariableParameterComponent.CreateParameter(GH_ParameterSide, int)"/>
-        public GH_Kernel.IGH_Param CreateParameter(GH_Kernel.GH_ParameterSide side, int index) => null;
+        public GH_Kernel.IGH_Param? CreateParameter(GH_Kernel.GH_ParameterSide side, int index) => null;
 
         /// <inheritdoc cref="GH_Kernel.IGH_VariableParameterComponent.DestroyParameter(GH_ParameterSide, int)"/>
         public bool DestroyParameter(GH_Kernel.GH_ParameterSide side, int index) => true;
@@ -384,6 +396,10 @@ namespace Frog.Variables.Construct
         #endregion
     }
 
+
+    /// <summary>
+    /// Attributes of the <see cref="Comp_Variable"/>.
+    /// </summary>
     public class Comp_VariableAttribute : GH_Kernel.Attributes.GH_ComponentAttributes
     {
         #region Fields
@@ -838,44 +854,21 @@ namespace Frog.Variables.Construct
         /// <inheritdoc cref="GH_Kernel.Attributes.GH_ComponentAttributes.RespondToMouseDown(GH_Canvas, GH_CanvasMouseEvent)"/>
         public override GH_GUI.Canvas.GH_ObjectResponse RespondToMouseDown(GH_GUI.Canvas.GH_Canvas sender, GH_GUI.GH_CanvasMouseEvent e)
         {
-            // Ensure popup layout is always up-to-date when open
-            // Quand le popup est ouvert, le clic est géré globalement par Canvas_MouseDown_ClosePopup pour éviter un double traitement.
+            // Ensure that the layout of the Popup Menu is always up-to-date when open
             if (_popupOpen) { RebuildPopupLayout(); return GH_GUI.Canvas.GH_ObjectResponse.Handled; }
-
 
             Sys_Drawing.PointF mouseCanvas = GetMouseCanvasPoint(sender, e);
 
-            // 1) If popup open and click inside popup => select (or just consume click)
-            //if (_popupOpen && _popupBounds.Contains(mouseCanvas))
-            //{
-            //    int hit = HitTestItem(mouseCanvas);
-            //    if (hit >= 0)
-            //    {
-            //        var comp = Owner as MyComponent;
-            //        comp?.SetSelectedIndex(hit);
 
-            //        ClosePopup(sender);
-            //    }
+            // Quand le Popup Menu est ouvert, le clic est géré via le Canvas par
+            // Canvas_MouseDown_ClosePopup pour éviter un double traitement.
 
-            //    // Important: even if hit == -1, consume the click to avoid dragging the component
-            //    return GH_ObjectResponse.Handled;
-            //}
-
-            // 2) Toggle popup when clicking the dropdown area
+            // Toggle popup when clicking the dropdown area
             if (_dropDownBounds.Contains(mouseCanvas))
             {
-                //if (_popupOpen) ClosePopup(sender);
-                //else OpenPopup(sender);
                 OpenPopup(sender);
                 return GH_GUI.Canvas.GH_ObjectResponse.Handled;
             }
-
-            // 3) If popup open and click outside popup + dropdown (but still inside Bounds union)
-            //if (_popupOpen && !_popupBounds.Contains(mouseCanvas) && !_dropDownBounds.Contains(mouseCanvas))
-            //{
-            //    ClosePopup(sender);
-            //    return GH_ObjectResponse.Handled;
-            //}
 
             return base.RespondToMouseDown(sender, e);
         }

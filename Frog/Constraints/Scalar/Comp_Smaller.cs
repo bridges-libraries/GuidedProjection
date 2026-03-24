@@ -56,7 +56,7 @@ namespace Frog.Constraints.Scalar
         {
             //     -----     Initialisation     -----     //
 
-            Types_Var.Gh_IVariable scalar = new Types_Var.Gh_IVariable();
+            Types_Var.Gh_IVariable gh_Scalar = new Types_Var.Gh_IVariable();
             double bound = 0d;
 
             double weight = 0d;
@@ -64,33 +64,41 @@ namespace Frog.Constraints.Scalar
 
             //     -----      Get Inputs     -----     //
 
-            if (!DA.GetData(0, ref scalar)) { return; }
+            if (!DA.GetData(0, ref gh_Scalar)) { return; }
             if (!DA.GetData(1, ref bound)) { return; }
 
             if (!DA.GetData(2, ref weight)) { return; }
 
             //    ----    Verifications
 
-            ArgumentNullException.ThrowIfNull(scalar, "The input V is null");
-            if (scalar.Value.Size != 1) { throw new ArgumentException("The input V is not a scalar variable."); }
+            ArgumentNullException.ThrowIfNull(gh_Scalar, "The input V is null");
+            if (gh_Scalar.Size != 1) { throw new ArgumentException("The input V is not a scalar variable."); }
 
 
             //     -----     Core     -----    //
 
             // Create a dummy variable
-            double dummyValue = scalar.Value[0] - bound;
-            if (dummyValue > 0) { dummyValue = Math.Sqrt(dummyValue); }
-            else { dummyValue = Math.Sqrt(-dummyValue); }
+            double dummyValue = 0;
+            if (gh_Scalar.Value is Types_Var.Gh_Variable gh_ScalarVar) { dummyValue = gh_ScalarVar[0] - bound;}
+            else if (gh_Scalar.Value is Types_Var.Gh_SubVariable gh_ScalarSubVar) { dummyValue = gh_ScalarSubVar[0] - bound;}
+            else { throw new InvalidCastException("The input V could not be casted to a variable or a subvariable"); }
 
-            GP.Interfaces.IVariable dummy = new GP.Variable(dummyValue);
-            Types_Var.Gh_IVariable gh_Dummy = new Types_Var.Gh_IVariable(ref dummy, "Dummy - Smaller", -1, Types_Var.RhinoDataType.Scalar);
+            dummyValue = dummyValue > 0 ? Math.Sqrt(dummyValue) : Math.Sqrt(-dummyValue);
+
+            double[] coordinates = new double[1] { dummyValue };
+            Types_Var.Gh_Variable gh_Dummy = new Types_Var.Gh_Variable(coordinates, "Dummy - Smaller", -1, Types_Var.RhinoDataType.Scalar);
+
 
             // Create the list of variables
-            Types_Var.Gh_IVariable[] gh_Variables = new Types_Var.Gh_IVariable[2] { scalar, gh_Dummy };
+            Types_Var.Gh_IVariable[] gh_Variables = new Types_Var.Gh_IVariable[2] ;
+            gh_Variables[0] = gh_Scalar;
+            gh_Variables[1] = new Types_Var.Gh_IVariable(gh_Dummy);
+
 
             // Create the constraint type
             GP.ConstraintTypes.Scalar.Smaller constraintType = new GP.ConstraintTypes.Scalar.Smaller(bound);
             Types_Cstr.Gh_IConstraintType gh_ConstraintType = new Types_Cstr.Gh_IConstraintType(constraintType);
+
 
             // Create the constraint
             Types_Cstr.Gh_Constraint gh_Constraint = new Types_Cstr.Gh_Constraint(gh_Variables, gh_ConstraintType, weight);
@@ -114,7 +122,7 @@ namespace Frog.Constraints.Scalar
         public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Scalar;
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
-        protected override System.Drawing.Bitmap Icon => null;
+        protected override System.Drawing.Bitmap? Icon => null;
 
         #endregion
     }

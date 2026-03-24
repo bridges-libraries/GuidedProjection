@@ -5,6 +5,8 @@ using GH_Kernel = Grasshopper.Kernel;
 
 using GP = BRIDGES.Solvers.GuidedProjection;
 
+using Types_Var = Frog.Types.Variables;
+
 
 namespace Frog.Variables.Construct
 {
@@ -16,19 +18,15 @@ namespace Frog.Variables.Construct
         #region Constructors
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="Comp_OneDimensionalVariable"/> class.
+        /// Initialises a new instance of the <see cref="Comp_SubVariable"/> class.
         /// </summary>
         public Comp_SubVariable()
           : base("Sub-Variable", "Sub Var.",
-              "Defines a sub-variable from the another variable.",
+              "Defines a sub-variable from an variable.",
               GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Variables])
         {
             /* Do Nothing */
         }
-
-        #endregion
-
-        #region MyRegion
 
         #endregion
 
@@ -38,7 +36,7 @@ namespace Frog.Variables.Construct
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterInputParams(GH_InputParamManager)"/>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddParameter(new Parameters.Variables.Param_IVariable(), "Parent Variable", "V", "Variable whose components are used to create the sub-variable.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Parameters.Variables.Param_IVariable(), "Parent Variable", "V", "Variable whose coordinates are used to create the sub-variable.", GH_Kernel.GH_ParamAccess.item);
             pManager.AddIntegerParameter("Component Indices", "I", "Indices of the component retained to create the sub-variable.", GH_Kernel.GH_ParamAccess.list);
         }
 
@@ -54,31 +52,31 @@ namespace Frog.Variables.Construct
         {
             //     -----     Initialisation     -----     //
 
-            GP.Interfaces.IVariable? iVariable = null;
-
+            Types_Var.Gh_IVariable gh_IVariable = new Types_Var.Gh_IVariable();
             List<int> indices = new List<int>();
 
 
             //     -----      Get Inputs     -----     //
 
-            if (!DA.GetData(0, ref iVariable)) { return; };
-            if (!DA.GetDataList(1, indices)) { return; };
+            if (!DA.GetData(0, ref gh_IVariable)) { return; }
+            if (!DA.GetDataList(1, indices)) { return; }
 
             //    ----    Verifications
 
-            ArgumentNullException.ThrowIfNull(iVariable, "The input V is null");
-            if (iVariable is not GP.Variable variable) { throw new ArgumentException("The input V is not an actual variable."); }
+            ArgumentNullException.ThrowIfNull(gh_IVariable, "The input V is null");
+            ArgumentNullException.ThrowIfNull(indices, "The input I is null");
 
-            if (indices.Count == 0) { return; }
+            if (gh_IVariable.Value is not Types_Var.Gh_Variable gh_Variable) { throw new ArgumentException("The input V is not a variable."); }
+            if (indices.Count == 0) { throw new ArgumentException("The input I is empty."); }
 
             //     -----     Core     -----    //
 
-            
-            GP.SubVariable subVariable = new GP.SubVariable(variable, indices);
+
+            Types_Var.Gh_SubVariable gh_SubVariable = new Types_Var.Gh_SubVariable(gh_Variable, indices);
 
             //     -----     Set Output     -----     //
 
-            DA.SetData(0, subVariable);
+            DA.SetData(0, gh_SubVariable);
         }
 
         #endregion
@@ -91,7 +89,7 @@ namespace Frog.Variables.Construct
         public override Guid ComponentGuid => new Guid("{C29EA300-9913-4BB0-8435-9F6DBADC945C}");
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
-        protected override System.Drawing.Bitmap Icon
+        protected override System.Drawing.Bitmap? Icon
         {
             get
             {

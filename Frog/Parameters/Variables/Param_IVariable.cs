@@ -6,7 +6,7 @@ using GH_Kernel = Grasshopper.Kernel;
 namespace Frog.Parameters.Variables
 {
     /// <summary>
-    /// A <see cref="Types.Variables.Gh_IVariable"/> grasshopper parameter.
+    /// A <see cref="Types.Variables.Gh_Variable"/> grasshopper parameter.
     /// </summary>
     public class Param_IVariable : GH_Kernel.GH_Param<Types.Variables.Gh_IVariable>
     {
@@ -44,7 +44,7 @@ namespace Frog.Parameters.Variables
         public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Variables;
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
-        protected override System.Drawing.Bitmap Icon => null;
+        protected override System.Drawing.Bitmap? Icon => null;
 
         #endregion
 
