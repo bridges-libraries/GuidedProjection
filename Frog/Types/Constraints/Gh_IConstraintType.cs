@@ -1,8 +1,9 @@
-﻿using System;
-
-using GP = BRIDGES.Solvers.GuidedProjection;
+﻿using BRIDGES.Solvers.GuidedProjection.Abstracts;
+using System;
 
 using GH_Types = Grasshopper.Kernel.Types;
+
+using GP = BRIDGES.Solvers.GuidedProjection;
 
 
 namespace Frog.Types.Constraints
@@ -12,6 +13,29 @@ namespace Frog.Types.Constraints
     /// </summary>
     public class Gh_IConstraintType : GH_Types.GH_Goo<GP.Interfaces.IConstraintType>
     {
+        #region Properties
+
+        /// <summary>
+        /// Gets the size of this grasshopper constraint type.
+        /// </summary>
+        public int Size
+        {
+            get
+            {
+                if (Value.LocalHi is not null && Value.LocalHi.RowCount != 0)
+                {
+                    return Value.LocalHi.RowCount;
+                }
+                else if (Value.LocalBi is not null && Value.LocalBi.Size != 0)
+                {
+                    return Value.LocalBi.Size;
+                }
+                else { throw new Exception("The constraint type is not valid."); }
+            }
+        }
+
+        #endregion
+
         #region Constructors
 
         /// <summary>
@@ -20,11 +44,16 @@ namespace Frog.Types.Constraints
         public Gh_IConstraintType() { /* Do Nothing */ }
 
         /// <summary>
-        /// Initialises a new instance of <see cref= "Gh_EnergyType" /> class from a <see cref="GP.Interfaces.IConstraintType"/>.
+        /// Initialises a new instance of <see cref= "Gh_EnergyType" /> class from an <see cref="GP.Interfaces.IConstraintType"/>.
         /// </summary>
         /// <param name="iConstraintType"> <see cref="GP.Interfaces.IConstraintType"/> to store. </param>
         public Gh_IConstraintType(GP.Interfaces.IConstraintType iConstraintType)
         {
+            //     -----     Verifications     -----     //
+
+            ArgumentNullException.ThrowIfNull(iConstraintType, nameof(iConstraintType));
+
+
             //     -----     Initialisations     -----     //
 
             // Initialise Fields
@@ -47,6 +76,22 @@ namespace Frog.Types.Constraints
         #endregion
 
 
+        #region Override : Object
+
+        /// <inheritdoc cref="GH_Types.GH_Goo{T}.ToString"/>
+        public override string ToString()
+        {
+            if (IsValid)
+            {
+                int size = m_value.LocalHi?.RowCount != 0 ? m_value.LocalHi!.RowCount : m_value.LocalBi!.Size;
+
+                return $"IConstraintType (Size: {size})";
+            }
+            else { return $"Invalid {TypeName}"; }
+        }
+
+        #endregion
+
         #region Override : GH_Types.GH_Goo<>
 
         // ---------- Properties ---------- //
@@ -66,7 +111,7 @@ namespace Frog.Types.Constraints
                 }
                 else if (m_value.LocalHi?.RowCount ==0 & m_value.LocalBi?.Size == 0)
                 {
-                    return "The symmetric square matrix LocalHi and the vector LocalBi of the contained IConstraintType are simultaneously null or empty.";
+                    return "The symmetric square matrix and the column vector of the contained IConstraintType are simultaneously null or empty.";
                 }
                 else { return $"This {TypeName} is not valid, but the reason is not detailed"; }
             }
@@ -130,18 +175,6 @@ namespace Frog.Types.Constraints
             return false;
         }
 
-
-        /// <inheritdoc cref="GH_Types.GH_Goo{T}.ToString"/>
-        public override string ToString()
-        {
-            if (IsValid)
-            {
-                int size = m_value.LocalHi?.RowCount != 0 ? m_value.LocalHi!.RowCount : m_value.LocalBi!.Size;
-
-                return $"IConstraintType (Size: {size})";
-            }
-            else { return $"Invalid {TypeName}"; }
-        }
 
         #endregion
     }

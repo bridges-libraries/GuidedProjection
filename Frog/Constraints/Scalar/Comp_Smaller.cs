@@ -86,7 +86,7 @@ namespace Frog.Constraints.Scalar
             dummyValue = dummyValue > 0 ? Math.Sqrt(dummyValue) : Math.Sqrt(-dummyValue);
 
             double[] coordinates = new double[1] { dummyValue };
-            Types_Var.Gh_Variable gh_Dummy = new Types_Var.Gh_Variable(coordinates, "Dummy - Smaller", -1, Types_Var.RhinoDataType.Scalar);
+            Types_Var.Gh_Variable gh_Dummy = new Types_Var.Gh_Variable(coordinates, "Dummy - Smaller", -1, Types_Var.VariableDataType.Scalar);
 
 
             // Create the list of variables

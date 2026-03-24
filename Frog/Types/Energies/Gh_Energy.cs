@@ -1,61 +1,39 @@
-﻿using BRIDGES.Solvers.GuidedProjection.Abstracts;
-using Frog.Types.Constraints;
-using Frog.Types.Variables;
-using Grasshopper.GUI;
-using System;
+﻿using System;
 using System.Collections.Generic;
+
 using GH_Types = Grasshopper.Kernel.Types;
+
 using GP = BRIDGES.Solvers.GuidedProjection;
+
+using Types_Var = Frog.Types.Variables;
 
 
 namespace Frog.Types.Energies
 {
     /// <summary>
-    /// Class defining a grasshopper type, which represents an energy.
+    /// Class defining a grasshopper type, representing a <see cref="GP.Energy"/>, enhanced with additional information.
     /// </summary>
-    public class Gh_Energy : GH_Types.GH_Goo<GP.Energy>
+    public class Gh_Energy : GH_Types.IGH_Goo
     {
         #region Fields
 
         /// <summary>
-        /// Generic grasshopper variables composing the local vector localX on which the <see cref="this.EnergyType"/> is defined.
+        /// Grasshopper variables composing the local vector localX on which the <see cref="EnergyType"/> is defined.
         /// </summary>
-        private readonly Gh_IVariable[] _variables;
+        private readonly Types_Var.IGH_GooVariable[] _variables;
 
         #endregion
 
         #region Properties
 
         /// <summary>
-        /// Gets the size of this grasshopper constraint.
+        /// Gets the size of this grasshopper energy.
         /// </summary>
-        /// <remarks>
-        /// It corresponds to the size of the square matrix <see cref="EnergyType"/>, to the size of the column vector <see cref="EnergyType"/>,
-        /// as well as the cumulated size of the <see cref="Variables"/>. 
-        /// </remarks>
         public int Size
         {
             get
             {
-                if (EnergyType is not null)
-                {
-                    if (EnergyType.Value.LocalKi is not null && EnergyType.Value.LocalKi.Size != 0)
-                    {
-                        return EnergyType.Value.LocalKi.Size;
-                    }
-                    else { throw new Exception("The energy type is not valid."); }
-                }
-                else if (_variables is not null && _variables.Length != 0)
-                {
-                    int size = 0;
-                    for (int i = 0; i < _variables.Length; i++) { size += _variables[i].Size; }
-
-                    return size;
-                }
-                else
-                {
-                    throw new Exception("The variables and the energy type are not initialised. The size is therefore not defined.");
-                }
+                return EnergyType.Value.LocalKi.Size;
             }
         }
 
@@ -63,25 +41,15 @@ namespace Frog.Types.Energies
         /// <summary>
         /// Gets the grasshopper variables composing the local vector localX.
         /// </summary>
-        public IReadOnlyList<Gh_IVariable> Variables => _variables;
+        public IReadOnlyList<Types_Var.IGH_GooVariable> Variables => _variables;
 
         /// <summary>
-        /// Gets the Gh_IEnergyType containing an energy type which defines the local energy members:
-        /// <list type="table">
-        ///     <item>
-        ///         <term> <see cref="GP.Interfaces.IEnergyType.LocalBi"/> </term>
-        ///         <description> Column vector whose size is defined by the cumulated size of the <see cref="this.Variables"/>. </description>
-        ///     </item>
-        ///     <item>
-        ///         <term> <see cref="GP.Interfaces.IEnergyType.Si"/> </term>
-        ///         <description> Scalar value. </description>
-        ///     </item>
-        /// </list>
+        /// Gets the grasshopper energy type which defines the local constraint members.
         /// </summary>
         public Gh_IEnergyType EnergyType { get; private set; }
 
         /// <summary>
-        /// Gets or sets the weight of this Gh_Constraint.
+        /// Gets or sets the weight of this grasshopper energy.
         /// </summary>
         public double Weight { get; internal set; }
 
@@ -97,7 +65,7 @@ namespace Frog.Types.Energies
             //     -----     Initialisations     -----     //
 
             // Initialise Fields
-            _variables = new Gh_IVariable[0];
+            _variables = new IGH_GooVariable[0];
 
             // Initialise Properties
             EnergyType = new Gh_IEnergyType();
@@ -107,17 +75,17 @@ namespace Frog.Types.Energies
         /// <summary>
         /// Initialises a new instance of <see cref= "Gh_Energy" /> class from its members.
         /// </summary>
-        /// <param name="gh_Variables"> Variables composing the local vector localX. </param>
-        /// <param name="gh_IEnergyType"> Energy type defining the local quantities of this energy. </param>
+        /// <param name="gh_Variables"> Grasshopper variables composing the local vector localX. </param>
+        /// <param name="gh_EnergyType"> Energy type defining the local quantities of this energy. </param>
         /// <param name="weight"> Weight of this energy. </param>
-        public Gh_Energy(IList<Gh_IVariable> gh_Variables, Gh_IEnergyType gh_IEnergyType, double weight)
+        public Gh_Energy(IList<Types_Var.IGH_GooVariable> gh_Variables, Gh_IEnergyType gh_EnergyType, double weight)
         {
             //     -----     Verifications
 
-            if (gh_Variables is null) { throw new ArgumentNullException(nameof(gh_Variables)); }
-            else if (gh_Variables.Count == 0) { throw new ArgumentException("The list of variables is empty."); }
+            ArgumentNullException.ThrowIfNull(gh_Variables, nameof(gh_Variables));
+            if (gh_Variables.Count == 0) { throw new ArgumentException("The list of variables is empty."); }
 
-            if (gh_IEnergyType.Value.LocalKi is null)
+            if (gh_EnergyType.Value.LocalKi is null)
             {
                 throw new ArgumentException($"The column vector {nameof(EnergyType.Value.LocalKi)} is null.");
             }
@@ -125,7 +93,7 @@ namespace Frog.Types.Energies
             int size_Variables = 0;
             for (int i = 0; i < gh_Variables.Count; i++) { size_Variables += gh_Variables[i].Size; }
 
-            if (gh_IEnergyType.Value.LocalKi is not null && gh_IEnergyType.Value.LocalKi.Size != Size)
+            if (gh_EnergyType.Value.LocalKi is not null && gh_EnergyType.Value.LocalKi.Size != Size)
             {
                 throw new ArgumentException($"The size of the energytype's column vector is not equal to the cumulated size of the {nameof(Variables)}");
             }
@@ -134,11 +102,11 @@ namespace Frog.Types.Energies
             //     -----     Initialisations     -----     //
 
             // Initialise Fields
-            _variables = new Gh_IVariable[gh_Variables.Count];
+            _variables = new IGH_GooVariable[gh_Variables.Count];
             for (int i = 0; i < _variables.Length; i++) { _variables[i] = gh_Variables[i]; }
 
             // Initialise Properties
-            EnergyType = gh_IEnergyType;
+            EnergyType = gh_EnergyType;
             Weight = weight;
         }
 
@@ -146,13 +114,13 @@ namespace Frog.Types.Energies
         /// <summary>
         /// Initialises a new instance of <see cref= "Gh_Energy" /> class from another <see cref="Gh_Energy"/>.
         /// </summary>
-        /// <param name="gh_Energy"> <see cref="Gh_Energy"/> to duplicate. </param>
+        /// <param name="gh_Energy"> <see cref="Gh_Energy"/> to shallow copy. </param>
         public Gh_Energy(Gh_Energy gh_Energy)
         {
             //     -----     Initialisations     -----     //
 
             // Initialise Fields
-            _variables = new Gh_IVariable[gh_Energy._variables.Length];
+            _variables = new IGH_GooVariable[gh_Energy._variables.Length];
             Array.Copy(gh_Energy._variables, _variables, gh_Energy._variables.Length);
 
             // Initialise Properties
@@ -163,64 +131,103 @@ namespace Frog.Types.Energies
         #endregion
 
 
-        #region Override : GH_Types.GH_Goo<>
+        #region Override : Object
+
+        /// <inheritdoc cref="object.ToString()"/>
+        public override string ToString()
+        {
+            if (IsValid)
+            {
+                return $"Energy (Size: {Size})";
+            }
+            else { return $"Invalid {TypeName}"; }
+        }
+
+        #endregion
+
+
+        #region Implement : GH_Types.IGH_Goo
 
         // ---------- Properties ---------- //
 
-        /// <inheritdoc cref="GH_Types.GH_Goo{T}.IsValid"/>
-        public override bool IsValid => true;
+        /// <inheritdoc cref="GH_Types.IGH_Goo.IsValid"/>
+        public bool IsValid
+        {
+            get
+            {
+                if (_variables.Length == 0) { return false; }
+                else if (!EnergyType.IsValid) {return false; }
+                else
+                {
+                    int size_Variables = 0;
+                    for (int i = 0; i < _variables.Length; i++) { size_Variables += _variables[i].Size; }
 
-        /// <inheritdoc cref="GH_Types.GH_Goo{T}.TypeDescription"/>
-        public override string TypeDescription { get { return string.Format($"Grasshopper type containing a {typeof(GP.Energy)}."); } }
+                    return EnergyType.Size == size_Variables;
+                }
+            }
+        }
 
-        /// <inheritdoc cref="GH_Types.GH_Goo{T}.TypeName"/>
-        public override string TypeName { get { return nameof(Gh_Energy); } }
+        /// <inheritdoc cref="GH_Types.IGH_Goo{T}.IsValidWhyNot"/>
+        public string IsValidWhyNot
+        {
+            get
+            {
+                if (IsValid) { return string.Empty; }
+                else
+                {
+                    int size_Variables = 0;
+                    for (int i = 0; i < _variables.Length; i++) { size_Variables += _variables[i].Size; }
+
+                    if (_variables.Length == 0)
+                    {
+                        return "The list of energy variables is empty.";
+                    }
+                    else if (!EnergyType.IsValid)
+                    {
+                        return "The energy type is not valid.";
+                    }
+                    else if (EnergyType.Size != size_Variables)
+                    {
+                        return "Then cumulated size of the variables does not match the size of the energy type.";
+                    }
+                    else { return $"This {TypeName} is not valid, but the reason is not detailed"; }
+                }
+            }
+        }
+
+        /// <inheritdoc cref="GH_Types.IGH_Goo.TypeDescription"/>
+        public string TypeDescription { get { return string.Format($"Grasshopper type representing a {typeof(GP.Energy)}."); } }
+
+        /// <inheritdoc cref="GH_Types.IGH_Goo.TypeName"/>
+        public string TypeName { get { return nameof(Gh_Energy); } }
 
 
         // ---------- Methods ---------- //
 
-        /// <inheritdoc cref="GH_Types.GH_Goo{T}.Duplicate"/>
-        public override GH_Types.IGH_Goo Duplicate()
+        /// <inheritdoc cref="GH_Types.IGH_Goo.Duplicate"/>
+        public GH_Types.IGH_Goo Duplicate()
         {
             return new Gh_Energy(this);
         }
 
 
-        /// <inheritdoc cref="GH_Types.GH_Goo{T}.CastFrom(object)"/>
-        public override bool CastFrom(object source)
+        /// <inheritdoc cref="GH_Types.IGH_Goo.CastFrom(object)"/>
+        public bool CastFrom(object source)
         {
             if (source == null) { return false; }
 
             var type = source.GetType();
 
-            // ----- BRIDGES Objects ----- //
-
-            // Cast a GP.Energy to a Gh_Energy
-            if (typeof(GP.Energy).IsAssignableFrom(type))
-            {
-                Value = (GP.Energy)source;
-
-                return true;
-            }
 
             // ----- Otherwise ----- //
 
             return false;
         }
 
-        /// <inheritdoc cref="GH_Types.GH_Goo{T}.CastTo{Q}(ref Q)"/>
-        public override bool CastTo<T>(ref T target)
+        /// <inheritdoc cref="GH_Types.IGH_Goo.CastTo{Q}(ref Q)"/>
+        public bool CastTo<T>(out T? target)
         {
-            // ----- BRIDGES Objects ----- //
-
-            // Casts a Gh_Energy to a GP.Energy
-            if (typeof(T).IsAssignableFrom(typeof(GP.Energy)))
-            {
-                object energy = Value;
-                target = (T)energy;
-
-                return true;
-            }
+            target = default;
 
             // ----- Otherwise ----- //
 
@@ -228,15 +235,22 @@ namespace Frog.Types.Energies
         }
 
 
-        /// <inheritdoc cref="GH_Types.GH_Goo{T}.ToString"/>
-        public override string ToString()
+        /// <inheritdoc cref="GH_Types.IGH_Goo.ScriptVariable()"/>
+        public object ScriptVariable()
         {
-            if (IsValid)
-            {
-                return $"Energy (T:{Value.EnergyType})";
-            }
-            else { return $"Invalid {TypeName}"; }
+            throw new NotImplementedException();
         }
+
+
+        /// <inheritdoc cref="GH_IO.GH_ISerializable.Write(GH_IO.Serialization.GH_IWriter)"/>
+        public bool Write(GH_IO.Serialization.GH_IWriter writer) => true;
+
+        /// <inheritdoc cref="GH_IO.GH_ISerializable.Read(GH_IO.Serialization.GH_IReader)"/>
+        public bool Read(GH_IO.Serialization.GH_IReader reader) => true;
+
+
+        /// <inheritdoc cref="GH_Types.IGH_Goo.EmitProxy()"/>
+        public GH_Types.IGH_GooProxy? EmitProxy() => null;
 
         #endregion
 

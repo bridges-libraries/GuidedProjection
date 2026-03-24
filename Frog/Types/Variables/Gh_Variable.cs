@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using GH_Kernel = Grasshopper.Kernel;
 using GH_Types = Grasshopper.Kernel.Types;
 
 using GP = BRIDGES.Solvers.GuidedProjection;
@@ -9,14 +10,14 @@ using GP = BRIDGES.Solvers.GuidedProjection;
 namespace Frog.Types.Variables
 {
     /// <summary>
-    /// Class defining a grasshopper type which contains a <see cref="GP.SubVariable"/>, enhanced with additional information.
+    /// Class defining a grasshopper type which represents a <see cref="GP.Variable"/>, enhanced with additional information.
     /// </summary>
-    public class Gh_Variable : GH_Types.IGH_Goo
+    public class Gh_Variable : IGH_GooVariable
     {
         #region Fields
 
         /// <summary>
-        /// Values of the coordinates of this grasshopper variable.
+        /// coordinate values of the represented <see cref="GP.Variable"/>.
         /// </summary>
         private readonly double[] _coordinates;
 
@@ -25,44 +26,21 @@ namespace Frog.Types.Variables
         #region Properties
 
         /// <summary>
-        /// Gets the Rhino data type to which the Gh_IVariable corresponds.
+        /// Gets the data type to which this grasshopper variable corresponds.
         /// </summary>
-        public RhinoDataType DataType { get; init; }
-
-        /// <summary>
-        /// Gets the size of this variable.
-        /// </summary>
-        public int Size => _coordinates.Length;
-
-        /// <summary>
-        /// Gets or set the coordinate value at the given index.
-        /// </summary>
-        /// <param name="index"> Zero-based index of the coordinate. </param>
-        /// <returns> The <see langword="double"/>-precision value of the coordinate. </returns>
-        public double this[int index] => _coordinates[index];
+        public VariableDataType DataType { get; init; }
 
 
         /// <summary>
-        /// Gets the set name of this Gh_IVariable.
+        /// Gets the name of the set to which this grasshopper variable belongs.
         /// </summary>
         public string SetName { get; init; }
 
         /// <summary>
-        /// Gets the index of this Gh_IVariable in the set.
+        /// Gets the index of this grasshopper variable in the set.
         /// </summary>
-        /// <remarks> If the index is equal to -1, there is two possibilities :
-        /// <list type="number">
-        ///     <item>
-        ///         <description> The contained <see cref="GP.Interfaces.IVariable"/> is a SubVariable. </description>
-        ///     </item>
-        ///     <item>
-        ///         <description> The contained <see cref="GP.Interfaces.IVariable"/> is a Variable but the indexing could not be achieved. </description>
-        ///     </item>
-        ///     <item>
-        ///         <description> The contained <see cref="GP.Interfaces.IVariable"/> is null. </description>
-        ///     </item>
-        /// </list>either</remarks>
-        public int IndexInSet { get; init; }
+        /// <remarks> If the value is '-1', then the set is not ordered. </remarks>
+        public int Index { get; init; }
 
         #endregion
 
@@ -80,26 +58,51 @@ namespace Frog.Types.Variables
 
             // Initialise Properties
             SetName = string.Empty;
-            IndexInSet = -1;
+            Index = -1;
 
-            DataType = RhinoDataType.Scalar;
+            DataType = VariableDataType.Scalar;
         }
 
         /// <summary>
-        /// Initialises a new instance of <see cref= "Gh_Variable" /> class from a <see cref="GP.Variable"/>.
+        /// Initialises a new instance of <see cref= "Gh_Variable" /> class from its single coordinate.
         /// </summary>
-        /// <param name="iVariable"> <see cref="GP.Variable"/> to contain in the Gh_IVariable. </param>
-        /// <param name="name"> Name of the set to which the Gh_IVariable belongs. </param>
-        /// <param name="index"> Index of the Gh_IVariable in the set. </param>
-        /// <param name="type"> Gets the Rhino data type to which the IVariable corresponds.</param>
-        public Gh_Variable(IList<double> coordinates, string name, int index, RhinoDataType type)
+        /// <param name="coordinate"> Value of the coordinate for the represented variable. </param>
+        /// <param name="name"> Name of the set to which the grasshopper variable belongs. </param>
+        /// <param name="index"> Index of the grasshopper variable in the set, or '-1' if the set is not ordered. </param>
+        /// <param name="type"> Gets the data type to which the grasshopper variable corresponds.</param>
+        public Gh_Variable(double coordinate, string name, int index, VariableDataType type = VariableDataType.Scalar)
+        {
+            //     -----     Initialisations     -----     //
+
+            // Initialise Fields
+            _coordinates = new double[1] { coordinate };
+
+            // Initialise Properties
+            SetName = name;
+            Index = index;
+
+            DataType = type;
+        }
+
+        /// <summary>
+        /// Initialises a new instance of <see cref= "Gh_Variable" /> class from its coordinates.
+        /// </summary>
+        /// <param name="coordinate"> Values of the coordinates for the represented variable. </param>
+        /// <param name="name"> Name of the set to which the grasshopper variable belongs. </param>
+        /// <param name="index"> Index of the grasshopper variable in the set, or '-1' if the set is not ordered. </param>
+        /// <param name="type"> Gets the data type to which the grasshopper variable corresponds.</param>
+        public Gh_Variable(IList<double> coordinates, string name, int index, VariableDataType type)
         {
             //     -----     Verifications     -----     //
 
             ArgumentNullException.ThrowIfNull(coordinates, nameof(coordinates));
             if(coordinates.Count == 0) { throw new ArgumentException("The list of coordinate values is empty."); }
 
-            if (type == RhinoDataType.Point & coordinates.Count != 3 ) { throw new ArgumentException("The size of the point variable is not equal three."); }
+            if (name == string.Empty) { throw new ArgumentException("The set name is empty."); }
+
+            if (type == VariableDataType.Scalar & coordinates.Count != 1) { throw new ArgumentException("The number of coordinate of a scalar variable must be equal to 1."); }
+            if (type == VariableDataType.Array & coordinates.Count < 2) { throw new ArgumentException("The number of coordinate of an array variable must be strictly larger than 1."); }
+            if (type == VariableDataType.Point & coordinates.Count != 3 ) { throw new ArgumentException("The number of coordinate of a point variable must be equal to 3."); }
 
 
             //     -----     Initialisations     -----     //
@@ -110,7 +113,7 @@ namespace Frog.Types.Variables
 
             // Initialise Properties
             SetName = name;
-            IndexInSet = index;
+            Index = index;
 
             DataType = type;
         }
@@ -135,13 +138,54 @@ namespace Frog.Types.Variables
 
             // Initialise Properties
             SetName = gh_Variable.SetName;
-            IndexInSet = gh_Variable.IndexInSet;
+            Index = gh_Variable.Index;
 
             DataType = gh_Variable.DataType;
         }
 
         #endregion
 
+
+        #region Override : Object
+
+        /// <inheritdoc cref="object.ToString()"/>
+        public override string ToString()
+        {
+            if (IsValid)
+            {
+                string text = "Variable";
+                text += ": [" + GH_Kernel.GH_Format.FormatDouble(this[0]);
+                for (int i = 1; i < _coordinates.Length; i++)
+                {
+                    text += ", " + GH_Kernel.GH_Format.FormatDouble(this[i]);
+                }
+                text += "]";
+
+                return text;
+            }
+            else { return $"Invalid {TypeName}"; }
+        }
+
+        #endregion
+
+
+        #region Implement : IGH_GooVariable
+
+        //     -----     Properties     -----     //
+
+        /// <summary>
+        /// Gets the size of the represented <see cref="GP.Variable"/>.
+        /// </summary>
+        public int Size => _coordinates.Length;
+
+        /// <summary>
+        ///  Gets the coordinate value at the given index of the represented <see cref="GP.Variable"/>.
+        /// </summary>
+        /// <param name="index"> Zero-based index of the coordinate. </param>
+        /// <returns> The <see langword="double"/>-precision value of the coordinate. </returns>
+        public double this[int index] => _coordinates[index];
+
+        #endregion
 
         #region Implement : GH_Types.IGH_Goo
 
@@ -158,7 +202,7 @@ namespace Frog.Types.Variables
                 if (IsValid) { return string.Empty; }
                 else
                 {
-                    if (_coordinates.Length == 0) { return "The variable's list of coordinate is empty."; }
+                    if (_coordinates.Length == 0) { return "The variable's list of coordinates is empty."; }
                     else { return $"This {TypeName} is not valid, but the reason is not detailed"; }
                 }
             }
@@ -197,7 +241,7 @@ namespace Frog.Types.Variables
             //     -----     Grasshopper Objects     -----     //
 
             // Casts a Gh_Variable to a Rhino.Geometry.Point3d
-            if (DataType == RhinoDataType.Point & typeof(T).IsAssignableFrom(typeof(GH_Types.GH_Point)) )
+            if (DataType == VariableDataType.Point & typeof(T).IsAssignableFrom(typeof(GH_Types.GH_Point)) )
             {
                 Rhino.Geometry.Point3d point = new Rhino.Geometry.Point3d(_coordinates[0], _coordinates[1], _coordinates[2]);
                 GH_Types.GH_Point gh_Point = new GH_Types.GH_Point(point);
@@ -211,25 +255,6 @@ namespace Frog.Types.Variables
             return false;
         }
 
-
-        /// <inheritdoc cref="GH_Types.IGH_Goo.ToString"/>
-        public override string ToString()
-        {
-            if (IsValid)
-            {
-                string text = "Variable";
-
-                text += ": [" + String.Format({0:0000}, _coordinates[0]);
-                for (int i = 1; i < _coordinates.Length; i++)
-                {
-                    text += ", " + _coordinates[i];
-                }
-                text += "]";
-
-                return text;
-            }
-            else { return $"Invalid {TypeName}"; }
-        }
 
         /// <inheritdoc cref="GH_Types.IGH_Goo.ScriptVariable()"/>
         public object ScriptVariable()

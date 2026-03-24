@@ -3,7 +3,7 @@
 
 namespace Frog.Types.Variables
 {
-    public enum RhinoDataType : int
+    public enum VariableDataType : int
     {
         /// <summary>
         /// Variable containing of a single coordinate.

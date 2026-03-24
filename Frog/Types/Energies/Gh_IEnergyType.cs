@@ -1,8 +1,8 @@
 ﻿using System;
 
-using GP = BRIDGES.Solvers.GuidedProjection;
-
 using GH_Types = Grasshopper.Kernel.Types;
+
+using GP = BRIDGES.Solvers.GuidedProjection;
 
 
 namespace Frog.Types.Energies
@@ -12,6 +12,15 @@ namespace Frog.Types.Energies
     /// </summary>
     public class Gh_IEnergyType : GH_Types.GH_Goo<GP.Interfaces.IEnergyType>
     {
+        #region Properties
+
+        /// <summary>
+        /// Gets the size of this grasshopper energy type.
+        /// </summary>
+        public int Size => Value.LocalKi.Size;
+
+        #endregion
+
         #region Constructors
 
         /// <summary>
@@ -25,6 +34,11 @@ namespace Frog.Types.Energies
         /// <param name="iEnergyType"> <see cref="GP.Interfaces.IEnergyType"/> to store. </param>
         public Gh_IEnergyType(GP.Interfaces.IEnergyType iEnergyType)
         {
+            //     -----     Verifications     -----     //
+
+            ArgumentNullException.ThrowIfNull(iEnergyType, nameof(iEnergyType));
+
+
             //     -----     Initialisations     -----     //
 
             // Initialise Fields
@@ -46,6 +60,22 @@ namespace Frog.Types.Energies
 
         #endregion
 
+
+        #region Override : Object
+
+        /// <inheritdoc cref="GH_Types.GH_Goo{T}.ToString"/>
+        public override string ToString()
+        {
+            if (IsValid)
+            {
+                int size = m_value.LocalKi!.Size;
+
+                return $"IEnergyType (Size: {size})";
+            }
+            else { return $"Invalid {TypeName}"; }
+        }
+
+        #endregion
 
         #region Override : GH_Types.GH_Goo<>
 
@@ -128,22 +158,6 @@ namespace Frog.Types.Energies
             // ----- Otherwise ----- //
 
             return false;
-        }
-
-        #endregion
-        
-        #region Override : Object
-
-        /// <inheritdoc cref="GH_Types.GH_Goo{T}.ToString"/>
-        public override string ToString()
-        {
-            if (IsValid)
-            {
-                int size = m_value.LocalKi!.Size ;
-
-                 return $"IEnergyType (Size: {size})";
-            }
-            else { return $"Invalid {TypeName}"; }
         }
 
         #endregion

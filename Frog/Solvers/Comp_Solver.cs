@@ -581,7 +581,7 @@ namespace Frog.Solvers
             foreach (KeyValuePair<Types_Var.Gh_Variable, GP.Variable> kvp in vars_SwapGhToModel)
             {
                 string name = kvp.Key.SetName;
-                int index = kvp.Key.IndexInSet;
+                int index = kvp.Key.Index;
 
                 if (index == -1)
                 {

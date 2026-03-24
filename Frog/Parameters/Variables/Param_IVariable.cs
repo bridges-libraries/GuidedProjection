@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Frog.Types.Variables;
+using System;
 
 using GH_Kernel = Grasshopper.Kernel;
 
@@ -8,7 +9,7 @@ namespace Frog.Parameters.Variables
     /// <summary>
     /// A <see cref="Types.Variables.Gh_Variable"/> grasshopper parameter.
     /// </summary>
-    public class Param_IVariable : GH_Kernel.GH_Param<Types.Variables.Gh_IVariable>
+    public class Param_IVariable : GH_Kernel.GH_Param<IGH_GooVariable>
     {
         #region Properties
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using GH_Kernel = Grasshopper.Kernel;
 using GH_Types = Grasshopper.Kernel.Types;
 
 using GP = BRIDGES.Solvers.GuidedProjection;
@@ -9,19 +10,19 @@ using GP = BRIDGES.Solvers.GuidedProjection;
 namespace Frog.Types.Variables
 {
     /// <summary>
-    /// Class defining a grasshopper type which contains a <see cref="GP.SubVariable"/>, enhanced with additional information.
+    /// Class defining a grasshopper type which represents a <see cref="GP.SubVariable"/>, enhanced with additional information.
     /// </summary>
-    public class Gh_SubVariable : GH_Types.IGH_Goo
+    public class Gh_SubVariable : IGH_GooVariable
     {
         #region Fields
 
         /// <summary>
         /// Parent grasshopper variable of this grasshopper subvariable.
         /// </summary>
-        private readonly Gh_Variable _gh_variable;
+        private readonly Gh_Variable _parent;
 
         /// <summary>
-        /// Indices of the <see cref="_gh_variable"/>, retained for this grasshopper subvariable.
+        /// Indices of the coordinates of the <see cref="_parent"/> grasshopper variable, retained for this grasshopper subvariable.
         /// </summary>
         private readonly int[] _indices;
 
@@ -32,25 +33,12 @@ namespace Frog.Types.Variables
         /// <summary>
         /// Gets the parent grasshopper variable of this grasshopper subvariable.
         /// </summary>
-        public Gh_Variable ParentVariable => _gh_variable;
+        public Gh_Variable ParentVariable => _parent;
 
         /// <summary>
-        /// Gets the indices of the variable's coordinates retained for the subvariable.
+        /// Gets the indices of the coordinates of the parent grasshopper variable, retained for this grasshopper subvariable.
         /// </summary>
         public IReadOnlyList<int> RetaindeIndices => _indices;
-
-
-        /// <summary>
-        /// Gets the size of this grasshopper subvariable.
-        /// </summary>
-        public int Size => _indices.Length;
-
-        /// <summary>
-        /// Gets or set the coordinate value at the given index.
-        /// </summary>
-        /// <param name="index"> Zero-based index of the coordinate. </param>
-        /// <returns> The <see langword="double"/>-precision value of the coordinate. </returns>
-        public double this[int index] => _gh_variable[_indices[index]];
 
         #endregion
 
@@ -64,7 +52,7 @@ namespace Frog.Types.Variables
             //     -----     Initialisations     -----     //
 
             // Initialise Fields
-            _gh_variable = new Gh_Variable();
+            _parent = new Gh_Variable();
             _indices = new int[0];
         }
 
@@ -72,7 +60,7 @@ namespace Frog.Types.Variables
         /// Initialises a new instance of <see cref= "Gh_SubVariable" /> class from a parent <see cref="Gh_Variable"/>.
         /// </summary>
         /// <param name="gh_Variable"> Parent variable containing the reference coordinates of the subvariable. </param>
-        /// <param name="indices"> Indices of the variable's coordinates retained for the subvariable. </param>
+        /// <param name="indices"> Indices of the coordinates of the grasshopper variable, retained for the subvariable. </param>
         public Gh_SubVariable(Gh_Variable gh_Variable, IList<int> indices)
         {
             //     -----     Verifications
@@ -84,7 +72,7 @@ namespace Frog.Types.Variables
             if (indices.Count == 0) { throw new ArgumentException("The list of retained indicesis empty."); }
             if (!(indices.Count < gh_Variable.Size)) 
             { 
-                throw new ArgumentException("The list of retained indices is equal or larger than the size of the reference variable.");
+                throw new ArgumentException("The size of the list of retained indices is equal or larger than the size of the reference variable.");
             }
 
 
@@ -93,14 +81,14 @@ namespace Frog.Types.Variables
             for (int i = 0; i < sortedIndices.Count; i++)
             {
                 if (!isUsed[sortedIndices[i]]) { isUsed[sortedIndices[i]] = true; }
-                else { throw new ArgumentException("The list of retained indices has duplicate number"); }
+                else { throw new ArgumentException("The list of retained indices has duplicate numbers."); }
             }
 
 
             //     -----     Initialisations     -----     //
 
             // Initialise Fields
-            _gh_variable = gh_Variable;
+            _parent = gh_Variable;
 
             _indices = new int[sortedIndices.Count];
             for (int i = 0; i < _indices.Length; i++) { _indices[i] = indices[i]; }
@@ -121,7 +109,7 @@ namespace Frog.Types.Variables
             //     -----     Initialisations     -----     //
 
             // Initialise Fields
-            _gh_variable = gh_SubVariable._gh_variable;
+            _parent = gh_SubVariable._parent;
 
             _indices = new int[gh_SubVariable._indices.Length];
             for (int i = 0; i < _indices.Length; i++) { _indices[i] = gh_SubVariable._indices[i]; }
@@ -130,12 +118,54 @@ namespace Frog.Types.Variables
         #endregion
 
 
+        #region Override : Object
+
+        /// <inheritdoc cref="GH_Types.object.ToString"/>
+        public override string ToString()
+        {
+            if (IsValid)
+            {
+                string text = "SubVariable";
+
+                text += ": [" + GH_Kernel.GH_Format.FormatDouble(this[0]);
+                for (int i = 1; i < this.Size; i++)
+                {
+                    text += ", " + GH_Kernel.GH_Format.FormatDouble(this[i]);
+                }
+                text += "]";
+
+                return text;
+            }
+            else { return $"Invalid {TypeName}"; }
+        }
+
+        #endregion
+
+
+        #region Implement : IGH_GooVariable
+
+        //     -----     Properties     -----     //
+
+        /// <summary>
+        /// Gets the size of the represented <see cref="GP.SubVariable"/>.
+        /// </summary>
+        public int Size => _indices.Length;
+
+        /// <summary>
+        /// Gets the coordinate value at the given index of the represented <see cref="GP.SubVariable"/>.
+        /// </summary>
+        /// <param name="index"> Zero-based index of the coordinate. </param>
+        /// <returns> The <see langword="double"/>-precision value of the coordinate. </returns>
+        public double this[int index] => _parent[_indices[index]];
+
+        #endregion
+
         #region Implement : GH_Types.IGH_Goo
 
         //     -----     Properties     -----     //
 
         /// <inheritdoc cref="GH_Types.IGH_Goo.IsValid"/>
-        public bool IsValid => _gh_variable.IsValid & _indices.Length != 0;
+        public bool IsValid => _parent.IsValid & _indices.Length != 0;
 
         /// <inheritdoc cref="GH_Types.IGH_Goo.IsValidWhyNot"/>
         public string IsValidWhyNot
@@ -145,8 +175,8 @@ namespace Frog.Types.Variables
                 if (IsValid) { return string.Empty; }
                 else
                 {
-                    if (!_gh_variable.IsValid) { return "The reference variable is not valid."; }
-                    else if (_indices.Length == 0) { return "The list of retained coordinates is empty."; }
+                    if (!_parent.IsValid) { return "The reference variable is not valid."; }
+                    else if (_indices.Length == 0) { return "The list of indices of the retained coordinates is empty."; }
                     else { return $"This {TypeName} is not valid, but the reason is not detailed"; }
                 }
             }
@@ -187,25 +217,6 @@ namespace Frog.Types.Variables
             return false;
         }
 
-
-        /// <inheritdoc cref="GH_Types.IGH_Goo.ToString"/>
-        public override string ToString()
-        {
-            if (IsValid)
-            {
-                string text = "SubVariable";
-
-                text += ": [" + this[0];
-                for (int i = 1; i < this.Size; i++)
-                {
-                    text += ", " + this[i];
-                }
-                text += "]";
-
-                return text;
-            }
-            else { return $"Invalid {TypeName}"; }
-        }
 
         /// <inheritdoc cref="GH_Types.IGH_Goo.ScriptVariable()"/>
         public object ScriptVariable()

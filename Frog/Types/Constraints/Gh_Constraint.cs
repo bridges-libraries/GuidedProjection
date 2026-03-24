@@ -18,9 +18,9 @@ namespace Frog.Types.Constraints
         #region Fields
 
         /// <summary>
-        /// Generic grasshopper variables composing the local vector localX on which the <see cref="this.ConstraintType"/> is defined.
+        /// Grasshopper variables composing the local vector localX on which the <see cref="ConstraintType"/> is defined.
         /// </summary>
-        private readonly Types_Var.Gh_IVariable[] _variables;
+        private readonly Types_Var.IGH_GooVariable[] _variables;
 
         #endregion
 
@@ -29,63 +29,22 @@ namespace Frog.Types.Constraints
         /// <summary>
         /// Gets the size of this grasshopper constraint.
         /// </summary>
-        /// <remarks> 
-        /// It corresponds to the size of the square matrix of the <see cref="ConstraintType"/>, to the size of the column vector of the <see cref="ConstraintType"/>,
-        /// as well as the cumulated size of the <see cref="Variables"/>. 
-        /// </remarks>
         public int Size
         {
             get
             {
-                if (ConstraintType is not null)
-                {
-                    if (ConstraintType.Value.LocalHi is not null && ConstraintType.Value.LocalHi.RowCount != 0) 
-                    {
-                        return ConstraintType.Value.LocalHi.RowCount;
-                    }
-                    else if (ConstraintType.Value.LocalBi is not null && ConstraintType.Value.LocalBi.Size != 0)
-                    {
-                        return ConstraintType.Value.LocalBi.Size;
-                    }
-                    else { throw new Exception("The constraint type is not valid."); }
-                }
-                else if (_variables is not null && _variables.Length != 0)
-                {
-                    int size = 0;
-                    for (int i = 0; i < _variables.Length; i++) { size += _variables[i].Size; }
-
-                    return size;
-                }
-                else
-                {
-                    throw new Exception("The variables and the constraint type are not initialised. The size is therefore not defined.");
-                }
+                return ConstraintType.Value.LocalHi is null ? ConstraintType.Value.LocalBi!.Size : ConstraintType.Value.LocalHi.RowCount;
             }
         }
 
 
         /// <summary>
-        /// Gets the generic grasshopper variables composing the local vector localX.
+        /// Gets the grasshopper variables composing the local vector localX.
         /// </summary>
-        public IReadOnlyList<Types_Var.Gh_IVariable> Variables => _variables;
-
+        public IReadOnlyList<Types_Var.IGH_GooVariable> Variables => _variables;
 
         /// <summary>
-        /// Gets the grasshopper constraint type containing a constraint type which defines the local constraint members:
-        /// <list type="table">
-        ///     <item>
-        ///         <term> <see cref="GP.Interfaces.IConstraintType.LocalHi"/> </term>
-        ///         <description> Square matrix whose size is defined by the cumulated size of the <see cref="Variables"/>. </description>
-        ///     </item>
-        ///     <item>
-        ///         <term> <see cref="GP.Interfaces.IConstraintType.LocalBi"/> </term>
-        ///         <description> Column vector whose size is defined by the cumulated size of the <see cref="Variables"/>. </description>
-        ///     </item>
-        ///     <item>
-        ///         <term> <see cref="GP.Interfaces.IConstraintType.Ci"/> </term>
-        ///         <description> Scalar value. </description>
-        ///     </item>
-        /// </list>
+        /// Gets the grasshopper constraint type which defines the local constraint members.
         /// </summary>
         public Gh_IConstraintType ConstraintType { get; private set; }
 
@@ -106,7 +65,7 @@ namespace Frog.Types.Constraints
             //     -----     Initialisations     -----     //
 
             // Initialise Fields
-            _variables = new Types_Var.Gh_IVariable[0];
+            _variables = new Types_Var.IGH_GooVariable[0];
 
             // Initialise Properties
             ConstraintType = new Gh_IConstraintType();
@@ -116,30 +75,30 @@ namespace Frog.Types.Constraints
         /// <summary>
         /// Initialises a new instance of <see cref= "Gh_Constraint" /> class from its members.
         /// </summary>
-        /// <param name="gh_IVariables"> Generic grasshopper variables composing the local vector localX. </param>
-        /// <param name="gh_IConstraintType"> Constraint type defining the local quantities of this constraint. </param>
+        /// <param name="gh_Variables"> Grasshopper variables composing the local vector localX. </param>
+        /// <param name="gh_ConstraintType"> Constraint type defining the local quantities of this constraint. </param>
         /// <param name="weight"> Weight of this constraint. </param>
-        public Gh_Constraint(IList<Types_Var.Gh_IVariable> gh_IVariables, Gh_IConstraintType gh_IConstraintType, double weight)
+        public Gh_Constraint(IList<Types_Var.IGH_GooVariable> gh_Variables, Gh_IConstraintType gh_ConstraintType, double weight)
         {
             //     -----     Verifications
 
-            if (gh_IVariables is null) { throw new ArgumentNullException(nameof(gh_IVariables)); }
-            else if (gh_IVariables.Count == 0) { throw new ArgumentException("The list of variables is empty."); }
+            ArgumentNullException.ThrowIfNull(gh_Variables, nameof(gh_Variables));
+            if (gh_Variables.Count == 0) { throw new ArgumentException("The list of variables is empty."); }
 
-            if (gh_IConstraintType.Value.LocalHi is null & gh_IConstraintType.Value.LocalBi is null)
+            if (gh_ConstraintType.Value.LocalHi is null & gh_ConstraintType.Value.LocalBi is null)
             {
                 throw new ArgumentException($"The square matrix {nameof(ConstraintType.Value.LocalHi)} and the column vector {nameof(ConstraintType.Value.LocalBi)} are both null.");
             }
 
             int size_Variables = 0;
-            for (int i = 0; i < gh_IVariables.Count; i++) { size_Variables += gh_IVariables[i].Size; }
+            for (int i = 0; i < gh_Variables.Count; i++) { size_Variables += gh_Variables[i].Size; }
 
 
-            if (gh_IConstraintType.Value.LocalHi is not null && (gh_IConstraintType.Value.LocalHi.RowCount != size_Variables | gh_IConstraintType.Value.LocalHi.ColumnCount != size_Variables))
+            if (gh_ConstraintType.Value.LocalHi is not null && (gh_ConstraintType.Value.LocalHi.RowCount != size_Variables | gh_ConstraintType.Value.LocalHi.ColumnCount != size_Variables))
             {
                 throw new ArgumentException($"The size of the constraint type's square matrix is not equal to the cumulated size of the {nameof(Variables)}");
             }
-            if (gh_IConstraintType.Value.LocalBi is not null && gh_IConstraintType.Value.LocalBi.Size != size_Variables)
+            if (gh_ConstraintType.Value.LocalBi is not null && gh_ConstraintType.Value.LocalBi.Size != size_Variables)
             {
                 throw new ArgumentException($"The size of the constraint type's column vector  is not equal to the cumulated size of the {nameof(Variables)}");
             }
@@ -148,11 +107,11 @@ namespace Frog.Types.Constraints
             //     -----     Initialisations     -----     //
 
             // Initialise Fields
-            _variables = new Types_Var.Gh_IVariable[gh_IVariables.Count];
-            for (int i = 0; i < _variables.Length; i++) { _variables[i] = gh_IVariables[i]; }
+            _variables = new Types_Var.IGH_GooVariable[gh_Variables.Count];
+            for (int i = 0; i < _variables.Length; i++) { _variables[i] = gh_Variables[i]; }
 
             // Initialise Properties
-            ConstraintType = gh_IConstraintType;
+            ConstraintType = gh_ConstraintType;
             Weight = weight;
         }
 
@@ -163,13 +122,30 @@ namespace Frog.Types.Constraints
         /// <param name="gh_Constraint"> <see cref="Gh_Constraint"/> to shallow copy. </param>
         public Gh_Constraint(Gh_Constraint gh_Constraint)
         {
+            //     -----     Initialisations     -----     //
+
             // Initialise Fields
-            _variables = new Types_Var.Gh_IVariable[gh_Constraint._variables.Length]; 
+            _variables = new Types_Var.IGH_GooVariable[gh_Constraint._variables.Length]; 
             Array.Copy(gh_Constraint._variables, _variables, gh_Constraint._variables.Length);
 
             // Initialise Properties
             ConstraintType = gh_Constraint.ConstraintType;
             Weight = gh_Constraint.Weight;
+        }
+
+        #endregion
+
+
+        #region Override : Object
+
+        /// <inheritdoc cref="object.ToString()"/>
+        public override string ToString()
+        {
+            if (IsValid)
+            {
+                return $"Constraint (Size: {Size})";
+            }
+            else { return $"Invalid {TypeName}"; }
         }
 
         #endregion
@@ -185,23 +161,13 @@ namespace Frog.Types.Constraints
             get
             {
                 if (_variables.Length == 0) { return false; }
+                else if (!ConstraintType.IsValid) { return false; }
                 else
                 {
-                    int size_ConstraintType = 0, size_Variables = 0;
-
-                    if (ConstraintType.Value.LocalHi is not null && ConstraintType.Value.LocalHi.RowCount != 0)
-                    {
-                        size_ConstraintType = ConstraintType.Value.LocalHi.RowCount;
-                    }
-                    else if (ConstraintType.Value.LocalBi is not null && ConstraintType.Value.LocalBi.Size != 0)
-                    {
-                        size_ConstraintType = ConstraintType.Value.LocalBi.Size;
-                    }
-                    else { throw new Exception("The constraint type is not valid."); }
-
+                    int size_Variables = 0;
                     for (int i = 0; i < _variables.Length; i++) { size_Variables += _variables[i].Size; }
 
-                    return size_ConstraintType == size_Variables;
+                    return ConstraintType.Size == size_Variables;
                 }
             }
         }
@@ -214,14 +180,20 @@ namespace Frog.Types.Constraints
                 if (IsValid) { return string.Empty; }
                 else
                 {
-                    if ( (ConstraintType.Value.LocalHi is null || ConstraintType.Value.LocalHi.RowCount == 0)
-                        && (ConstraintType.Value.LocalBi is null || ConstraintType.Value.LocalBi.Size == 0))
+                    int size_Variables = 0;
+                    for (int i = 0; i < _variables.Length; i++) { size_Variables += _variables[i].Size; }
+
+                    if (_variables.Length == 0) 
+                    { 
+                        return "The list of constraint variables is empty."; 
+                    }
+                    else if (!ConstraintType.IsValid)
                     {
                         return "The constraint type is not valid.";
                     }
-                    else if (_variables.Length == 0) 
-                    { 
-                        return "The set of constraint variables is empty."; 
+                    else if (ConstraintType.Size != size_Variables)
+                    {
+                        return "Then cumulated size of the variables does not match the size of the constraint type.";
                     }
                     else { return $"This {TypeName} is not valid, but the reason is not detailed"; }
                 }
@@ -265,16 +237,6 @@ namespace Frog.Types.Constraints
             return false;
         }
 
-
-        /// <inheritdoc cref="GH_Types.IGH_Goo.ToString()"/>
-        public override string ToString()
-        {
-            if (IsValid)
-            {
-                return $"Constraint (Size: {Size})";
-            }
-            else { return $"Invalid {TypeName}"; }
-        }
 
         /// <inheritdoc cref="GH_Types.IGH_Goo.ScriptVariable()"/>
         public object ScriptVariable()

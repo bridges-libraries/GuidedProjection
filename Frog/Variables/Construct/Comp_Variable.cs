@@ -23,7 +23,7 @@ namespace Frog.Variables.Construct
         /// <summary>
         /// Type of data that the variable respresents.
         /// </summary>
-        Types_Var.RhinoDataType _dataType;
+        Types_Var.VariableDataType _dataType;
 
         #endregion
 
@@ -32,7 +32,7 @@ namespace Frog.Variables.Construct
         /// <summary>
         /// Gets or sets the type of data for the variable
         /// </summary>
-        public Types_Var.RhinoDataType DataType 
+        public Types_Var.VariableDataType DataType 
         {
             get { return _dataType; }
             set { _dataType = value; OnDataTypeChanged(); }
@@ -54,7 +54,7 @@ namespace Frog.Variables.Construct
 
             // Initialise Properties
 
-            DataType = Types_Var.RhinoDataType.Scalar;
+            DataType = Types_Var.VariableDataType.Scalar;
         }
 
         #endregion
@@ -81,13 +81,13 @@ namespace Frog.Variables.Construct
             GH_Kernel.IGH_Param parameter;
             switch (DataType)
             {
-                case Types_Var.RhinoDataType.Scalar:
+                case Types_Var.VariableDataType.Scalar:
                     parameter = OnDataTypeChanged_ToScalar(sources);
                     break;
-                case Types_Var.RhinoDataType.Array:
+                case Types_Var.VariableDataType.Array:
                     parameter = OnDataTypeChanged_ToArray(sources);
                     break;
-                case Types_Var.RhinoDataType.Point:
+                case Types_Var.VariableDataType.Point:
                     parameter = OnDataTypeChanged_ToPoint(sources);
                     break;
                 default:
@@ -163,11 +163,11 @@ namespace Frog.Variables.Construct
         {
             switch (DataType)
             {
-                case Types_Var.RhinoDataType.Scalar:
+                case Types_Var.VariableDataType.Scalar:
                     return CreateScalarVariables(DA, out gh_Variables);
-                case Types_Var.RhinoDataType.Array:
+                case Types_Var.VariableDataType.Array:
                     return CreateArrayVariables(DA, out gh_Variables);
-                case Types_Var.RhinoDataType.Point:
+                case Types_Var.VariableDataType.Point:
                     return CreatePointVariables(DA, out gh_Variables);
                 default:
                     throw new NotImplementedException($"The creation of a variable for {DataType} type is not implemented");
@@ -206,7 +206,7 @@ namespace Frog.Variables.Construct
             {
                 double[] coordinates = new double[1] { values[i] };
 
-                Types_Var.Gh_Variable gh_Variable = new Types_Var.Gh_Variable(coordinates, setName, i, Types_Var.RhinoDataType.Scalar);
+                Types_Var.Gh_Variable gh_Variable = new Types_Var.Gh_Variable(coordinates, setName, i, Types_Var.VariableDataType.Scalar);
                 gh_Variables.Append(gh_Variable);
             }
 
@@ -248,7 +248,7 @@ namespace Frog.Variables.Construct
                 double[] coordinates = new double[branch_Numbers.Count];
                 for (int j = 0; j < branch_Numbers.Count; j++) { coordinates[j] = branch_Numbers[j].Value; }
 
-                Types_Var.Gh_Variable gh_Variable = new Types_Var.Gh_Variable(coordinates, setName, i, Types_Var.RhinoDataType.Array);
+                Types_Var.Gh_Variable gh_Variable = new Types_Var.Gh_Variable(coordinates, setName, i, Types_Var.VariableDataType.Array);
                 gh_Variables.Append(gh_Variable);
             }
 
@@ -286,7 +286,7 @@ namespace Frog.Variables.Construct
             {
                 double[] coordinates = new double[3] { points[i].X, points[i].Y, points[i].Z };
 
-                Types_Var.Gh_Variable gh_Variable = new Types_Var.Gh_Variable(coordinates, setName, i, Types_Var.RhinoDataType.Point);
+                Types_Var.Gh_Variable gh_Variable = new Types_Var.Gh_Variable(coordinates, setName, i, Types_Var.VariableDataType.Point);
                 gh_Variables.Append(gh_Variable);
             }
 
@@ -366,7 +366,7 @@ namespace Frog.Variables.Construct
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Read(GH_IO.Serialization.GH_IReader)"/>
         public override bool Read(GH_IO.Serialization.GH_IReader reader)
         {
-            DataType = (Types_Var.RhinoDataType)reader.GetInt32("DataType");
+            DataType = (Types_Var.VariableDataType)reader.GetInt32("DataType");
             return base.Read(reader);
         }
 
@@ -503,7 +503,7 @@ namespace Frog.Variables.Construct
             //    return;
             //}
 
-            Types_Var.RhinoDataType[] knownDataTypes = (Types_Var.RhinoDataType[])Enum.GetValues(typeof(Types_Var.RhinoDataType));
+            Types_Var.VariableDataType[] knownDataTypes = (Types_Var.VariableDataType[])Enum.GetValues(typeof(Types_Var.VariableDataType));
 
             // Position of the Top-Left corner of the Popup Menu
             float popupX = _dropDownBounds.Left;
@@ -572,7 +572,7 @@ namespace Frog.Variables.Construct
                 graphics.DrawRectangle(pen, _popupBounds.X, _popupBounds.Y, _popupBounds.Width, _popupBounds.Height);
 
             // Draw each items in the Popup Menu
-            Types_Var.RhinoDataType[] knownDataTypes = (Types_Var.RhinoDataType[])Enum.GetValues(typeof(Types_Var.RhinoDataType));
+            Types_Var.VariableDataType[] knownDataTypes = (Types_Var.VariableDataType[])Enum.GetValues(typeof(Types_Var.VariableDataType));
 
             for (int i = 0; i < _itemBounds.Count; i++)
             {
@@ -723,7 +723,7 @@ namespace Frog.Variables.Construct
                     {
                         Comp_Variable component = (Owner as Comp_Variable)!;
 
-                        Types_Var.RhinoDataType[] knownDataTypes = (Types_Var.RhinoDataType[])Enum.GetValues(typeof(Types_Var.RhinoDataType));
+                        Types_Var.VariableDataType[] knownDataTypes = (Types_Var.VariableDataType[])Enum.GetValues(typeof(Types_Var.VariableDataType));
 
                         component.DataType = knownDataTypes[hitItem];
                     }

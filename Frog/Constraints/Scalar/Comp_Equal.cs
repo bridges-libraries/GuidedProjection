@@ -38,8 +38,8 @@ namespace Frog.Constraints.Scalar
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterInputParams(GH_InputParamManager)"/>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddParameter(new Params_Var.Param_IVariable(), "Scalar Variable", "V", "Variable representing the vector which should equal a target vector. ", GH_Kernel.GH_ParamAccess.item);
-            pManager.AddNumberParameter("Target Vector", "T", "Components of the target vector.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_Var.Param_IVariable(), "Scalar Variable", "V", "Variable which should equal a target value.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddNumberParameter("Target Value", "T", "Fixed target value for the variable.", GH_Kernel.GH_ParamAccess.item);
 
             pManager.AddNumberParameter("Weight", "W", "Weight of the constraint.", GH_Kernel.GH_ParamAccess.item, 1.0);
         }
@@ -47,7 +47,7 @@ namespace Frog.Constraints.Scalar
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new Params_Cstr.Param_Constraint(), "Constraint", "C", "Constraint", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_Cstr.Param_Constraint(), "Constraint", "C", "Newly created constraint.", GH_Kernel.GH_ParamAccess.item);
         }
 
         /// <inheritdoc cref="GH_Kernel.GH_Component.SolveInstance(GH_Kernel.IGH_DataAccess)"/>
@@ -55,7 +55,7 @@ namespace Frog.Constraints.Scalar
         {
             //     -----     Initialisation     -----     //
 
-            Types_Var.Gh_IVariable gh_Scalar = new Types_Var.Gh_IVariable();
+            Types_Var.IGH_GooVariable? gh_Scalar = null;
             double target = 0d;
 
             double weight = 0d;
@@ -77,7 +77,7 @@ namespace Frog.Constraints.Scalar
             //     -----     Core     -----     //
 
             // Create the list of variables
-            Types_Var.Gh_IVariable[] gh_Variables = new Types_Var.Gh_IVariable[1] { gh_Scalar };
+            Types_Var.IGH_GooVariable[] gh_Variables = new Types_Var.IGH_GooVariable[1] { gh_Scalar };
 
             // Create the constraint type
             GP.ConstraintTypes.Scalar.Equal constraintType = new GP.ConstraintTypes.Scalar.Equal(target);
