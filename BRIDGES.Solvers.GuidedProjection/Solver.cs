@@ -248,11 +248,13 @@ namespace BRIDGES.Solvers.GuidedProjection
         /// <para> See the <paramref name="energyType"/> class description to learn about the expected variables. The order of the variables matters.</para>
         /// </param>
         /// <param name="weight"> Weight of the energy. </param>
-        public void AddEnergy(IEnergyType energyType, IReadOnlyList<IVariable> variables, double weight = 1.0)
+        public Energy AddEnergy(IEnergyType energyType, IReadOnlyList<IVariable> variables, double weight = 1.0)
         {
             Energy energy = new Energy(energyType, variables, weight);
 
             AddEnergy(energy);
+
+            return energy;
         }
 
         /// <summary>
@@ -264,11 +266,13 @@ namespace BRIDGES.Solvers.GuidedProjection
         /// <para> See the <paramref name="energyType"/> class description to learn about the expected variables. The order of the variables matters.</para>
         /// </param>
         /// <param name="weightFunction"> Function computing the weight from the iteration index. </param>
-        public void AddEnergy(IEnergyType energyType, IReadOnlyList<IVariable> variables, Func<int,double> weightFunction)
+        public Energy AddEnergy(IEnergyType energyType, IReadOnlyList<IVariable> variables, Func<int,double> weightFunction)
         {
             Energy energy = new Energy(energyType, variables, 0.0);
 
             AddEnergy(energy, weightFunction);
+
+            return energy;
         }
 
 
@@ -323,11 +327,13 @@ namespace BRIDGES.Solvers.GuidedProjection
         /// <para> See the <paramref name="constraintType"/> class description to learn about the expected variables. The order of the variables matters.</para>
         /// </param>
         /// <param name="weight"> Weight for the constraint. </param>
-        public void AddConstraint(IConstraintType constraintType, IReadOnlyList<IVariable> variables, double weight = 1.0)
+        public Constraint AddConstraint(IConstraintType constraintType, IReadOnlyList<IVariable> variables, double weight = 1.0)
         {
             Constraint constraint = new Constraint(constraintType, variables, weight);
 
             AddConstraint(constraint);
+
+            return constraint;
         }
 
         /// <summary>
@@ -339,11 +345,13 @@ namespace BRIDGES.Solvers.GuidedProjection
         /// <para> See the <paramref name="constraintType"/> class description to learn about the expected variables. The order of the variables matters.</para>
         /// </param>
         /// <param name="weightFunction"> Function computing the weight from the iteration index. </param>
-        public void AddConstraint(IConstraintType constraintType, IReadOnlyList<IVariable> variables, Func<int, double> weightFunction)
+        public Constraint AddConstraint(IConstraintType constraintType, IReadOnlyList<IVariable> variables, Func<int, double> weightFunction)
         {
             Constraint constraint = new Constraint(constraintType, variables, 0.0);
 
             AddConstraint(constraint, weightFunction);
+
+            return constraint;
         }
 
 

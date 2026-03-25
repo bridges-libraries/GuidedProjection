@@ -31,7 +31,7 @@ namespace Frog.Variables.Construct
         #endregion
 
 
-        #region Override : GH_Component
+       #region Override : GH_Component
 
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterInputParams(GH_InputParamManager)"/>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
@@ -52,7 +52,7 @@ namespace Frog.Variables.Construct
         {
             //     -----     Initialisation     -----     //
 
-            Types_Var.Gh_IVariable gh_IVariable = new Types_Var.Gh_IVariable();
+            Types_Var.IGH_GooVariable? gh_IVariable = null;
             List<int> indices = new List<int>();
 
 
@@ -66,8 +66,16 @@ namespace Frog.Variables.Construct
             ArgumentNullException.ThrowIfNull(gh_IVariable, "The input V is null");
             ArgumentNullException.ThrowIfNull(indices, "The input I is null");
 
-            if (gh_IVariable.Value is not Types_Var.Gh_Variable gh_Variable) { throw new ArgumentException("The input V is not a variable."); }
-            if (indices.Count == 0) { throw new ArgumentException("The input I is empty."); }
+            if (gh_IVariable is not Types_Var.Gh_Variable gh_Variable)
+            {
+                this.AddRuntimeMessage(GH_Kernel.GH_RuntimeMessageLevel.Error, "The input V is not a variable.");
+                return;
+            }
+            if (indices.Count == 0)
+            {
+                this.AddRuntimeMessage(GH_Kernel.GH_RuntimeMessageLevel.Error, "The input I is empty.");
+                return;
+            }
 
             //     -----     Core     -----    //
 

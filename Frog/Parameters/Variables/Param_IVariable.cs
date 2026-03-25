@@ -1,15 +1,16 @@
-﻿using Frog.Types.Variables;
-using System;
+﻿using System;
 
 using GH_Kernel = Grasshopper.Kernel;
+
+using Types_Var = Frog.Types.Variables;
 
 
 namespace Frog.Parameters.Variables
 {
     /// <summary>
-    /// A <see cref="Types.Variables.Gh_Variable"/> grasshopper parameter.
+    /// Grasshopper parameter containing an <see cref="Types_Var.IGH_GooVariable"/>.
     /// </summary>
-    public class Param_IVariable : GH_Kernel.GH_Param<IGH_GooVariable>
+    public class Param_IVariable : GH_Kernel.GH_Param<Types_Var.IGH_GooVariable>
     {
         #region Properties
 

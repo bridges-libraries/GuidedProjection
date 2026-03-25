@@ -3,6 +3,9 @@
 
 namespace Frog.Types.Variables
 {
+    /// <summary>
+    /// Available data type for the grasshopper variable.
+    /// </summary>
     public enum VariableDataType : int
     {
         /// <summary>

@@ -38,8 +38,8 @@ namespace Frog.Constraints.Scalar
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterInputParams(GH_InputParamManager)"/>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddParameter(new Params_Var.Param_IVariable(), "Scalar Variable", "V", "Scalar variable whose value should be larger than a fixed value.", GH_Kernel.GH_ParamAccess.item);
-            pManager.AddNumberParameter("Lower Bound", "B", "Lower Bound of the scalar variable.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_Var.Param_IVariable(), "Scalar Variable", "V", "Variable whose value should be larger than a fixed value.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddNumberParameter("Lower Bound", "B", "Fixed lower bound of the scalar variable.", GH_Kernel.GH_ParamAccess.item);
 
             pManager.AddNumberParameter("Weight", "W", "Weight of the constraint.", GH_Kernel.GH_ParamAccess.item, 1.0);
         }
@@ -47,7 +47,7 @@ namespace Frog.Constraints.Scalar
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new Params_Cstr.Param_Constraint(), "Constraint", "C", "Constraint", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_Cstr.Param_Constraint(), "Constraint", "C", "Newly created constraint", GH_Kernel.GH_ParamAccess.item);
         }
 
 
@@ -56,7 +56,7 @@ namespace Frog.Constraints.Scalar
         {
             //     -----     Initialisation     -----     //
 
-            Types_Var.Gh_IVariable gh_Scalar = new Types_Var.Gh_IVariable();
+            Types_Var.IGH_GooVariable? gh_Scalar = null;
             double bound = 0d;
 
             double weight = 0d;
@@ -78,20 +78,14 @@ namespace Frog.Constraints.Scalar
             //     -----     Core     -----     //
 
             // Create a dummy variable
-            double dummyValue = 0;
-            if (gh_Scalar.Value is Types_Var.Gh_Variable gh_ScalarVar) { dummyValue = gh_ScalarVar[0] - bound; }
-            else if (gh_Scalar.Value is Types_Var.Gh_SubVariable gh_ScalarSubVar) { dummyValue = gh_ScalarSubVar[0] - bound; }
-            else { throw new InvalidCastException("The input V could not be casted to a variable or a subvariable"); }
-
+            double dummyValue = gh_Scalar[0] - bound;
             dummyValue = dummyValue > 0 ? Math.Sqrt(dummyValue) : Math.Sqrt(-dummyValue);
 
             double[] coordinates = new double[1] { dummyValue };
-            Types_Var.Gh_Variable gh_Dummy = new Types_Var.Gh_Variable(coordinates, "Dummy - Larger", -1, Types_Var.VariableDataType.Scalar);
+            Types_Var.IGH_GooVariable gh_Dummy = new Types_Var.Gh_Variable(coordinates, "Dummy - Larger", -1, Types_Var.VariableDataType.Scalar);
 
             // Create the list of variables
-            Types_Var.Gh_IVariable[] gh_Variables = new Types_Var.Gh_IVariable[2];
-            gh_Variables[0] = gh_Scalar;
-            gh_Variables[1] = new Types_Var.Gh_IVariable(gh_Dummy);
+            Types_Var.IGH_GooVariable[] gh_Variables = new Types_Var.IGH_GooVariable[2] { gh_Scalar, gh_Dummy };
 
             // Create the constraint type
             GP.ConstraintTypes.Scalar.Larger constraintType = new GP.ConstraintTypes.Scalar.Larger(bound);

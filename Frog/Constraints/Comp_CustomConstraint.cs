@@ -48,7 +48,7 @@ namespace Frog.Constraints
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new Params_Cstr.Param_Constraint(), "Constraint", "C", "Constraint", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_Cstr.Param_Constraint(), "Constraint", "C", "Newly created constraint", GH_Kernel.GH_ParamAccess.item);
         }
 
 
@@ -57,7 +57,7 @@ namespace Frog.Constraints
         {
             //     -----     Initialisation     -----     //
 
-            List<Types_Var.Gh_IVariable> gh_Variables = new List<Types_Var.Gh_IVariable>();
+            List<Types_Var.IGH_GooVariable> gh_Variables = new List<Types_Var.IGH_GooVariable>();
             Types_Cstr.Gh_IConstraintType gh_ConstraintType = new Types_Cstr.Gh_IConstraintType();
 
             double weight = 0d;
@@ -97,7 +97,7 @@ namespace Frog.Constraints
         public override Guid ComponentGuid => new Guid("{E870265E-B17A-43EF-B40E-66A0CF82E639}");
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Exposure"/>
-        public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Vector;
+        public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Others;
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
         protected override System.Drawing.Bitmap? Icon => null;

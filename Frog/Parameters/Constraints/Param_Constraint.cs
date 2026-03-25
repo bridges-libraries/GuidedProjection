@@ -6,7 +6,7 @@ using GH_Kernel = Grasshopper.Kernel;
 namespace Frog.Parameters.Constraints
 {
     /// <summary>
-    /// A <see cref="Types.Constraints.Gh_Constraint"/> grasshopper parameter.
+    /// Grasshopper parameter containing an <see cref="Types.Constraints.Gh_Constraint"/>.
     /// </summary>
     public class Param_Constraint : GH_Kernel.GH_Param<Types.Constraints.Gh_Constraint>
     {

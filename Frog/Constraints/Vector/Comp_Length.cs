@@ -39,7 +39,7 @@ namespace Frog.Constraints.Vector
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddParameter(new Params_Var.Param_IVariable(), "Vector Variable", "V", "Variable representing a vector whose length should equal a fixed value.", GH_Kernel.GH_ParamAccess.item);
-            pManager.AddNumberParameter("Target Length", "L", "Target length of the vector variable.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddNumberParameter("Target Length", "L", "Fixed target length of the vector variable.", GH_Kernel.GH_ParamAccess.item);
 
             pManager.AddNumberParameter("Weight", "W", "Weight of the constraint.", GH_Kernel.GH_ParamAccess.item, 1.0);
         }
@@ -47,7 +47,7 @@ namespace Frog.Constraints.Vector
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new Params_Cstr.Param_Constraint(), "Constraint", "C", "Constraint", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_Cstr.Param_Constraint(), "Constraint", "C", "Newly created constraint", GH_Kernel.GH_ParamAccess.item);
         }
 
 
@@ -56,7 +56,7 @@ namespace Frog.Constraints.Vector
         {
             //     -----     Initialisation     -----     //
 
-            Types_Var.Gh_IVariable vector = new Types_Var.Gh_IVariable();
+            Types_Var.IGH_GooVariable? gh_Vector = null;
             double length = 0d;
 
             double weight = 0d;
@@ -64,22 +64,22 @@ namespace Frog.Constraints.Vector
 
             //     -----     Get Inputs     -----     //
 
-            if (!DA.GetData(0, ref vector)) { return; };
+            if (!DA.GetData(0, ref gh_Vector)) { return; };
             if (!DA.GetData(1, ref length)) { return; };
 
             if (!DA.GetData(2, ref weight)) { weight = 1d; };
 
             //     -----     Verifications
 
-            ArgumentNullException.ThrowIfNull(vector, "The input V is null");
+            ArgumentNullException.ThrowIfNull(gh_Vector, "The input V is null");
 
 
             //     -----     Core     -----     //
 
-            int dimension = vector.Size;
+            int dimension = gh_Vector.Size;
 
             // Create the list of variables
-            Types_Var.Gh_IVariable[] gh_Variables = new Types_Var.Gh_IVariable[1] { vector };
+            Types_Var.IGH_GooVariable[] gh_Variables = new Types_Var.IGH_GooVariable[1] { gh_Vector };
 
             // Create the constraint type
             GP.ConstraintTypes.Vector.Length constraintType = new GP.ConstraintTypes.Vector.Length(length, dimension);
@@ -104,7 +104,7 @@ namespace Frog.Constraints.Vector
         public override Guid ComponentGuid => new Guid("{3925C384-0698-405D-9C77-ACD0A85AC720}");
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Exposure"/>
-        public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Others;
+        public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Vector;
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
         protected override System.Drawing.Bitmap? Icon => null;

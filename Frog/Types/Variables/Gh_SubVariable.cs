@@ -125,9 +125,9 @@ namespace Frog.Types.Variables
         {
             if (IsValid)
             {
-                string text = "SubVariable";
+                string text = "SubVar";
 
-                text += ": [" + GH_Kernel.GH_Format.FormatDouble(this[0]);
+                text += " [" + GH_Kernel.GH_Format.FormatDouble(this[0]);
                 for (int i = 1; i < this.Size; i++)
                 {
                     text += ", " + GH_Kernel.GH_Format.FormatDouble(this[i]);

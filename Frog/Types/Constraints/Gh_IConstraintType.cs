@@ -1,5 +1,4 @@
-﻿using BRIDGES.Solvers.GuidedProjection.Abstracts;
-using System;
+﻿using System;
 
 using GH_Types = Grasshopper.Kernel.Types;
 

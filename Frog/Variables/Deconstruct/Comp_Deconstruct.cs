@@ -21,7 +21,7 @@ namespace Frog.Variables.Deconstruct
         /// Initialises a new instance of the <see cref="Comp_DeconstructVariable"/> class.
         /// </summary>
         public Comp_DeconstructVariable()
-          : base("Deconstruct Variable", "Dec. Var.",
+          : base("Deconstruct Variable", "Dec.",
               "Returns the coordinates of the variable or sub-variable.",
               GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Variables])
         {
@@ -51,7 +51,7 @@ namespace Frog.Variables.Deconstruct
         {
             //     -----     Initialisation     -----     //
 
-            Types_Var.Gh_IVariable gh_IVariable = new Types_Var.Gh_IVariable();
+            Types_Var.IGH_GooVariable? gh_IVariable = null;
 
 
             //     -----      Get Inputs     -----     //
@@ -62,30 +62,17 @@ namespace Frog.Variables.Deconstruct
             //    ----    Verifications
 
             ArgumentNullException.ThrowIfNull(gh_IVariable, "The input V is null");
-            ArgumentNullException.ThrowIfNull(gh_IVariable.Value, "The input V is null");
 
 
             //     -----     Core     -----    //
 
             List<double> coordinates = new List<double>(gh_IVariable.Size);
-
-            if (gh_IVariable.Value is Types_Var.Gh_Variable gh_Variable) 
+            for (int i = 0; i < gh_IVariable.Size; i++)
             {
-                for (int i = 0; i < gh_IVariable.Size; i++)
-                {
-                    coordinates.Add(gh_Variable[i]);
-                }
+                coordinates.Add(gh_IVariable[i]);
             }
-            else if (gh_IVariable.Value is Types_Var.Gh_SubVariable gh_SubVariable)
-            {
-                for (int i = 0; i < gh_IVariable.Size; i++)
-                {
-                    coordinates.Add(gh_SubVariable[i]);
-                }
-            }
-            else { throw new InvalidCastException("The input V could not be casted to a variable or a subvariable"); }
 
-            
+
             //     -----     Set Output     -----     //
 
             DA.SetDataList(0, coordinates);

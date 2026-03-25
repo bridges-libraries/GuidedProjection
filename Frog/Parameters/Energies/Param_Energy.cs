@@ -6,7 +6,7 @@ using GH_Kernel = Grasshopper.Kernel;
 namespace Frog.Parameters.Energies
 {
     /// <summary>
-    /// A <see cref="Typ.Gh_Energy"/> grasshopper parameter.
+    /// Grasshopper parameter containing an <see cref="Types.Energies.Gh_Energy"/>.
     /// </summary>
     public class Param_Energy : GH_Kernel.GH_Param<Types.Energies.Gh_Energy>
     {

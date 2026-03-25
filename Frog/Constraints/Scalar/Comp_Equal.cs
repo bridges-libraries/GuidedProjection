@@ -24,7 +24,7 @@ namespace Frog.Constraints.Scalar
         /// </summary>
         public Comp_Equal()
           : base("Equal", "Equal",
-              "Constraint enforcing a vector variable to be equal to a fixed vector.",
+              "Constraint enforcing a scalar variable to be equal to a fixed value.",
               GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Constraints])
         {
             // Do Nothing
@@ -38,7 +38,7 @@ namespace Frog.Constraints.Scalar
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterInputParams(GH_InputParamManager)"/>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddParameter(new Params_Var.Param_IVariable(), "Scalar Variable", "V", "Variable which should equal a target value.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_Var.Param_IVariable(), "Scalar Variable", "V", "Variable whose value should be equal to a target value.", GH_Kernel.GH_ParamAccess.item);
             pManager.AddNumberParameter("Target Value", "T", "Fixed target value for the variable.", GH_Kernel.GH_ParamAccess.item);
 
             pManager.AddNumberParameter("Weight", "W", "Weight of the constraint.", GH_Kernel.GH_ParamAccess.item, 1.0);

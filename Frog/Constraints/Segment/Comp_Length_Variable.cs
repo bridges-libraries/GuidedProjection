@@ -48,7 +48,7 @@ namespace Frog.Constraints.Segment
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new Params_Cstr.Param_Constraint(), "Constraint", "C", "Constraint", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_Cstr.Param_Constraint(), "Constraint", "C", "Newly created constraint", GH_Kernel.GH_ParamAccess.item);
         }
 
 
@@ -57,36 +57,36 @@ namespace Frog.Constraints.Segment
         {
             //     -----     Initialisation     -----     //
 
-            Types_Var.Gh_IVariable start = new Types_Var.Gh_IVariable() ;
-            Types_Var.Gh_IVariable end = new Types_Var.Gh_IVariable();
-            Types_Var.Gh_IVariable length = new Types_Var.Gh_IVariable();
+            Types_Var.IGH_GooVariable? gh_StartPoint = null;
+            Types_Var.IGH_GooVariable? gh_EndPoint = null;
+            Types_Var.IGH_GooVariable? gh_Length = null;
 
             double weight = 0d;
 
 
             //     -----      Get Inputs     -----     //
 
-            if (!DA.GetData(0, ref start)) { return; }
-            if (!DA.GetData(1, ref end)) { return; }
-            if (!DA.GetData(2, ref length)) { return; }
+            if (!DA.GetData(0, ref gh_StartPoint)) { return; }
+            if (!DA.GetData(1, ref gh_EndPoint)) { return; }
+            if (!DA.GetData(2, ref gh_Length)) { return; }
 
             if (!DA.GetData(3, ref weight)) { return; }
 
             //    ----    Verifications
 
-            ArgumentNullException.ThrowIfNull(start, "The input S is null");
-            ArgumentNullException.ThrowIfNull(end, "The input E is null");
-            ArgumentNullException.ThrowIfNull(length, "The input L is null");
+            ArgumentNullException.ThrowIfNull(gh_StartPoint, "The input S is null");
+            ArgumentNullException.ThrowIfNull(gh_EndPoint, "The input E is null");
+            ArgumentNullException.ThrowIfNull(gh_Length, "The input L is null");
 
-            if (start.Size != end.Size) { throw new ArgumentException("The input variables S and E don't have the same size."); } 
+            if (gh_StartPoint.Size != gh_EndPoint.Size) { throw new ArgumentException("The input variables S and E don't have the same size."); } 
 
 
             //     -----     Core     -----    //
 
-            int dimension = start.Size;
+            int dimension = gh_StartPoint.Size;
 
             // Create the list of variables
-            Types_Var.Gh_IVariable[] gh_Variables = new Types_Var.Gh_IVariable[3] { start, end, length };
+            Types_Var.IGH_GooVariable[] gh_Variables = new Types_Var.IGH_GooVariable[3] { gh_StartPoint, gh_EndPoint, gh_Length };
 
             // Create the constraint type
             GP.ConstraintTypes.Segment.Length_Variable constraintType = new GP.ConstraintTypes.Segment.Length_Variable(dimension);
@@ -111,7 +111,7 @@ namespace Frog.Constraints.Segment
         public override Guid ComponentGuid => new Guid("{DD82A6D7-ABFA-48A1-9A86-858015DA2A2D}");
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Exposure"/>
-        public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Others;
+        public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Segment;
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
         protected override System.Drawing.Bitmap? Icon => null;

@@ -40,7 +40,7 @@ namespace Frog.Constraints.Segment
         {
             pManager.AddParameter(new Params_Var.Param_IVariable(), "Start Variable", "S", "Variable representing the start of the segment.", GH_Kernel.GH_ParamAccess.item);
             pManager.AddParameter(new Params_Var.Param_IVariable(), "End Variable", "E", "Variable representing the end of the segment.", GH_Kernel.GH_ParamAccess.item);
-            pManager.AddVectorParameter("Vector", "V", "Vector to which the segment must be orthogonal.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddVectorParameter("Vector", "V", "Fixed vector to which the segment must be orthogonal.", GH_Kernel.GH_ParamAccess.item);
 
             pManager.AddNumberParameter("Weight", "W", "Weight of the constraint.", GH_Kernel.GH_ParamAccess.item, 1.0);
         }
@@ -48,7 +48,7 @@ namespace Frog.Constraints.Segment
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new Params_Cstr.Param_Constraint(), "Constraint", "C", "Constraint.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_Cstr.Param_Constraint(), "Constraint", "C", "Newly created constraint.", GH_Kernel.GH_ParamAccess.item);
         }
 
         /// <inheritdoc cref="GH_Kernel.GH_Component.SolveInstance(GH_Kernel.IGH_DataAccess)"/>
@@ -56,8 +56,8 @@ namespace Frog.Constraints.Segment
         {
             //     -----     Initialisation     -----     //
 
-            Types_Var.Gh_IVariable start = new Types_Var.Gh_IVariable();
-            Types_Var.Gh_IVariable end = new Types_Var.Gh_IVariable();
+            Types_Var.IGH_GooVariable? gh_StartPoint = null;
+            Types_Var.IGH_GooVariable? gh_EndPoint = null;
 
             Rhino.Geometry.Vector3d vector3d = new Rhino.Geometry.Vector3d(0d, 0d, 0d);
 
@@ -66,24 +66,24 @@ namespace Frog.Constraints.Segment
 
             //     -----      Get Inputs     -----     //
 
-            if (!DA.GetData(0, ref start)) { return; }
-            if (!DA.GetData(1, ref end)) { return; }
+            if (!DA.GetData(0, ref gh_StartPoint)) { return; }
+            if (!DA.GetData(1, ref gh_EndPoint)) { return; }
             if (!DA.GetData(2, ref vector3d)) { return; }
 
             if (!DA.GetData(3, ref weight)) { return; }
 
             //    ----    Verifications
 
-            ArgumentNullException.ThrowIfNull(start, "The input S is null");
-            ArgumentNullException.ThrowIfNull(end, "The input E is null");
+            ArgumentNullException.ThrowIfNull(gh_StartPoint, "The input S is null");
+            ArgumentNullException.ThrowIfNull(gh_EndPoint, "The input E is null");
 
-            if (start.Size != end.Size) { throw new ArgumentException("The input variables S and E don't have the same size."); }
-            if (start.Size > 3) { throw new ArgumentException("The size of the input variable S must be lower or equal to 3."); }
+            if (gh_StartPoint.Size != gh_EndPoint.Size) { throw new ArgumentException("The input variables S and E don't have the same size."); }
+            if (gh_StartPoint.Size > 3) { throw new ArgumentException("The size of the input variable S must be lower or equal to 3."); }
 
 
             //     -----     Core     -----    //
 
-            int dimension = start.Size;
+            int dimension = gh_StartPoint.Size;
             double[] components = new double[dimension];
             for (int i = 0; i < dimension; i++)
             {
@@ -91,7 +91,7 @@ namespace Frog.Constraints.Segment
             }
 
             // Create the list of variables
-            Types_Var.Gh_IVariable[] gh_Variables = new Types_Var.Gh_IVariable[2] { start, end };
+            Types_Var.IGH_GooVariable[] gh_Variables = new Types_Var.IGH_GooVariable[2] { gh_StartPoint, gh_EndPoint };
 
             // Create the constraint type
             GP.ConstraintTypes.Segment.Orthogonal_Fixed constraintType = new GP.ConstraintTypes.Segment.Orthogonal_Fixed(components);

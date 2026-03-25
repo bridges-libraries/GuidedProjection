@@ -65,7 +65,7 @@ namespace Frog.Types.Energies
             //     -----     Initialisations     -----     //
 
             // Initialise Fields
-            _variables = new IGH_GooVariable[0];
+            _variables = new Types_Var.IGH_GooVariable[0];
 
             // Initialise Properties
             EnergyType = new Gh_IEnergyType();
@@ -102,7 +102,7 @@ namespace Frog.Types.Energies
             //     -----     Initialisations     -----     //
 
             // Initialise Fields
-            _variables = new IGH_GooVariable[gh_Variables.Count];
+            _variables = new Types_Var.IGH_GooVariable[gh_Variables.Count];
             for (int i = 0; i < _variables.Length; i++) { _variables[i] = gh_Variables[i]; }
 
             // Initialise Properties
@@ -120,7 +120,7 @@ namespace Frog.Types.Energies
             //     -----     Initialisations     -----     //
 
             // Initialise Fields
-            _variables = new IGH_GooVariable[gh_Energy._variables.Length];
+            _variables = new Types_Var.IGH_GooVariable[gh_Energy._variables.Length];
             Array.Copy(gh_Energy._variables, _variables, gh_Energy._variables.Length);
 
             // Initialise Properties
@@ -253,6 +253,5 @@ namespace Frog.Types.Energies
         public GH_Types.IGH_GooProxy? EmitProxy() => null;
 
         #endregion
-
     }
 }

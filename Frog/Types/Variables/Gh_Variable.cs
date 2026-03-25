@@ -153,8 +153,8 @@ namespace Frog.Types.Variables
         {
             if (IsValid)
             {
-                string text = "Variable";
-                text += ": [" + GH_Kernel.GH_Format.FormatDouble(this[0]);
+                string text = "Var";
+                text += " [" + GH_Kernel.GH_Format.FormatDouble(this[0]);
                 for (int i = 1; i < _coordinates.Length; i++)
                 {
                     text += ", " + GH_Kernel.GH_Format.FormatDouble(this[i]);
