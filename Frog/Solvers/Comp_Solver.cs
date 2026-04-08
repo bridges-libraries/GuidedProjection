@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using GH_Kernel = Grasshopper.Kernel;
+
 using GP = BRIDGES.Solvers.GuidedProjection;
-using Types_Cstr = Frog.Types.Constraints;
-using Types_Ener = Frog.Types.Energies;
+
+using GH_Kernel = Grasshopper.Kernel;
+
 using Types_Var = Frog.Types.Variables;
+using Types_Ener = Frog.Types.Energies;
+using Types_Cstr = Frog.Types.Constraints;
 
 
 namespace Frog.Solvers
