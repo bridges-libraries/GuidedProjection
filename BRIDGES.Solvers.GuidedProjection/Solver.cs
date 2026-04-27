@@ -12,7 +12,6 @@ using BRIDGES.Solvers.GuidedProjection.Abstracts;
 using Helpers = BRIDGES.Solvers.GuidedProjection.Helpers;
 
 
-
 namespace BRIDGES.Solvers.GuidedProjection
 {
     /// <summary>

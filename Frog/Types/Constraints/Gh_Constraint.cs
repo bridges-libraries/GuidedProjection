@@ -39,6 +39,12 @@ namespace Frog.Types.Constraints
 
 
         /// <summary>
+        /// Gets the name of the set to which this grasshopper constraint belongs.
+        /// </summary>
+        public string SetName { get; init; }
+
+
+        /// <summary>
         /// Gets the grasshopper variables composing the local vector localX.
         /// </summary>
         public IReadOnlyList<Types_Var.IGH_GooVariable> Variables => _variables;
@@ -68,8 +74,11 @@ namespace Frog.Types.Constraints
             _variables = new Types_Var.IGH_GooVariable[0];
 
             // Initialise Properties
+            SetName = string.Empty;
+
             ConstraintType = new Gh_IConstraintType();
             Weight = 0;
+
         }
 
         /// <summary>
@@ -78,7 +87,8 @@ namespace Frog.Types.Constraints
         /// <param name="gh_Variables"> Grasshopper variables composing the local vector localX. </param>
         /// <param name="gh_ConstraintType"> Constraint type defining the local quantities of this constraint. </param>
         /// <param name="weight"> Weight of this constraint. </param>
-        public Gh_Constraint(IList<Types_Var.IGH_GooVariable> gh_Variables, Gh_IConstraintType gh_ConstraintType, double weight)
+        /// <param name="name"> Name of the set to which the grasshopper constraint belongs. </param>
+        public Gh_Constraint(IList<Types_Var.IGH_GooVariable> gh_Variables, Gh_IConstraintType gh_ConstraintType, double weight, string name)
         {
             //     -----     Verifications
 
@@ -111,6 +121,8 @@ namespace Frog.Types.Constraints
             for (int i = 0; i < _variables.Length; i++) { _variables[i] = gh_Variables[i]; }
 
             // Initialise Properties
+            SetName = name;
+
             ConstraintType = gh_ConstraintType;
             Weight = weight;
         }
@@ -129,6 +141,8 @@ namespace Frog.Types.Constraints
             Array.Copy(gh_Constraint._variables, _variables, gh_Constraint._variables.Length);
 
             // Initialise Properties
+            SetName = gh_Constraint.SetName;
+
             ConstraintType = gh_Constraint.ConstraintType;
             Weight = gh_Constraint.Weight;
         }

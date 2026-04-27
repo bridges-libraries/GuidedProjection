@@ -38,6 +38,8 @@ namespace Frog.Constraints.Segment
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterInputParams(GH_InputParamManager)"/>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
+            pManager.AddTextParameter("Name", "N", "Name of the constraint.", GH_Kernel.GH_ParamAccess.item);
+
             pManager.AddParameter(new Params_Var.Param_IVariable(), "Start Variable", "S", "Variable representing the start of the segment.", GH_Kernel.GH_ParamAccess.item);
             pManager.AddParameter(new Params_Var.Param_IVariable(), "End Variable", "E", "Variable representing the end of the segment.", GH_Kernel.GH_ParamAccess.item);
             pManager.AddParameter(new Params_Var.Param_IVariable(), "Length Variable", "L", "Variable representing the distance between the start and the end of the segment.", GH_Kernel.GH_ParamAccess.item);
@@ -57,6 +59,8 @@ namespace Frog.Constraints.Segment
         {
             //     -----     Initialisation     -----     //
 
+            string name = string.Empty;
+
             Types_Var.IGH_GooVariable? gh_StartPoint = null;
             Types_Var.IGH_GooVariable? gh_EndPoint = null;
             Types_Var.IGH_GooVariable? gh_Length = null;
@@ -66,11 +70,13 @@ namespace Frog.Constraints.Segment
 
             //     -----      Get Inputs     -----     //
 
-            if (!DA.GetData(0, ref gh_StartPoint)) { return; }
-            if (!DA.GetData(1, ref gh_EndPoint)) { return; }
-            if (!DA.GetData(2, ref gh_Length)) { return; }
+            if (!DA.GetData(0, ref name)) { return; }
 
-            if (!DA.GetData(3, ref weight)) { return; }
+            if (!DA.GetData(1, ref gh_StartPoint)) { return; }
+            if (!DA.GetData(2, ref gh_EndPoint)) { return; }
+            if (!DA.GetData(3, ref gh_Length)) { return; }
+
+            if (!DA.GetData(4, ref weight)) { return; }
 
             //    ----    Verifications
 
@@ -93,7 +99,7 @@ namespace Frog.Constraints.Segment
             Types_Cstr.Gh_IConstraintType gh_ConstraintType = new Types_Cstr.Gh_IConstraintType(constraintType);
 
             // Create the constraint
-            Types_Cstr.Gh_Constraint gh_Constraint = new Types_Cstr.Gh_Constraint(gh_Variables, gh_ConstraintType, weight);
+            Types_Cstr.Gh_Constraint gh_Constraint = new Types_Cstr.Gh_Constraint(gh_Variables, gh_ConstraintType, weight, name);
 
 
             //     -----     Set Output     -----     //

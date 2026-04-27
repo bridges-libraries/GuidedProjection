@@ -36,17 +36,50 @@ namespace Frog.Types.Models
         /// <summary>
         /// Gets the number of variables of the model.
         /// </summary>
-        public int VariableCount { get; init; }
+        public int VariableCount 
+        { 
+            get
+            {
+                int count = 0;
+
+                foreach (GP.Variable[] setVariables in _setsOfVariables.Values) { count += setVariables.Length; }
+
+                return count;
+            }
+
+        }
 
         /// <summary>
         /// Gets the number of constraints of the model.
         /// </summary>
-        public int ConstraintCount { get; init; }
+        public int ConstraintCount
+        {
+            get
+            {
+                int count = 0;
+
+                foreach (List<GP.Constraint> setConstraints in _setsOfConstraints.Values) { count += setConstraints.Count; }
+
+                return count;
+            }
+
+        }
 
         /// <summary>
         /// Gets the number of energies of the model.
         /// </summary>
-        public int EnergyCount { get; init; }
+        public int EnergyCount
+        {
+            get
+            {
+                int count = 0;
+
+                foreach (List<GP.Energy> setEnergies in _setsOfEnergies.Values) { count += setEnergies.Count; }
+
+                return count;
+            }
+
+        }
 
 
         /// <summary>
@@ -71,7 +104,24 @@ namespace Frog.Types.Models
         /// <summary>
         /// Initialises a new instance of <see cref= "Gh_Model" /> class.
         /// </summary>
-        public Gh_Model() { /* Do Nothing */}
+        public Gh_Model() { /* Do Nothing */ }
+
+        /// <summary>
+        /// Initialises a new instance of <see cref= "Gh_Model" /> class from another <see cref="Gh_Model"/>.
+        /// </summary>
+        /// <param name="variableSets"> Sets of variables. </param>
+        /// <param name="constraintSets"> Sets of constraints. </param>
+        /// <param name="energySets"> Sets of energies. </param>
+        /// <param name="sets"> Sets of variables of the model. </param>
+        public Gh_Model(ref Dictionary<string, GP.Variable[]> variableSets, ref Dictionary<string, List<GP.Constraint>> constraintSets, ref Dictionary<string, List<GP.Energy>> energySets)
+        {
+            //     -----     Initialise Fields
+
+            _setsOfVariables = variableSets;
+            _setsOfConstraints = constraintSets;
+            _setsOfEnergies = energySets;
+        }
+
 
         /// <summary>
         /// Initialises a new instance of <see cref= "Gh_Model" /> class from another <see cref="Gh_Model"/>.
@@ -84,46 +134,6 @@ namespace Frog.Types.Models
             _setsOfVariables = new Dictionary<string, GP.Variable[]>(gh_Model.SetsOfVariables);
             _setsOfConstraints = new Dictionary<string, List<GP.Constraint>>(gh_Model.SetsOfConstraints);
             _setsOfEnergies = new Dictionary<string, List<GP.Energy>>(gh_Model.SetsOfEnergies);
-
-
-            //     -----     Initialise Properties
-
-            VariableCount = 0;
-            foreach (GP.Variable[] set in _setsOfVariables.Values) { VariableCount += set.Length; }
-
-            ConstraintCount = 0;
-            foreach (List<GP.Constraint> set in _setsOfConstraints.Values) { ConstraintCount += set.Count; }
-
-            EnergyCount = 0;
-            foreach (List<GP.Energy> set in _setsOfEnergies.Values) { EnergyCount += set.Count; }
-        }
-
-        /// <summary>
-        /// Initialises a new instance of <see cref= "Gh_Model" /> class from another <see cref="Gh_Model"/>.
-        /// </summary>
-        /// <param name="variableCount"> Number of variables of the model. </param>
-        /// <param name="constraintCount"> Number of constriaints of the model. </param>
-        /// <param name="energyCount"> Number of energies of the model. </param>
-        /// <param name="sets"> Sets of variables of the model. </param>
-        public Gh_Model(ref Dictionary<string, GP.Variable[]> variableSets, ref Dictionary<string, List<GP.Constraint>> constraintsSets, ref Dictionary<string, List<GP.Energy>> energySets)
-        {
-            //     -----     Initialise Fields
-
-            _setsOfVariables = variableSets;
-            _setsOfConstraints = constraintsSets;
-            _setsOfEnergies = energySets;
-
-
-            //     -----     Initialise Properties
-
-            VariableCount = 0;
-            foreach (GP.Variable[] set in _setsOfVariables.Values) { VariableCount += set.Length; }
-
-            ConstraintCount = 0;
-            foreach (List<GP.Constraint> set in _setsOfConstraints.Values) { ConstraintCount += set.Count; }
-
-            EnergyCount = 0;
-            foreach (List<GP.Energy> set in _setsOfEnergies.Values) { EnergyCount += set.Count; }
         }
 
         #endregion
@@ -138,7 +148,7 @@ namespace Frog.Types.Models
         {
             get 
             { 
-                return _setsOfVariables?.Count != 0 & _setsOfConstraints?.Count != 0 & _setsOfEnergies?.Count != 0; 
+                return _setsOfVariables?.Count != 0 & (_setsOfConstraints?.Count != 0 | _setsOfEnergies?.Count != 0); 
             }
         }
 
@@ -200,7 +210,7 @@ namespace Frog.Types.Models
         }
 
         /// <inheritdoc cref="GH_Types.IGH_Goo.CastTo{T}(out T)"/>
-        public bool CastTo<T>(out T target)
+        public bool CastTo<T>(out T? target)
         {
             target = default;
 

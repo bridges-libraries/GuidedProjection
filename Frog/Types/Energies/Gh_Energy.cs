@@ -39,6 +39,12 @@ namespace Frog.Types.Energies
 
 
         /// <summary>
+        /// Gets the name of the set to which this grasshopper energy belongs.
+        /// </summary>
+        public string SetName { get; init; }
+
+
+        /// <summary>
         /// Gets the grasshopper variables composing the local vector localX.
         /// </summary>
         public IReadOnlyList<Types_Var.IGH_GooVariable> Variables => _variables;
@@ -68,6 +74,8 @@ namespace Frog.Types.Energies
             _variables = new Types_Var.IGH_GooVariable[0];
 
             // Initialise Properties
+            SetName = string.Empty;
+
             EnergyType = new Gh_IEnergyType();
             Weight = 0;
         }
@@ -78,7 +86,8 @@ namespace Frog.Types.Energies
         /// <param name="gh_Variables"> Grasshopper variables composing the local vector localX. </param>
         /// <param name="gh_EnergyType"> Energy type defining the local quantities of this energy. </param>
         /// <param name="weight"> Weight of this energy. </param>
-        public Gh_Energy(IList<Types_Var.IGH_GooVariable> gh_Variables, Gh_IEnergyType gh_EnergyType, double weight)
+        /// <param name="name"> Name of the set to which the grasshopper constraint belongs. </param>
+        public Gh_Energy(IList<Types_Var.IGH_GooVariable> gh_Variables, Gh_IEnergyType gh_EnergyType, double weight, string name)
         {
             //     -----     Verifications
 
@@ -106,6 +115,8 @@ namespace Frog.Types.Energies
             for (int i = 0; i < _variables.Length; i++) { _variables[i] = gh_Variables[i]; }
 
             // Initialise Properties
+            SetName = name;
+
             EnergyType = gh_EnergyType;
             Weight = weight;
         }
@@ -124,6 +135,8 @@ namespace Frog.Types.Energies
             Array.Copy(gh_Energy._variables, _variables, gh_Energy._variables.Length);
 
             // Initialise Properties
+            SetName = gh_Energy.SetName;
+
             EnergyType = gh_Energy.EnergyType;
             Weight = gh_Energy.Weight;
         }

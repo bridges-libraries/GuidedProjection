@@ -15,7 +15,8 @@ namespace Frog
         Variables = 1,
         Constraints = 2,
         Energies = 3,
-        Solvers = 4
+        Solvers = 4,
+        Results = 5
     }
 
     /// <summary>

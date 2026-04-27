@@ -38,6 +38,8 @@ namespace Frog.Constraints.Scalar
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterInputParams(GH_InputParamManager)"/>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
+            pManager.AddTextParameter("Name", "N", "Name of the constraint.", GH_Kernel.GH_ParamAccess.item);
+
             pManager.AddParameter(new Params_Var.Param_IVariable(), "Scalar Variable", "V", "Variable whose value should be smaller than a fixed value.", GH_Kernel.GH_ParamAccess.item);
             pManager.AddNumberParameter("Upper Bound", "B", "Fixed upper bound of the scalar variable.", GH_Kernel.GH_ParamAccess.item);
 
@@ -56,6 +58,8 @@ namespace Frog.Constraints.Scalar
         {
             //     -----     Initialisation     -----     //
 
+            string name = string.Empty;
+
             Types_Var.IGH_GooVariable? gh_Scalar = null;
             double bound = 0d;
 
@@ -64,10 +68,12 @@ namespace Frog.Constraints.Scalar
 
             //     -----      Get Inputs     -----     //
 
-            if (!DA.GetData(0, ref gh_Scalar)) { return; }
-            if (!DA.GetData(1, ref bound)) { return; }
+            if (!DA.GetData(0, ref name)) { return; }
 
-            if (!DA.GetData(2, ref weight)) { return; }
+            if (!DA.GetData(1, ref gh_Scalar)) { return; }
+            if (!DA.GetData(2, ref bound)) { return; }
+
+            if (!DA.GetData(3, ref weight)) { return; }
 
             //    ----    Verifications
 
@@ -95,7 +101,7 @@ namespace Frog.Constraints.Scalar
 
 
             // Create the constraint
-            Types_Cstr.Gh_Constraint gh_Constraint = new Types_Cstr.Gh_Constraint(gh_Variables, gh_ConstraintType, weight);
+            Types_Cstr.Gh_Constraint gh_Constraint = new Types_Cstr.Gh_Constraint(gh_Variables, gh_ConstraintType, weight, name);
 
 
             //     -----     Set Output     -----     //

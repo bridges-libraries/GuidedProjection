@@ -39,6 +39,9 @@ namespace BRIDGES.Solvers.GuidedProjection.Abstracts
         /// Updates the members (i.e. LocalHi and LocalBi and Ci) of the constraint using auxiliary variables or auxiliary objects.
         /// </summary>
         /// <param name="variables"> Variables composing the local vector localX on which the local symmetric matrix Hi and the local vector Bi are defined. </param>
+        /// <param name="localHi"> The square symmetric matrix updated with the values of the <paramref name="variables"/>. </param>
+        /// <param name="localBi"> The column vector updated with the values of the <paramref name="variables"/>. </param>
+        /// <param name="ci"> The scalar updated with the values of the <paramref name="variables"/>. </param>
         public abstract void ComputeMembers(IReadOnlyList<IVariable> variables, out Mat.SparseMatrix<double>? localHi, out Vect.SparseVector<double>? localBi, out double ci);
 
         #endregion

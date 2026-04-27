@@ -44,17 +44,17 @@ namespace Frog.Solvers
         /// <summary>
         /// Sets of variables of the computed model.
         /// </summary>
-        private Dictionary<string, GP.Variable[]>? _setsOfVariables;
+        private Dictionary<string, GP.Variable[]> _setsOfVariables;
 
         /// <summary>
         /// Sets of constraints of the computed model.
         /// </summary>
-        private Dictionary<string, List<GP.Constraint>>? _setsOfConstraints;
+        private Dictionary<string, List<GP.Constraint>> _setsOfConstraints;
 
         /// <summary>
         /// Sets of energies of the computed model.
         /// </summary>
-        private Dictionary<string, List<GP.Energy>>? _setsOfEnergies;
+        private Dictionary<string, List<GP.Energy>> _setsOfEnergies;
 
 
         //     -----     GH_Component Utilities     -----     //
@@ -64,21 +64,6 @@ namespace Frog.Solvers
         #endregion
 
         #region Properties
-
-        /// <summary>
-        /// Gets the number of variables of the computed model.  
-        /// </summary>
-        public int VariableCount { get; private set; }
-
-        /// <summary>
-        /// Gets the number of energies of the computed model.  
-        /// </summary>
-        public int EnergyCount { get; private set; }
-
-        /// <summary>
-        /// Gets the number of constraints of the computed model.  
-        /// </summary>
-        public int ConstraintCount { get; private set; }
 
         /// <summary>
         /// Gets the weight for the regulariser.
@@ -96,7 +81,9 @@ namespace Frog.Solvers
           : base("GPA Solver", "GPA", "Creates and solves a model using the Guided Projection Algorithm (GPA).",
               GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Solvers])
         {
-            // Do Nothing
+            _setsOfVariables = new Dictionary<string, GP.Variable[]>();
+            _setsOfEnergies = new Dictionary<string, List<GP.Energy>>();
+            _setsOfConstraints = new Dictionary<string, List<GP.Constraint>>();
         }
 
         #endregion
@@ -201,6 +188,7 @@ namespace Frog.Solvers
             {
                 Types_Cstr.Gh_Constraint gh_Constraint = gh_Constraints[i];
 
+
                 //     -----     Variables
 
                 IReadOnlyList<Types_Var.IGH_GooVariable> gh_IVariables = gh_Constraint.Variables;
@@ -214,6 +202,7 @@ namespace Frog.Solvers
                         $"The constraint at index {i} could not be added to the model because of its variables.");
                     return false;
                 }
+
 
                 //     -----     Constraint Type
 
@@ -239,6 +228,9 @@ namespace Frog.Solvers
                 //     -----     Constraint
 
                 GP.Constraint modelCstr = model.AddConstraint(cloneCstrType, modelIVars, gh_Constraint.Weight);
+
+                if (!_setsOfConstraints.ContainsKey(gh_Constraint.SetName)) { _setsOfConstraints.Add(gh_Constraint.SetName, new List<GP.Constraint>()); }
+                _setsOfConstraints[gh_Constraint.SetName].Add(modelCstr);
             }
 
             return true;
@@ -260,6 +252,7 @@ namespace Frog.Solvers
             {
                 Types_Ener.Gh_Energy gh_Energy = gh_Energies[i];
 
+
                 //     -----     Variables
 
                 IReadOnlyList<Types_Var.IGH_GooVariable> gh_IVariables = gh_Energy.Variables;
@@ -273,6 +266,8 @@ namespace Frog.Solvers
                         $"The energy at index {i} could not be added to the model because of its variables.");
                     return false;
                 }
+
+
                 //     -----     Constraint Type
 
                 GP.Interfaces.IEnergyType iEnerType = gh_Energy.EnergyType.Value;
@@ -289,9 +284,13 @@ namespace Frog.Solvers
                     return false;
                 }
 
+
                 //     -----     Constraint
 
                 GP.Energy modelEner = model.AddEnergy(cloneEnerType, modelIVars, gh_Energy.Weight);
+
+                if (!_setsOfEnergies.ContainsKey(gh_Energy.SetName)) { _setsOfEnergies.Add(gh_Energy.SetName, new List<GP.Energy>()); }
+                _setsOfEnergies[gh_Energy.SetName].Add(modelEner);
             }
 
             return true;
@@ -427,6 +426,19 @@ namespace Frog.Solvers
 
         //     -----     Other Methods     -----     //
 
+        /// <summary>
+        /// Clear the fields of this component before running a new model.
+        /// </summary>
+        private void ClearFields()
+        {
+            _setsOfVariables.Clear();
+            _setsOfConstraints.Clear();
+            _setsOfEnergies.Clear();
+        }
+
+        /// <summary>
+        /// Saves the RuntimeMessages before exiting.
+        /// </summary>
         private void SaveRuntimeMessages()
         {
             foreach (GH_Kernel.GH_RuntimeMessageLevel level in Enum.GetValues(typeof(GH_Kernel.GH_RuntimeMessageLevel)))
@@ -435,6 +447,9 @@ namespace Frog.Solvers
             }
         }
 
+        /// <summary>
+        /// Repeats the saved RuntimeMessages, and clears the associated field.
+        /// </summary>
         private void RepeatRuntimeMessages()
         {
             foreach (GH_Kernel.GH_RuntimeMessageLevel level in _runtimeMessages.Keys)
@@ -487,6 +502,8 @@ namespace Frog.Solvers
 
             if (run)
             {
+                ClearFields();
+
                 bool runned = ActualSolveInstance(DA);
                 SaveRuntimeMessages();
 
@@ -526,13 +543,6 @@ namespace Frog.Solvers
             }
             else
             {
-                Dictionary<string, List<GP.Constraint>>? _setsOfConstraints = new Dictionary<string, List<GP.Constraint>>();
-                _setsOfConstraints.Add("Temporary", new List<GP.Constraint>());
-
-                Dictionary<string, List<GP.Energy>>? _setsOfEnergies = new Dictionary<string, List<GP.Energy>>();
-                _setsOfEnergies.Add("Temporary", new List<GP.Energy>());
-
-
                 Types.Models.Gh_Model gh_Model = new Types.Models.Gh_Model(ref _setsOfVariables, ref _setsOfConstraints, ref _setsOfEnergies);
 
                 DA.SetData(0, gh_Model);
@@ -568,7 +578,7 @@ namespace Frog.Solvers
 
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
-        protected override System.Drawing.Bitmap Icon => null;
+        protected override System.Drawing.Bitmap? Icon => null;
 
 
         //     -----     Methods     -----     //

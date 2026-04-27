@@ -38,6 +38,8 @@ namespace Frog.Constraints.Vector
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterInputParams(GH_InputParamManager)"/>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
+            pManager.AddTextParameter("Name", "N", "Name of the constraint.", GH_Kernel.GH_ParamAccess.item);
+
             pManager.AddParameter(new Params_Var.Param_IVariable(), "Vector Variable", "V", "Variable representing a vector whose length should equal a fixed value.", GH_Kernel.GH_ParamAccess.item);
             pManager.AddNumberParameter("Target Length", "L", "Fixed target length of the vector variable.", GH_Kernel.GH_ParamAccess.item);
 
@@ -56,6 +58,8 @@ namespace Frog.Constraints.Vector
         {
             //     -----     Initialisation     -----     //
 
+            string name = string.Empty;
+
             Types_Var.IGH_GooVariable? gh_Vector = null;
             double length = 0d;
 
@@ -64,10 +68,12 @@ namespace Frog.Constraints.Vector
 
             //     -----     Get Inputs     -----     //
 
-            if (!DA.GetData(0, ref gh_Vector)) { return; };
-            if (!DA.GetData(1, ref length)) { return; };
+            if (!DA.GetData(0, ref name)) { return; }
 
-            if (!DA.GetData(2, ref weight)) { weight = 1d; };
+            if (!DA.GetData(1, ref gh_Vector)) { return; };
+            if (!DA.GetData(2, ref length)) { return; };
+
+            if (!DA.GetData(3, ref weight)) { weight = 1d; };
 
             //     -----     Verifications
 
@@ -86,7 +92,7 @@ namespace Frog.Constraints.Vector
             Types_Cstr.Gh_IConstraintType gh_ConstraintType = new Types_Cstr.Gh_IConstraintType(constraintType);
 
             // Create the constraint
-            Types_Cstr.Gh_Constraint gh_Constraint = new Types_Cstr.Gh_Constraint(gh_Variables, gh_ConstraintType, weight);
+            Types_Cstr.Gh_Constraint gh_Constraint = new Types_Cstr.Gh_Constraint(gh_Variables, gh_ConstraintType, weight, name);
 
 
             //     -----     Set Output     -----     //

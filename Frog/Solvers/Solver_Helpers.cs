@@ -6,11 +6,79 @@ using GP = BRIDGES.Solvers.GuidedProjection;
 
 namespace Frog.Solvers
 {
+    /// <summary>
+    /// Dummy class for cloning <see cref="GP.Interfaces.IEnergyType"/>
+    /// </summary>
+    internal class CloneEnergyType : GP.Abstracts.EnergyType
+    {
+        #region Constructors
+
+        public CloneEnergyType(GP.Interfaces.IEnergyType energyType)
+        {
+            LocalKi = energyType.LocalKi;
+            Si = energyType.Si;
+        }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// Dummy class for cloning <see cref="GP.Interfaces.IConstraintType"/>, which are not <see cref="GP.Abstracts.UpdatedConstraintType"/>.
+    /// </summary>
+    internal class CloneConstraintType : GP.Abstracts.ConstraintType
+    {
+        #region Constructors
+
+        public CloneConstraintType(GP.Interfaces.IConstraintType constraintType)
+        {
+            LocalHi = constraintType.LocalHi;
+            LocalBi = constraintType.LocalBi;
+            Ci = constraintType.Ci;
+        }
+
+        #endregion
+    }
+
+    /// <summary>
+    /// Dummy class for cloning <see cref="GP.Abstracts.UpdatedConstraintType"/>.
+    /// </summary>
+    internal class CloneUpdatedConstraintType : GP.Abstracts.UpdatedConstraintType
+    {
+        #region Fields
+
+        GP.Abstracts.UpdatedConstraintType _constraintType;
+
+        #endregion
+
+        #region Constructors
+
+        public CloneUpdatedConstraintType(GP.Abstracts.UpdatedConstraintType constraintType)
+        {
+            _constraintType = constraintType;
+
+            LocalHi = constraintType.LocalHi;
+            LocalBi = constraintType.LocalBi;
+            Ci = constraintType.Ci;
+        }
+
+        #endregion
+
+        #region Public Methods
+
+        public override void ComputeMembers(IReadOnlyList<GP.Interfaces.IVariable> variables,
+            out BRIDGES.Numerics.LinearAlgebra.Matrices.SparseMatrix<double>? localHi, out BRIDGES.Numerics.LinearAlgebra.Vectors.SparseVector<double>? localBi, out double ci)
+        {
+            _constraintType.ComputeMembers(variables, out localHi, out localBi, out ci);
+        }
+
+        #endregion
+    }
+
 
     /// <summary>
     /// Composite control that shows a Label next to a TextBox.
     /// </summary>
-    public class LabeledTextBox : System.Windows.Forms.UserControl
+    internal class LabeledTextBox : System.Windows.Forms.UserControl
     {
         #region Properties
 
@@ -62,74 +130,4 @@ namespace Frog.Solvers
 
         #endregion
     }
-
-
-    /// <summary>
-    /// Dummy class for cloning <see cref="GP.Interfaces.IEnergyType"/>
-    /// </summary>
-    public class CloneEnergyType : GP.Abstracts.EnergyType
-    {
-        #region Constructors
-
-        public CloneEnergyType(GP.Interfaces.IEnergyType energyType)
-        {
-            LocalKi = energyType.LocalKi;
-            Si = energyType.Si;
-        }
-
-        #endregion
-    }
-
-    /// <summary>
-    /// Dummy class for cloning <see cref="GP.Interfaces.IConstraintType"/>, which are not <see cref="GP.Abstracts.UpdatedConstraintType"/>.
-    /// </summary>
-    public class CloneConstraintType : GP.Abstracts.ConstraintType
-    {
-        #region Constructors
-
-        public CloneConstraintType(GP.Interfaces.IConstraintType constraintType)
-        {
-            LocalHi = constraintType.LocalHi;
-            LocalBi = constraintType.LocalBi;
-            Ci = constraintType.Ci;
-        }
-
-        #endregion
-    }
-
-    /// <summary>
-    /// Dummy class for cloning <see cref="GP.Abstracts.UpdatedConstraintType"/>.
-    /// </summary>
-    public class CloneUpdatedConstraintType : GP.Abstracts.UpdatedConstraintType
-    {
-        #region Fields
-
-        GP.Abstracts.UpdatedConstraintType _constraintType;
-
-        #endregion
-
-        #region Constructors
-
-        public CloneUpdatedConstraintType(GP.Abstracts.UpdatedConstraintType constraintType)
-        {
-            _constraintType = constraintType;
-
-            LocalHi = constraintType.LocalHi;
-            LocalBi = constraintType.LocalBi;
-            Ci = constraintType.Ci;
-        }
-
-        #endregion
-
-        #region Public Methods
-
-        public override void ComputeMembers(IReadOnlyList<GP.Interfaces.IVariable> variables,
-            out BRIDGES.Numerics.LinearAlgebra.Matrices.SparseMatrix<double>? localHi, out BRIDGES.Numerics.LinearAlgebra.Vectors.SparseVector<double>? localBi, out double ci)
-        {
-            _constraintType.ComputeMembers(variables, out localHi, out localBi, out ci);
-        }
-
-        #endregion
-    }
 }
-
