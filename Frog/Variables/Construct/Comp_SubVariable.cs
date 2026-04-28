@@ -37,7 +37,7 @@ namespace Frog.Variables.Construct
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddParameter(new Parameters.Variables.Param_IVariable(), "Parent Variable", "V", "Variable whose coordinates are used to create the sub-variable.", GH_Kernel.GH_ParamAccess.item);
-            pManager.AddIntegerParameter("Component Indices", "I", "Indices of the component retained to create the sub-variable.", GH_Kernel.GH_ParamAccess.list);
+            pManager.AddIntegerParameter("Coordinate Indices", "I", "Indices of the coordinates retained to create the sub-variable.", GH_Kernel.GH_ParamAccess.list);
         }
 
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>

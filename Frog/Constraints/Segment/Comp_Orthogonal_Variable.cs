@@ -13,7 +13,7 @@ using Params_Cstr = Frog.Parameters.Constraints;
 namespace Frog.Constraints.Segment
 {
     /// <summary>
-    /// A grasshopper component creating a <see cref="GP.ConstraintTypes.Segment.Orthogonal_Variable"/>-based <see cref="GP.Energy"/>.
+    /// A grasshopper component creating a <see cref="GP.ConstraintTypes.Segment.Orthogonal_Variable"/>-based <see cref="GP.Constraint"/>.
     /// </summary>
     public class Comp_Orthogonal_Variable : GH_Kernel.GH_Component
     {

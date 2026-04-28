@@ -20,14 +20,9 @@ namespace Frog.Types.Models
         private Dictionary<string, GP.Variable[]> _setsOfVariables = new Dictionary<string, GP.Variable[]>();
 
         /// <summary>
-        /// Constraints of the model.
+        /// Sets of constraints of the model.
         /// </summary>
         private Dictionary<string, List<GP.Constraint>> _setsOfConstraints = new Dictionary<string, List<GP.Constraint>>();
-
-        /// <summary>
-        /// Energies of the model.
-        /// </summary>
-        private Dictionary<string, List<GP.Energy>> _setsOfEnergies = new Dictionary<string, List<GP.Energy>>();
 
         #endregion
 
@@ -65,22 +60,6 @@ namespace Frog.Types.Models
 
         }
 
-        /// <summary>
-        /// Gets the number of energies of the model.
-        /// </summary>
-        public int EnergyCount
-        {
-            get
-            {
-                int count = 0;
-
-                foreach (List<GP.Energy> setEnergies in _setsOfEnergies.Values) { count += setEnergies.Count; }
-
-                return count;
-            }
-
-        }
-
 
         /// <summary>
         /// Gets the sets of variables of the model.
@@ -91,11 +70,6 @@ namespace Frog.Types.Models
         /// Gets the sets of variables of the model.
         /// </summary>
         public IReadOnlyDictionary<string, List<GP.Constraint>> SetsOfConstraints => _setsOfConstraints;
-
-        /// <summary>
-        /// Gets the sets of variables of the model.
-        /// </summary>
-        public IReadOnlyDictionary<string, List<GP.Energy>> SetsOfEnergies => _setsOfEnergies;
 
         #endregion
 
@@ -111,15 +85,12 @@ namespace Frog.Types.Models
         /// </summary>
         /// <param name="variableSets"> Sets of variables. </param>
         /// <param name="constraintSets"> Sets of constraints. </param>
-        /// <param name="energySets"> Sets of energies. </param>
-        /// <param name="sets"> Sets of variables of the model. </param>
-        public Gh_Model(ref Dictionary<string, GP.Variable[]> variableSets, ref Dictionary<string, List<GP.Constraint>> constraintSets, ref Dictionary<string, List<GP.Energy>> energySets)
+        public Gh_Model(ref Dictionary<string, GP.Variable[]> variableSets, ref Dictionary<string, List<GP.Constraint>> constraintSets)
         {
             //     -----     Initialise Fields
 
             _setsOfVariables = variableSets;
             _setsOfConstraints = constraintSets;
-            _setsOfEnergies = energySets;
         }
 
 
@@ -133,7 +104,6 @@ namespace Frog.Types.Models
 
             _setsOfVariables = new Dictionary<string, GP.Variable[]>(gh_Model.SetsOfVariables);
             _setsOfConstraints = new Dictionary<string, List<GP.Constraint>>(gh_Model.SetsOfConstraints);
-            _setsOfEnergies = new Dictionary<string, List<GP.Energy>>(gh_Model.SetsOfEnergies);
         }
 
         #endregion
@@ -148,7 +118,7 @@ namespace Frog.Types.Models
         {
             get 
             { 
-                return _setsOfVariables?.Count != 0 & (_setsOfConstraints?.Count != 0 | _setsOfEnergies?.Count != 0); 
+                return _setsOfVariables?.Count != 0 & _setsOfConstraints?.Count != 0; 
             }
         }
 
@@ -168,10 +138,6 @@ namespace Frog.Types.Models
                 else if (_setsOfConstraints?.Count == 0)
                 {
                     return $"The model does not contain any constraint.";
-                }
-                else if (_setsOfEnergies?.Count == 0)
-                {
-                    return $"The model does not contain any energies.";
                 }
                 else { return $"This {TypeName} is not valid, but the reason is not detailed"; }
                     
@@ -193,7 +159,7 @@ namespace Frog.Types.Models
         /// <inheritdoc cref="GH_Types.IGH_Goo.ScriptVariable()"/>
         public object ScriptVariable()
         {
-            return new object[3] { _setsOfVariables, _setsOfConstraints, _setsOfEnergies };
+            return new object[2] { _setsOfVariables, _setsOfConstraints};
         }
 
 
@@ -245,7 +211,7 @@ namespace Frog.Types.Models
         {
             if (IsValid)
             {
-                return $"GPA Model (V:{VariableCount}; C:{ConstraintCount}; E:{EnergyCount})";
+                return $"GPA Model (V:{VariableCount}; C:{ConstraintCount})";
             }
             else { return "Empty Gh_Model"; }
         }

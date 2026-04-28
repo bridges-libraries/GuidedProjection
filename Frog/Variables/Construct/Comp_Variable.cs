@@ -556,7 +556,7 @@ namespace Frog.Variables.Construct
         /// Draws the Popup Menu
         /// </summary>
         /// <param name="graphics"> Graphics object to draw with. </param>
-        /// <param name="component"></param>
+        /// <param name="component"> Grasshopper component to draw over. </param>
         private void DrawPopup(Sys_Drawing.Graphics graphics, Comp_Variable? component)
         {
             //     -----     Verification

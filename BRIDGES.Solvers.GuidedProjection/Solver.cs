@@ -25,12 +25,12 @@ namespace BRIDGES.Solvers.GuidedProjection
         //     -----     For Weigths     -----     //
 
         /// <summary>
-        /// Event raised whenever <see cref="Energy"/> and <see cref="Constraint"/> weights needs to be updated.
+        /// Event raised whenever <see cref="Constraint"/> weights needs to be updated.
         /// </summary>
         private event Action<int>? WeigthUpdate;
 
         /// <summary>
-        /// Raises the event which updates the <see cref="Energy"/> and the <see cref="Constraint"/> weights. 
+        /// Raises the event which updates the <see cref="Constraint"/> weights. 
         /// </summary>
         /// <param name="iteration"> Index of the current iteration. </param>
         private void OnWeigthUpdate(int iteration)
@@ -39,7 +39,7 @@ namespace BRIDGES.Solvers.GuidedProjection
         }
 
 
-        //     -----     For Quadratic Constraints     -----     //
+        //     -----     For Constraints     -----     //
 
         /// <summary>
         /// Event raised whenever the members of <see cref="UpdatedConstraintType"/> needs to be updated.
@@ -63,12 +63,6 @@ namespace BRIDGES.Solvers.GuidedProjection
         /// </summary>
         /// <remarks> The use of the <see cref="HashSet{T}"/> collection allows for efficient search, but does not provide indexing. </remarks>
         private readonly HashSet<Variable> _variables;
-
-        /// <summary>
-        /// List of energies of this <see cref="Solver"/>.
-        /// </summary>
-        /// <remarks> The use of the <see cref="HashSet{T}"/> collection allows for efficient search, but does not provide indexing. </remarks>
-        private readonly HashSet<Energy> _energies;
 
         /// <summary>
         /// List of constraints of this <see cref="Solver"/>.
@@ -100,14 +94,9 @@ namespace BRIDGES.Solvers.GuidedProjection
         public int VariableCount => _variables.Count;
 
         /// <summary>
-        /// Gets the number of components in the global vector X of this <see cref="Solver"/>.  
+        /// Gets the number of coordinate in the global vector X of this <see cref="Solver"/>.  
         /// </summary>
-        public int ComponentCount { get; private set; } = 0;
-
-        /// <summary>
-        /// Gets the number of energies of this <see cref="Solver"/>.  
-        /// </summary>
-        public int EnergyCount => _energies.Count;
+        public int CoordinateCount { get; private set; } = 0;
 
         /// <summary>
         /// Gets the number of constraints of this <see cref="Solver"/>.  
@@ -158,7 +147,6 @@ namespace BRIDGES.Solvers.GuidedProjection
             //     -----     Instanciate Fields
 
             _variables = new HashSet<Variable>();
-            _energies = new HashSet<Energy>();
             _constraints = new HashSet<Constraint>();
 
             _x = new double[0];
@@ -175,41 +163,41 @@ namespace BRIDGES.Solvers.GuidedProjection
 
         #endregion
 
-        #region Methods
+        #region Public Methods
 
         //     -----     For Variables     -----     //
 
         /// <summary>
-        /// Creates a variable from its components and adds it to this model.
+        /// Creates a variable from its coordinates and adds it to this model.
         /// </summary>
-        /// <param name="components"> Values of the variable's components. </param>
+        /// <param name="coordinates"> Coordinates of the variable. </param>
         /// <returns> The newly added <see cref="Variable"/>. </returns>
-        public Variable AddVariable(params double[] components)
+        public Variable AddVariable(params double[] coordinates)
         {
             //     -----     Verifications
 
-            ArgumentNullException.ThrowIfNull(components);
+            ArgumentNullException.ThrowIfNull(coordinates);
 
 
-            Variable variable = new Variable(components);
+            Variable variable = new Variable(coordinates);
             AddVariable(variable);
 
             return variable;
         }
 
         /// <summary>
-        /// Creates a variable from its components and adds it to this model.
+        /// Creates a variable from its coordinates and adds it to this model.
         /// </summary>
-        /// <param name="components"> Values of the variable's components. </param>
+        /// <param name="coordinates"> List of coordinates of the variable. </param>
         /// <returns> The newly added <see cref="Variable"/>. </returns>
-        public Variable AddVariable(IList<double> components)
+        public Variable AddVariable(IList<double> coordinates)
         {
             //     -----     Verifications
 
-            ArgumentNullException.ThrowIfNull(components);
+            ArgumentNullException.ThrowIfNull(coordinates);
 
 
-            Variable variable = new Variable(components);
+            Variable variable = new Variable(coordinates);
             AddVariable(variable);
 
             return variable;
@@ -230,85 +218,6 @@ namespace BRIDGES.Solvers.GuidedProjection
             else
             {
                 AddVariable(variable);
-
-                return true;
-            }
-        }
-
-
-        //     -----     For Energies     -----     //
-
-        /// <summary>
-        /// Creates an energy with a constant weight and adds it to this model.
-        /// </summary>
-        /// <param name="energyType"> Energy type defining the local quantities of the energy. </param>
-        /// <param name="variables"> 
-        /// Variables composing the local vector localX.
-        /// <para> See the <paramref name="energyType"/> class description to learn about the expected variables. The order of the variables matters.</para>
-        /// </param>
-        /// <param name="weight"> Weight of the energy. </param>
-        public Energy AddEnergy(IEnergyType energyType, IReadOnlyList<IVariable> variables, double weight = 1.0)
-        {
-            Energy energy = new Energy(energyType, variables, weight);
-
-            AddEnergy(energy);
-
-            return energy;
-        }
-
-        /// <summary>
-        /// Creates an energy with a varying weight and adds it to this model.
-        /// </summary>
-        /// <param name="energyType"> Energy type defining the energy locally. </param>
-        /// <param name="variables"> 
-        /// Variables composing the local vector localX.
-        /// <para> See the <paramref name="energyType"/> class description to learn about the expected variables. The order of the variables matters.</para>
-        /// </param>
-        /// <param name="weightFunction"> Function computing the weight from the iteration index. </param>
-        public Energy AddEnergy(IEnergyType energyType, IReadOnlyList<IVariable> variables, Func<int,double> weightFunction)
-        {
-            Energy energy = new Energy(energyType, variables, 0.0);
-
-            AddEnergy(energy, weightFunction);
-
-            return energy;
-        }
-
-
-        /// <summary>
-        /// Attempts to add the specified energy to this model.
-        /// </summary>
-        /// <param name="energy"> Energy to add. </param>
-        /// <returns> <see langword="true"/> if the energy was added, <see langword="false"/> if the energy already exists in the model. </returns>
-        public bool TryAddEnergy(Energy energy)
-        {
-            if (_energies.Contains(energy)) // Complexity : O(1) 
-            {
-                return false;
-            }
-            else
-            {
-                AddEnergy(energy);
-
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// Attempts to add the specified energy with a varying weight to this model.
-        /// </summary>
-        /// <param name="energy"> Energy to add. </param>
-        /// <param name="weightFunction"> Function computing the weight from the iteration index. </param>
-        /// <returns> <see langword="true"/> if the energy was added, <see langword="false"/> if the energy already exists in the model. </returns>
-        public bool TryAddEnergy(Energy energy, Func<int, double> weightFunction)
-        {
-            if (_energies.Contains(energy)) // Complexity : O(1) 
-            {
-                return false;
-            }
-            else
-            {
-                AddEnergy(energy, weightFunction);
 
                 return true;
             }
@@ -393,6 +302,7 @@ namespace BRIDGES.Solvers.GuidedProjection
             }
         }
 
+
         //     -----     For Solving     -----     //
 
         /// <summary>
@@ -402,13 +312,13 @@ namespace BRIDGES.Solvers.GuidedProjection
         {
             //     -----     Global vector X     -----     //
 
-            double[] array = new double[ComponentCount];    // ComponentCount is updated
+            double[] array = new double[CoordinateCount];    // CoordinateCount is updated
 
             int i_Comp = 0;
 
             foreach (Variable variable in _variables)
             {
-                // Set the components in the global vector X
+                // Set the coordinate in the global vector X
                 for (int i_VarComp = 0; i_VarComp < variable.Size; i_VarComp++)
                 {
                     array[i_Comp + i_VarComp] = variable[i_VarComp];
@@ -482,32 +392,7 @@ namespace BRIDGES.Solvers.GuidedProjection
         private void AddVariable(Variable variable)
         {
             _variables.Add(variable);
-            ComponentCount += variable.Size;
-        }
-
-
-        //     -----     For Energies     -----     //
-
-        /// <summary>
-        /// Adds an energy to the this model.
-        /// </summary>
-        /// <param name="energy"> Energy to add. </param>
-        private void AddEnergy(Energy energy)
-        {
-            _energies.Add(energy);
-        }
-
-        /// <summary>
-        /// Adds an energy to the this model.
-        /// </summary>
-        /// <param name="energy"> Energy to add. </param>
-        /// <param name="weightFunction"> Function computing the weight from the iteration index. </param>
-        private void AddEnergy(Energy energy, Func<int, double> weightFunction)
-        {
-            _energies.Add(energy);
-
-            void energyWeightUpdater(int iteration) => energy.Weight = weightFunction(iteration);
-            WeigthUpdate += energyWeightUpdater;
+            CoordinateCount += variable.Size;
         }
 
 
@@ -560,51 +445,24 @@ namespace BRIDGES.Solvers.GuidedProjection
 
             FormConstraintMembers(out Mat.SparseMatrix<double> H, out Vect.DenseVector<double> r);
 
+            //     -----     Solve the minimisation problem     -----     //
+            
+            // Left hand side of the equation
+            Mat.SparseMatrix<double> LHS;
 
-            //     -----     Create K and s     -----     //
-
-            Mat.SparseMatrix<double>? K = null;
-            Vect.SparseVector<double>? s = null;
-
-            if (_energies.Count != 0) { FormEnergyMembers(out K, out s); }
-
-
-            /******************** Solve the minimisation problem ********************/
-
-            Mat.SparseMatrix<double> LHS; // Left hand side of the equation
-            Vect.DenseVector<double> RHS; // Right hand side of the equation
-
-            if (H.NonZeroCount != 0 && K is not null)
-            {
-                Mat.SparseMatrix<double> HtH = Mat.SparseMatrix<double>.TransposeMultiply(H, H);
-                Mat.SparseMatrix<double> KtK = Mat.SparseMatrix<double>.TransposeMultiply(K, K);
-                
-                LHS = HtH + KtK;
-                RHS = Mat.SparseMatrix<double>.TransposeMultiply(H, r) + Mat.SparseMatrix<double>.TransposeMultiply(K, s);
-            }
-            else
-            {
-                if (H.NonZeroCount != 0)
-                {
-                    LHS = Mat.SparseMatrix<double>.TransposeMultiply(H, H);
-                    RHS = Mat.SparseMatrix<double>.TransposeMultiply(H, r);
-                }
-                else if (K is not null)
-                {
-                    Vect.DenseVector<double> tmp = new Vect.DenseVector<double>(s.ToArray());
-
-                    LHS = Mat.SparseMatrix<double>.TransposeMultiply(K, K);
-                    RHS = Mat.SparseMatrix<double>.TransposeMultiply(K, tmp);
-                }
-                else { throw new InvalidOperationException("The matrices H and K are empty."); }
-            }
-
+            LHS = Mat.SparseMatrix<double>.TransposeMultiply(H, H);
             LHS = Mat.SparseMatrix<double>.Add(LHS, _epsEpsIdentity!);
+
+            // Right hand side of the equation
+            Vect.DenseVector<double> RHS; 
+
+            RHS = Mat.SparseMatrix<double>.TransposeMultiply(H, r);
 
             Vect.DenseVector<double> eeX = new Vect.DenseVector<double>(_x.Length);
             for (int i = 0; i < _x.Length; i++) { eeX[i] = (Epsilon * Epsilon) * _x[i]; }
             RHS = Vect.DenseVector<double>.Add(RHS, eeX);
-             
+            
+            // Solving linear system
             return LHS.SolveCholesky(RHS);
         }
 
@@ -651,12 +509,12 @@ namespace BRIDGES.Solvers.GuidedProjection
 
                 //     -----     Create localX     -----     //
 
-                double[] components = new double[localSize];
+                double[] coordinates = new double[localSize];
                 for (int i_Comp = 0; i_Comp < localSize; i_Comp++)
                 {
-                    components[i_Comp] = _x[rowIndices[i_Comp]];
+                    coordinates[i_Comp] = _x[rowIndices[i_Comp]];
                 }
-                Vect.DenseVector<double> localX = new Vect.DenseVector<double>(components);
+                Vect.DenseVector<double> localX = new Vect.DenseVector<double>(coordinates);
 
 
                 //     -----     Compute H and r     -----     //
@@ -720,65 +578,6 @@ namespace BRIDGES.Solvers.GuidedProjection
             H = new Mat.SparseMatrix<double>(storage);
 
             r = new Vect.DenseVector<double>(list_r.ToArray());
-        }
-
-        /// <summary>
-        /// Forms the global system members derived from the energies.
-        /// </summary>
-        /// <param name="K"> The global matrix K. </param>
-        /// <param name="s"> The global vector s. </param>
-        private void FormEnergyMembers(out Mat.SparseMatrix<double> K, out Vect.SparseVector<double> s)
-        {
-            Helpers.DictionaryOfKeys dok_K = new Helpers.DictionaryOfKeys(10 * _energies.Count /* Random */);
-
-            List<int> s_Indices = new List<int>(_energies.Count);
-            List<double> s_Values = new List<double>(_energies.Count);
-
-            int energyCount = 0;
-            foreach (Energy energy in _energies)
-            {
-                // Verifications
-                if (energy.Weight == 0d) { continue; }
-
-                IReadOnlyList<IVariable> variables = energy.Variables;
-                IEnergyType energyType = energy.EnergyType;
-
-                int localSize = energyType.LocalKi.Size;
-
-                // ----- Create the Row Indices ----- //
-
-                // Translating the local indices of the constraint defined on localX into global indices defined on X.
-                List<int> rowIndices = new List<int>(localSize);
-                for (int i_Variable = 0; i_Variable < variables.Count; i_Variable++)
-                {
-                    IVariable variable = variables[i_Variable];
-                    for (int i_VarComp = 0; i_VarComp < variable.Size; i_VarComp++)
-                    {
-                        rowIndices.Add(variable.ReferenceIndex(i_VarComp));
-                    }
-                }
-
-                // ----- For s ----- //
-
-                if (energyType.Si != 0.0)
-                {
-                    s_Indices.Add(energyCount);
-                    s_Values.Add(energy.Weight * energyType.Si);
-                }
-
-                // ----- For K ----- //
-
-                foreach ((int rowIndex, double value) in energyType.LocalKi.NonZeros())
-                {
-                    dok_K.Add(energy.Weight * value, energyCount, rowIndices[rowIndex]);
-                }
-
-                energyCount++;
-            }
-
-            Mat.SparseStorages.CompressedColumn<double> storage = dok_K.ToCompressedColumn(energyCount, _x.Length);
-            K = new Mat.SparseMatrix<double>(storage);
-            s = new Vect.SparseVector<double>(energyCount, s_Indices, s_Values);
         }
 
         #endregion

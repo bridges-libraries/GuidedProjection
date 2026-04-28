@@ -68,7 +68,7 @@ namespace BRIDGES.Solvers.GuidedProjection.ConstraintTypes.Segment
             List<int> indices = new List<int>(capacity);
             List<double> values = new List<double>(capacity);
 
-            Dictionary<int, double> component = new Dictionary<int, double>();
+            Dictionary<int, double> coordinates = new Dictionary<int, double>();
             for (int i = 0; i < direction.Length; i++)
             {
                 indices.Add(i); values.Add(-direction[i]);

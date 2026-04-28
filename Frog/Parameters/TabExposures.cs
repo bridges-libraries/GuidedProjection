@@ -11,8 +11,7 @@ namespace Frog.Parameters
     enum TabExposure
     {
         Variables = GH_Kernel.GH_Exposure.primary,
-        Energies = GH_Kernel.GH_Exposure.secondary,
-        Constraints = GH_Kernel.GH_Exposure.tertiary,
-        Models = GH_Kernel.GH_Exposure.quarternary
+        Constraints = GH_Kernel.GH_Exposure.secondary,
+        Models = GH_Kernel.GH_Exposure.tertiary
     }
 }

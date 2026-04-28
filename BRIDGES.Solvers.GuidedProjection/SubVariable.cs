@@ -1,22 +1,21 @@
-﻿using BRIDGES.Solvers.GuidedProjection.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
+
+using BRIDGES.Solvers.GuidedProjection.Interfaces;
 
 
 namespace BRIDGES.Solvers.GuidedProjection
 {
     /// <summary>
-    /// SubVariable for the <see cref="Solver"/>, whose retained components are referenced from a <see cref="Variable"/>.
+    /// SubVariable for the <see cref="Solver"/>, which retains coordinates from a referenced <see cref="Variable"/>.
     /// </summary>
-    /// <remarks> <see cref="SubVariable"/> don't need to be add to the <see cref="Solver"/> (as long as the <see cref="Variable"/> is. </remarks>
+    /// <remarks> The retained coordinates are not necessarily consecutive. </remarks>
     public sealed class SubVariable : IVariable, IEquatable<SubVariable>
     {
         #region Fields
 
         /// <summary>
-        /// Indices of the components in the variable which are referenced in the SubVariable.
+        /// Indices of the coordinates in the <see cref="ReferenceVariable"/> which are retained in the SubVariable.
         /// </summary>
         private readonly int[] _indices;
 
@@ -25,7 +24,7 @@ namespace BRIDGES.Solvers.GuidedProjection
         #region Properties
 
         /// <summary>
-        /// Variable to which this SubVariable refers for its components.
+        /// Variable to which this SubVariable refers for its coordinates.
         /// </summary>
         public Variable ReferenceVariable { get; init; }
 
@@ -46,10 +45,10 @@ namespace BRIDGES.Solvers.GuidedProjection
         #region Constructors
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="SubVariable"/> class from the reference variable and the retained indices.
+        /// Initialises a new instance of the <see cref="SubVariable"/> class from its referenced variable and the retained indices.
         /// </summary>
         /// <param name="variable"> Reference variable. </param>
-        /// <param name="indices"> Retained indices of the components in the variable. </param>
+        /// <param name="indices"> Retained indices of the coordinates in the variable. </param>
         /// <exception cref="IndexOutOfRangeException"> One of the retained index is larger the dimension of the reference array. </exception>
         /// <exception cref="ArgumentException"> Two retained indices can not be equal. </exception>
         public SubVariable(Variable variable, IReadOnlyList<int> indices)
@@ -94,11 +93,11 @@ namespace BRIDGES.Solvers.GuidedProjection
         }
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="SubVariable"/> class from the reference variable and a range of indices.
+        /// Initialises a new instance of the <see cref="SubVariable"/> class from its referenced variable and a retained range of indices.
         /// </summary>
         /// <param name="variable"> Reference variable. </param>
-        /// <param name="start"> Zero-based index of the first component to retain in the variable. </param>
-        /// <param name="count"> Number of component to retain. </param>
+        /// <param name="start"> Zero-based index of the first coordinate to retain in the variable. </param>
+        /// <param name="count"> Number of coordinates to retain. </param>
         public SubVariable(Variable variable, int start, int count)
         {
             //     -----     Verifications
@@ -121,22 +120,22 @@ namespace BRIDGES.Solvers.GuidedProjection
         public int ReferenceIndex(int index) => ReferenceVariable.ReferenceIndex(_indices[index]);
 
         /// <summary>
-        /// Provides with the translation of the component's indices into the component's indices of the <see cref="ReferenceVariable"/>.
+        /// Provides with the translation of the subvariable coordinate's indices into the <see cref="ReferenceVariable"/> coordinate's indices.
         /// </summary>
-        /// <returns> The list of indices. </returns>
+        /// <returns> The list of retained indices in the reference . </returns>
         public IReadOnlyList<int> ReferenceIndices() => _indices;
 
 
         /// <inheritdoc/>
         public double[] ToArray()
         {
-            double[] components = new double[Size];
+            double[] coordinates = new double[Size];
             for (int i = 0; i < Size; i++)
             {
-                components[i] = ReferenceVariable[_indices[i]];
+                coordinates[i] = ReferenceVariable[_indices[i]];
             }
 
-            return components;
+            return coordinates;
         }
 
 

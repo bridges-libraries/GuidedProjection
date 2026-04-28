@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+
 using BRIDGES.Solvers.GuidedProjection.Interfaces;
 
 
 namespace BRIDGES.Solvers.GuidedProjection
 {
     /// <summary>
-    /// Class defining a quadratic constraint for the <see cref="Solver"/>.
+    /// Constraint for the <see cref="Solver"/>.
     /// </summary>
     public struct Constraint
     {
         #region Fields
 
         /// <summary>
-        /// Variables composing the local vector localX on which the <see cref="IConstraintType"/> is defined.
+        /// Variables composing the local vector X<sub>local</sub> on which the <see cref="ConstraintType"/> is defined.
         /// </summary>
         private readonly IVariable[] _variables;
 
@@ -49,7 +49,7 @@ namespace BRIDGES.Solvers.GuidedProjection
         public IConstraintType ConstraintType { get; private set; }
 
         /// <summary>
-        /// Gets the variables composing the local vector localX.
+        /// Gets the variables composing the local vector X<sub>local</sub>.
         /// </summary>
         public IReadOnlyList<IVariable> Variables => _variables;
 

@@ -134,7 +134,7 @@ namespace Frog.Results.Variables
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("Variable's Components", "V", "Components of the variables contained in Set.", GH_Kernel.GH_ParamAccess.tree);
+            pManager.AddNumberParameter("Variables' Coordinates", "V", "Coordinate values of the variables.", GH_Kernel.GH_ParamAccess.tree);
         }
 
 

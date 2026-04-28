@@ -28,7 +28,7 @@ namespace Frog.Parameters.Variables
         /// Creates a new instance of <see cref="Param_IVariable"/>.
         /// </summary>
         public Param_IVariable()
-          : base("Variable", "Variable", "Contains a collection of variables or sub-variables for the constraints and energies",
+          : base("Variable", "Variable", "Contains a collection of variables or sub-variables for the constraints",
                 GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Parameters], GH_Kernel.GH_ParamAccess.item)
         {
             // Do Nothing

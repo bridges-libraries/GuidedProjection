@@ -13,7 +13,7 @@ using Params_Cstr = Frog.Parameters.Constraints;
 namespace Frog.Constraints.Segment
 {
     /// <summary>
-    /// A grasshopper component creating a <see cref="GP.ConstraintTypes.Segment.Direction"/>-based <see cref="GP.Energy"/>.
+    /// A grasshopper component creating a <see cref="GP.ConstraintTypes.Segment.Direction"/>-based <see cref="GP.Constraint"/>.
     /// </summary>
     public class Comp_Parallel_Fixed : GH_Kernel.GH_Component
     {
@@ -98,17 +98,17 @@ namespace Frog.Constraints.Segment
             //     -----     Core     -----    //
 
             int dimension = gh_StartPoint.Size;
-            double[] components = new double[dimension];
+            double[] coordinates = new double[dimension];
             for (int i = 0; i < dimension; i++)
             {
-                components[i] = vector3d[i];
+                coordinates[i] = vector3d[i];
             }
 
             // Create the list of variables
             Types_Var.IGH_GooVariable[] gh_Variables = new Types_Var.IGH_GooVariable[3] { gh_StartPoint, gh_EndPoint, gh_Length };
 
             // Create the constraint type
-            GP.ConstraintTypes.Segment.Direction constraintType = new GP.ConstraintTypes.Segment.Direction(components);
+            GP.ConstraintTypes.Segment.Direction constraintType = new GP.ConstraintTypes.Segment.Direction(coordinates);
             Types_Cstr.Gh_IConstraintType gh_ConstraintType = new Types_Cstr.Gh_IConstraintType(constraintType);
 
             // Create the constraint

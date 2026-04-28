@@ -12,7 +12,6 @@ namespace Frog.Results
     {
         Variables = GH_Kernel.GH_Exposure.primary,
         Constraints = GH_Kernel.GH_Exposure.secondary,
-        Energies = GH_Kernel.GH_Exposure.tertiary,
     }
 }
  

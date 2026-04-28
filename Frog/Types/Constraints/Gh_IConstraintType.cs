@@ -38,12 +38,12 @@ namespace Frog.Types.Constraints
         #region Constructors
 
         /// <summary>
-        /// Initialises a new instance of <see cref= "Gh_EnergyType" /> class.
+        /// Initialises a new instance of <see cref= "Gh_IConstraintType" /> class.
         /// </summary>
         public Gh_IConstraintType() { /* Do Nothing */ }
 
         /// <summary>
-        /// Initialises a new instance of <see cref= "Gh_EnergyType" /> class from an <see cref="GP.Interfaces.IConstraintType"/>.
+        /// Initialises a new instance of <see cref= "Gh_IConstraintType" /> class from an <see cref="GP.Interfaces.IConstraintType"/>.
         /// </summary>
         /// <param name="iConstraintType"> <see cref="GP.Interfaces.IConstraintType"/> to store. </param>
         public Gh_IConstraintType(GP.Interfaces.IConstraintType iConstraintType)
@@ -61,7 +61,7 @@ namespace Frog.Types.Constraints
 
 
         /// <summary>
-        /// Initialises a new instance of <see cref= "Gh_EnergyType" /> class from another <see cref="Gh_EnergyType"/>.
+        /// Initialises a new instance of <see cref= "Gh_IConstraintType" /> class from another <see cref="Gh_IConstraintType"/>.
         /// </summary>
         /// <param name="gh_IConstraintType"> <see cref="Gh_IConstraintType"/> to shallow copy. </param>
         public Gh_IConstraintType(Gh_IConstraintType gh_IConstraintType)

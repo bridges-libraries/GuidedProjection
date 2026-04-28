@@ -168,15 +168,15 @@ namespace BRIDGES.Solvers.GuidedProjection.Helpers
 
 
         /// <summary>
-        /// Returns an enumerator which reads through the non-zero components of the current <see cref="DictionaryOfKeys"/>. <br/>
-        /// The <see cref="Tuple{T1, T2}"/> represents is composed of the row-column pair and the component value.
+        /// Returns an enumerator which reads through the non-zero coordinates of the current <see cref="DictionaryOfKeys"/>. <br/>
+        /// The <see cref="Tuple{T1, T2}"/> represents is composed of the row-column pair and the coordinate value.
         /// </summary>
         /// <returns> The enumerator of the <see cref="DictionaryOfKeys"/>. </returns>
         public IEnumerator<((int, int), double)> GetEnumerator()
         {
-            foreach (KeyValuePair<(int, int), double> component in _values) 
+            foreach (KeyValuePair<(int, int), double> coordinate in _values) 
             { 
-                yield return ((component.Key.Item1, component.Key.Item2), component.Value); 
+                yield return ((coordinate.Key.Item1, coordinate.Key.Item2), coordinate.Value); 
             }
         }
 

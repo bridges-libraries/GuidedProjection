@@ -7,22 +7,6 @@ using GP = BRIDGES.Solvers.GuidedProjection;
 namespace Frog.Solvers
 {
     /// <summary>
-    /// Dummy class for cloning <see cref="GP.Interfaces.IEnergyType"/>
-    /// </summary>
-    internal class CloneEnergyType : GP.Abstracts.EnergyType
-    {
-        #region Constructors
-
-        public CloneEnergyType(GP.Interfaces.IEnergyType energyType)
-        {
-            LocalKi = energyType.LocalKi;
-            Si = energyType.Si;
-        }
-
-        #endregion
-    }
-
-    /// <summary>
     /// Dummy class for cloning <see cref="GP.Interfaces.IConstraintType"/>, which are not <see cref="GP.Abstracts.UpdatedConstraintType"/>.
     /// </summary>
     internal class CloneConstraintType : GP.Abstracts.ConstraintType
