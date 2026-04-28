@@ -46,6 +46,12 @@ namespace Frog.Parameters.Constraints
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
         protected override System.Drawing.Bitmap? Icon => null;
 
+        /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.CreateAttributes()"/>
+        public override void CreateAttributes()
+        {
+            m_attributes = new Display.ParameterAttributes(this);
+        }
+
         #endregion
 
         #region Override : GH_ActiveObject

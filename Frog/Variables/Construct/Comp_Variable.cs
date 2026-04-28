@@ -8,7 +8,7 @@ using GP = BRIDGES.Solvers.GuidedProjection;
 using GH_GUI = Grasshopper.GUI;
 using GH_Kernel = Grasshopper.Kernel;
 
-using Types_Var = Frog.Types.Variables;
+using Types_V = Frog.Types.Variables;
 
 
 namespace Frog.Variables.Construct
@@ -23,7 +23,7 @@ namespace Frog.Variables.Construct
         /// <summary>
         /// Type of data that the variable respresents.
         /// </summary>
-        Types_Var.VariableDataType _dataType;
+        Types_V.VariableDataType _dataType;
 
         #endregion
 
@@ -32,7 +32,7 @@ namespace Frog.Variables.Construct
         /// <summary>
         /// Gets or sets the type of data for the variable
         /// </summary>
-        public Types_Var.VariableDataType DataType 
+        public Types_V.VariableDataType DataType 
         {
             get { return _dataType; }
             set { _dataType = value; OnDataTypeChanged(); }
@@ -54,7 +54,7 @@ namespace Frog.Variables.Construct
 
             // Initialise Properties
 
-            DataType = Types_Var.VariableDataType.Scalar;
+            DataType = Types_V.VariableDataType.Scalar;
         }
 
         #endregion
@@ -81,13 +81,13 @@ namespace Frog.Variables.Construct
             GH_Kernel.IGH_Param parameter;
             switch (DataType)
             {
-                case Types_Var.VariableDataType.Scalar:
+                case Types_V.VariableDataType.Scalar:
                     parameter = OnDataTypeChanged_ToScalar(sources);
                     break;
-                case Types_Var.VariableDataType.Array:
+                case Types_V.VariableDataType.Array:
                     parameter = OnDataTypeChanged_ToArray(sources);
                     break;
-                case Types_Var.VariableDataType.Point:
+                case Types_V.VariableDataType.Point:
                     parameter = OnDataTypeChanged_ToPoint(sources);
                     break;
                 default:
@@ -159,15 +159,15 @@ namespace Frog.Variables.Construct
         /// <param name="gh_Variables"> The variables created. </param>
         /// <returns> <see langword="true"/> if the variables were created, <see langword="false"/> otherwise. </returns>
         /// <exception cref="NotImplementedException"></exception>
-        private bool CreateVariables(GH_Kernel.IGH_DataAccess DA, out GH_Kernel.Data.GH_Structure<Types_Var.Gh_Variable> gh_Variables)
+        private bool CreateVariables(GH_Kernel.IGH_DataAccess DA, out GH_Kernel.Data.GH_Structure<Types_V.Gh_Variable> gh_Variables)
         {
             switch (DataType)
             {
-                case Types_Var.VariableDataType.Scalar:
+                case Types_V.VariableDataType.Scalar:
                     return CreateScalarVariables(DA, out gh_Variables);
-                case Types_Var.VariableDataType.Array:
+                case Types_V.VariableDataType.Array:
                     return CreateArrayVariables(DA, out gh_Variables);
-                case Types_Var.VariableDataType.Point:
+                case Types_V.VariableDataType.Point:
                     return CreatePointVariables(DA, out gh_Variables);
                 default:
                     throw new NotImplementedException($"The creation of a variable for {DataType} type is not implemented");
@@ -175,11 +175,11 @@ namespace Frog.Variables.Construct
         }
 
 
-        private bool CreateScalarVariables(GH_Kernel.IGH_DataAccess DA, out GH_Kernel.Data.GH_Structure<Types_Var.Gh_Variable> gh_Variables)
+        private bool CreateScalarVariables(GH_Kernel.IGH_DataAccess DA, out GH_Kernel.Data.GH_Structure<Types_V.Gh_Variable> gh_Variables)
         {
             //     -----      Initialise     -----     //
 
-            gh_Variables = new GH_Kernel.Data.GH_Structure<Types_Var.Gh_Variable>();
+            gh_Variables = new GH_Kernel.Data.GH_Structure<Types_V.Gh_Variable>();
 
 
             //     -----      Get Inputs     -----     //
@@ -206,18 +206,18 @@ namespace Frog.Variables.Construct
             {
                 double[] coordinates = new double[1] { values[i] };
 
-                Types_Var.Gh_Variable gh_Variable = new Types_Var.Gh_Variable(coordinates, setName, i, Types_Var.VariableDataType.Scalar);
+                Types_V.Gh_Variable gh_Variable = new Types_V.Gh_Variable(coordinates, setName, i, Types_V.VariableDataType.Scalar);
                 gh_Variables.Append(gh_Variable);
             }
 
             return true;
         }
         
-        private bool CreateArrayVariables(GH_Kernel.IGH_DataAccess DA, out GH_Kernel.Data.GH_Structure<Types_Var.Gh_Variable> gh_Variables)
+        private bool CreateArrayVariables(GH_Kernel.IGH_DataAccess DA, out GH_Kernel.Data.GH_Structure<Types_V.Gh_Variable> gh_Variables)
         {
             //     -----      Initialise     -----     //
 
-            gh_Variables = new GH_Kernel.Data.GH_Structure<Types_Var.Gh_Variable>();
+            gh_Variables = new GH_Kernel.Data.GH_Structure<Types_V.Gh_Variable>();
 
 
             //     -----     Get Inputs     -----     //
@@ -248,18 +248,18 @@ namespace Frog.Variables.Construct
                 double[] coordinates = new double[branch_Numbers.Count];
                 for (int j = 0; j < branch_Numbers.Count; j++) { coordinates[j] = branch_Numbers[j].Value; }
 
-                Types_Var.Gh_Variable gh_Variable = new Types_Var.Gh_Variable(coordinates, setName, i, Types_Var.VariableDataType.Array);
+                Types_V.Gh_Variable gh_Variable = new Types_V.Gh_Variable(coordinates, setName, i, Types_V.VariableDataType.Array);
                 gh_Variables.Append(gh_Variable);
             }
 
             return true;
         }
         
-        private bool CreatePointVariables(GH_Kernel.IGH_DataAccess DA, out GH_Kernel.Data.GH_Structure<Types_Var.Gh_Variable> gh_Variables)
+        private bool CreatePointVariables(GH_Kernel.IGH_DataAccess DA, out GH_Kernel.Data.GH_Structure<Types_V.Gh_Variable> gh_Variables)
         {
             //     -----      Initialise     -----     //
 
-            gh_Variables = new GH_Kernel.Data.GH_Structure<Types_Var.Gh_Variable>();
+            gh_Variables = new GH_Kernel.Data.GH_Structure<Types_V.Gh_Variable>();
 
 
             //     -----      Get Inputs     -----     //
@@ -286,7 +286,7 @@ namespace Frog.Variables.Construct
             {
                 double[] coordinates = new double[3] { points[i].X, points[i].Y, points[i].Z };
 
-                Types_Var.Gh_Variable gh_Variable = new Types_Var.Gh_Variable(coordinates, setName, i, Types_Var.VariableDataType.Point);
+                Types_V.Gh_Variable gh_Variable = new Types_V.Gh_Variable(coordinates, setName, i, Types_V.VariableDataType.Point);
                 gh_Variables.Append(gh_Variable);
             }
 
@@ -317,7 +317,7 @@ namespace Frog.Variables.Construct
         {
             //     -----     Core     -----    //
 
-            bool created = CreateVariables(DA, out GH_Kernel.Data.GH_Structure<Types_Var.Gh_Variable> gh_Variables);
+            bool created = CreateVariables(DA, out GH_Kernel.Data.GH_Structure<Types_V.Gh_Variable> gh_Variables);
 
             //     -----     Set Output     -----     //
 
@@ -366,7 +366,7 @@ namespace Frog.Variables.Construct
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Read(GH_IO.Serialization.GH_IReader)"/>
         public override bool Read(GH_IO.Serialization.GH_IReader reader)
         {
-            DataType = (Types_Var.VariableDataType)reader.GetInt32("DataType");
+            DataType = (Types_V.VariableDataType)reader.GetInt32("DataType");
             return base.Read(reader);
         }
 
@@ -503,7 +503,7 @@ namespace Frog.Variables.Construct
             //    return;
             //}
 
-            Types_Var.VariableDataType[] knownDataTypes = (Types_Var.VariableDataType[])Enum.GetValues(typeof(Types_Var.VariableDataType));
+            Types_V.VariableDataType[] knownDataTypes = (Types_V.VariableDataType[])Enum.GetValues(typeof(Types_V.VariableDataType));
 
             // Position of the Top-Left corner of the Popup Menu
             float popupX = _dropDownBounds.Left;
@@ -572,7 +572,7 @@ namespace Frog.Variables.Construct
                 graphics.DrawRectangle(pen, _popupBounds.X, _popupBounds.Y, _popupBounds.Width, _popupBounds.Height);
 
             // Draw each items in the Popup Menu
-            Types_Var.VariableDataType[] knownDataTypes = (Types_Var.VariableDataType[])Enum.GetValues(typeof(Types_Var.VariableDataType));
+            Types_V.VariableDataType[] knownDataTypes = (Types_V.VariableDataType[])Enum.GetValues(typeof(Types_V.VariableDataType));
 
             for (int i = 0; i < _itemBounds.Count; i++)
             {
@@ -603,6 +603,7 @@ namespace Frog.Variables.Construct
                 }
             }
         }
+
 
         //     -----     Interactions     -----     //
 
@@ -665,6 +666,7 @@ namespace Frog.Variables.Construct
             canvas?.Invalidate();
         }
 
+
         //     -----     Interactions in Canvas     -----     //
 
         /// <summary>
@@ -723,7 +725,7 @@ namespace Frog.Variables.Construct
                     {
                         Comp_Variable component = (Owner as Comp_Variable)!;
 
-                        Types_Var.VariableDataType[] knownDataTypes = (Types_Var.VariableDataType[])Enum.GetValues(typeof(Types_Var.VariableDataType));
+                        Types_V.VariableDataType[] knownDataTypes = (Types_V.VariableDataType[])Enum.GetValues(typeof(Types_V.VariableDataType));
 
                         component.DataType = knownDataTypes[hitItem];
                     }
@@ -808,17 +810,27 @@ namespace Frog.Variables.Construct
             RebuildPopupLayout();
         }
 
+
         //     -----     Render     -----     //
 
         /// <inheritdoc cref="GH_Kernel.Attributes.GH_ComponentAttributes.Render(GH_GUI.Canvas.GH_Canvas, Sys_Drawing.Graphics, GH_CanvasChannel)"/>
         protected override void Render(GH_GUI.Canvas.GH_Canvas canvas, Sys_Drawing.Graphics graphics, GH_GUI.Canvas.GH_CanvasChannel channel)
         {
-            // Create the common component render
-            base.Render(canvas, graphics, channel);
-
             // If the GH_CanvasChannel is for the rendering of components
             if (channel == GH_GUI.Canvas.GH_CanvasChannel.Objects)
             {
+                //     -----     Component Color     -----    //
+
+                Display.ComponentAttributes.ReplaceColorPalettes(out GH_GUI.Canvas.GH_PaletteStyle[] defaultPalettes);
+
+                // Create the common component render
+                base.Render(canvas, graphics, channel);
+
+                Display.ComponentAttributes.ResetColorPalettes( defaultPalettes);
+
+
+                //     -----     Dropdown Menu     -----    //
+
                 // Draw the background of the Dropdown Menu
                 using (Sys_Drawing.SolidBrush back = new Sys_Drawing.SolidBrush(Sys_Drawing.Color.FromArgb(245, 245, 245)))
                     graphics.FillRectangle(back, _dropDownBounds);
@@ -845,9 +857,14 @@ namespace Frog.Variables.Construct
 
                 // Draw popup overlay (if needed)
                 if (_popupOpen) { DrawPopup(graphics, component); }
-                    
+            }
+            else
+            {
+                // Create the common component render
+                base.Render(canvas, graphics, channel);
             }
         }
+
 
         //     -----     Interactions in Component     -----     //
 

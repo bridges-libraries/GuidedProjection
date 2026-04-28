@@ -475,7 +475,6 @@ namespace Frog.Solvers
         }
 
 
-
         /// <inheritdoc cref="GH_Kernel.GH_Component.AppendAdditionalComponentMenuItems(System.Windows.Forms.ToolStripDropDown)"/>
         protected override void AppendAdditionalComponentMenuItems(System.Windows.Forms.ToolStripDropDown menu)
         {
@@ -487,6 +486,12 @@ namespace Frog.Solvers
             // Manage the bejavior of the text box.
             customItem.TextBox.LostFocus += TextBox_Epsilon_LostFocus;
 
+        }
+
+        /// <inheritdoc cref="GH_Kernel.GH_Component.CreateAttributes()"/>
+        public override void CreateAttributes()
+        {
+            m_attributes = new Display.ComponentAttributes(this);
         }
 
         #endregion

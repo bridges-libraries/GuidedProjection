@@ -53,6 +53,7 @@ namespace Frog.Constraints.Segment
             pManager.AddParameter(new Params_Cstr.Param_Constraint(), "Constraint", "C", "Newly created constraint.", GH_Kernel.GH_ParamAccess.item);
         }
 
+
         /// <inheritdoc cref="GH_Kernel.GH_Component.SolveInstance(GH_Kernel.IGH_DataAccess)"/>
         protected override void SolveInstance(GH_Kernel.IGH_DataAccess DA)
         {
@@ -110,6 +111,13 @@ namespace Frog.Constraints.Segment
             //     -----     Set Output     -----     //
 
             DA.SetData(0, gh_Constraint);
+        }
+
+
+        /// <inheritdoc cref="GH_Kernel.GH_Component.CreateAttributes()"/>
+        public override void CreateAttributes()
+        {
+            m_attributes = new Display.ComponentAttributes(this);
         }
 
         #endregion

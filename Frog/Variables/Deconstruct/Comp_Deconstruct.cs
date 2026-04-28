@@ -78,6 +78,13 @@ namespace Frog.Variables.Deconstruct
             DA.SetDataList(0, coordinates);
         }
 
+
+        /// <inheritdoc cref="GH_Kernel.GH_Component.CreateAttributes()"/>
+        public override void CreateAttributes()
+        {
+            m_attributes = new Display.ComponentAttributes(this);
+        }
+
         #endregion
 
         #region Override : GH_DocumentObject

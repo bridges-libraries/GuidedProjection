@@ -179,6 +179,13 @@ namespace Frog.Results.Variables
             DA.SetDataTree(0, tree);
         }
 
+
+        /// <inheritdoc cref="GH_Kernel.GH_Component.CreateAttributes()"/>
+        public override void CreateAttributes()
+        {
+            m_attributes = new Display.ComponentAttributes(this);
+        }
+
         #endregion
 
         #region Override : GH_DocumentObject

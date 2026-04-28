@@ -106,6 +106,13 @@ namespace Frog.Constraints.Scalar
             DA.SetData(0, gh_Constraint);
         }
 
+
+        /// <inheritdoc cref="GH_Kernel.GH_Component.CreateAttributes()"/>
+        public override void CreateAttributes()
+        {
+            m_attributes = new Display.ComponentAttributes(this);
+        }
+
         #endregion
 
         #region Override : GH_DocumentObject

@@ -31,7 +31,7 @@ namespace Frog.Variables.Construct
         #endregion
 
 
-       #region Override : GH_Component
+        #region Override : GH_Component
 
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterInputParams(GH_InputParamManager)"/>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
@@ -85,6 +85,13 @@ namespace Frog.Variables.Construct
             //     -----     Set Output     -----     //
 
             DA.SetData(0, gh_SubVariable);
+        }
+
+
+        /// <inheritdoc cref="GH_Kernel.GH_Component.CreateAttributes()"/>
+        public override void CreateAttributes()
+        {
+            m_attributes = new Display.ComponentAttributes(this);
         }
 
         #endregion
