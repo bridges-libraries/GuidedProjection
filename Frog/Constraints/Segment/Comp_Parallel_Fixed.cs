@@ -4,10 +4,10 @@ using GP = BRIDGES.Solvers.GuidedProjection;
 
 using GH_Kernel = Grasshopper.Kernel;
 
-using Types_Var = Frog.Types.Variables;
-using Types_Cstr = Frog.Types.Constraints;
-using Params_Var = Frog.Parameters.Variables;
-using Params_Cstr = Frog.Parameters.Constraints;
+using Types_V = Frog.Types.Variables;
+using Types_C = Frog.Types.Constraints;
+using Params_V = Frog.Parameters.Variables;
+using Params_C = Frog.Parameters.Constraints;
 
 
 namespace Frog.Constraints.Segment
@@ -40,19 +40,23 @@ namespace Frog.Constraints.Segment
         {
             pManager.AddTextParameter("Name", "N", "Name of the constraint.", GH_Kernel.GH_ParamAccess.item);
 
-            pManager.AddParameter(new Params_Var.Param_IVariable(), "Start Variable", "S", "Variable representing the start of the segment.", GH_Kernel.GH_ParamAccess.item);
-            pManager.AddParameter(new Params_Var.Param_IVariable(), "End Variable", "E", "Variable representing the end of the segment.", GH_Kernel.GH_ParamAccess.item);
-            pManager.AddParameter(new Params_Var.Param_IVariable(), "Length Variable", "L", "Variable representing the distance between the start and the end of the segment", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_V.Param_IVariable(), "Start Variable", "S", "Variable representing the start of the segment.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_V.Param_IVariable(), "End Variable", "E", "Variable representing the end of the segment.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_V.Param_IVariable(), "Length Variable", "L", "Variable representing the distance between the start and the end of the segment", GH_Kernel.GH_ParamAccess.item);
 
             pManager.AddVectorParameter("Vector", "V", "Fixed vector to which the segment must be aligned.", GH_Kernel.GH_ParamAccess.item);
 
-            pManager.AddNumberParameter("Weight", "W", "Weight of the constraint.", GH_Kernel.GH_ParamAccess.item, 1.0);
+            pManager.AddParameter(new Parameters.Weights.Param_Weight(), "Weight", "W", "Weight of the constraint.", GH_Kernel.GH_ParamAccess.item);
+
+            // Set default value of the weight 
+            Parameters.Weights.Param_Weight param = (Parameters.Weights.Param_Weight)pManager[5];
+            param.PersistentData.Append(new Types.Weights.Gh_Weight(1.0));
         }
 
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new Params_Cstr.Param_Constraint(), "Constraint", "C", "Newly created constraint.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_C.Param_Constraint(), "Constraint", "C", "Newly created constraint.", GH_Kernel.GH_ParamAccess.item);
         }
 
 
@@ -63,9 +67,9 @@ namespace Frog.Constraints.Segment
 
             string name = string.Empty;
 
-            Types_Var.IGH_GooVariable? gh_StartPoint = null;
-            Types_Var.IGH_GooVariable? gh_EndPoint = null;
-            Types_Var.IGH_GooVariable? gh_Length = null;
+            Types_V.IGH_GooVariable? gh_StartPoint = null;
+            Types_V.IGH_GooVariable? gh_EndPoint = null;
+            Types_V.IGH_GooVariable? gh_Length = null;
 
             Rhino.Geometry.Vector3d vector3d = new Rhino.Geometry.Vector3d(0d, 0d, 0d);
 
@@ -106,14 +110,14 @@ namespace Frog.Constraints.Segment
             }
 
             // Create the list of variables
-            Types_Var.IGH_GooVariable[] gh_Variables = new Types_Var.IGH_GooVariable[3] { gh_StartPoint, gh_EndPoint, gh_Length };
+            Types_V.IGH_GooVariable[] gh_Variables = new Types_V.IGH_GooVariable[3] { gh_StartPoint, gh_EndPoint, gh_Length };
 
             // Create the constraint type
             GP.ConstraintTypes.Segment.Direction constraintType = new GP.ConstraintTypes.Segment.Direction(coordinates);
-            Types_Cstr.Gh_IConstraintType gh_ConstraintType = new Types_Cstr.Gh_IConstraintType(constraintType);
+            Types_C.Gh_IConstraintType gh_ConstraintType = new Types_C.Gh_IConstraintType(constraintType);
 
             // Create the constraint
-            Types_Cstr.Gh_Constraint gh_Constraint = new Types_Cstr.Gh_Constraint(gh_Variables, gh_ConstraintType, weight, name);
+            Types_C.Gh_Constraint gh_Constraint = new Types_C.Gh_Constraint(gh_Variables, gh_ConstraintType, weight, name);
 
 
             //     -----     Set Output     -----     //

@@ -5,7 +5,7 @@ using GP = BRIDGES.Solvers.GuidedProjection;
 
 using GH_Kernel = Grasshopper.Kernel;
 
-using Types_Var = Frog.Types.Variables;
+using Types_V = Frog.Types.Variables;
 
 
 namespace Frog.Variables.Deconstruct
@@ -51,7 +51,7 @@ namespace Frog.Variables.Deconstruct
         {
             //     -----     Initialisation     -----     //
 
-            Types_Var.IGH_GooVariable? gh_IVariable = null;
+            Types_V.IGH_GooVariable? gh_IVariable = null;
 
 
             //     -----      Get Inputs     -----     //

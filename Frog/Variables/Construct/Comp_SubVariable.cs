@@ -5,7 +5,7 @@ using GH_Kernel = Grasshopper.Kernel;
 
 using GP = BRIDGES.Solvers.GuidedProjection;
 
-using Types_Var = Frog.Types.Variables;
+using Types_V = Frog.Types.Variables;
 
 
 namespace Frog.Variables.Construct
@@ -52,7 +52,7 @@ namespace Frog.Variables.Construct
         {
             //     -----     Initialisation     -----     //
 
-            Types_Var.IGH_GooVariable? gh_IVariable = null;
+            Types_V.IGH_GooVariable? gh_IVariable = null;
             List<int> indices = new List<int>();
 
 
@@ -66,7 +66,7 @@ namespace Frog.Variables.Construct
             ArgumentNullException.ThrowIfNull(gh_IVariable, "The input V is null");
             ArgumentNullException.ThrowIfNull(indices, "The input I is null");
 
-            if (gh_IVariable is not Types_Var.Gh_Variable gh_Variable)
+            if (gh_IVariable is not Types_V.Gh_Variable gh_Variable)
             {
                 this.AddRuntimeMessage(GH_Kernel.GH_RuntimeMessageLevel.Error, "The input V is not a variable.");
                 return;
@@ -80,7 +80,7 @@ namespace Frog.Variables.Construct
             //     -----     Core     -----    //
 
 
-            Types_Var.Gh_SubVariable gh_SubVariable = new Types_Var.Gh_SubVariable(gh_Variable, indices);
+            Types_V.Gh_SubVariable gh_SubVariable = new Types_V.Gh_SubVariable(gh_Variable, indices);
 
             //     -----     Set Output     -----     //
 

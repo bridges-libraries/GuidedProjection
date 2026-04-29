@@ -1,24 +1,24 @@
 ﻿using System;
 using System.Drawing;
 
-using GH_Ker = Grasshopper.Kernel;
+using GH_Kernel = Grasshopper.Kernel;
 using GH_Gui = Grasshopper.GUI.Canvas;
 
 
 namespace Frog.Display
 {
     /// <summary>
-    /// Class controling the attributes of a <see cref="GH_Ker.GH_Component"/>
+    /// Class controling the attributes of a <see cref="GH_Kernel.GH_Component"/>
     /// </summary>
-    public class ComponentAttributes : GH_Ker.Attributes.GH_ComponentAttributes
+    public class ComponentAttributes : GH_Kernel.Attributes.GH_ComponentAttributes
     {
         #region Constructors
 
         /// <summary>
-        /// Class defining the attributes of a <see cref="GH_Ker.GH_Component"/>
+        /// Class defining the attributes of a <see cref="GH_Kernel.GH_Component"/>
         /// </summary>
         /// <param name="component"></param>
-        public ComponentAttributes(GH_Ker.IGH_Component component)
+        public ComponentAttributes(GH_Kernel.IGH_Component component)
             : base(component)
         {
             // Do Nothing

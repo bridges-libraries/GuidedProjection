@@ -5,8 +5,8 @@ using GP = BRIDGES.Solvers.GuidedProjection;
 
 using GH_Kernel = Grasshopper.Kernel;
 
-using Types_Var = Frog.Types.Variables;
-using Types_Cstr = Frog.Types.Constraints;
+using Types_V = Frog.Types.Variables;
+using Types_C = Frog.Types.Constraints;
 
 
 namespace Frog.Solvers
@@ -94,7 +94,7 @@ namespace Frog.Solvers
         {
             //     -----     Initialisation     -----     //
 
-            List<Types_Cstr.Gh_Constraint> gh_Constraints = new List<Types_Cstr.Gh_Constraint>();
+            List<Types_C.Gh_Constraint> gh_Constraints = new List<Types_C.Gh_Constraint>();
 
             int iterationCount = 0;
 
@@ -132,13 +132,13 @@ namespace Frog.Solvers
         /// Creates a Guided Projection Algorithm model.
         /// </summary>
         /// <returns> <see langword="true"/> if the model was created, <see langword="false"/> otherwise.  </returns>
-        private bool CreateGPAModel(double epsilon, int maxIteration, List<Types_Cstr.Gh_Constraint> gh_Constraints,
+        private bool CreateGPAModel(double epsilon, int maxIteration, List<Types_C.Gh_Constraint> gh_Constraints,
             out GP.Solver model)
         {
             model = new GP.Solver(epsilon, maxIteration);
 
             Dictionary<string, int> vars_SetCount = new Dictionary<string, int>();
-            Dictionary<Types_Var.Gh_Variable, GP.Variable> vars_GhToModel = new Dictionary<Types_Var.Gh_Variable, GP.Variable>();
+            Dictionary<Types_V.Gh_Variable, GP.Variable> vars_GhToModel = new Dictionary<Types_V.Gh_Variable, GP.Variable>();
 
             //      -----     Constraints
 
@@ -164,17 +164,17 @@ namespace Frog.Solvers
         /// <exception cref="InvalidCastException"> 
         /// A <see cref="GP.Interfaces.IConstraintType"/> could not be casted into either <see cref="GP.Abstracts.ConstraintType"/>, nor a <see cref="GP.Abstracts.UpdatedConstraintType"/>. 
         /// </exception>
-        private bool AddConstraints(GP.Solver model, List<Types_Cstr.Gh_Constraint> gh_Constraints,
-            Dictionary<Types_Var.Gh_Variable, GP.Variable> vars_SwapGhToModel, Dictionary<string, int> vars_SetCount)
+        private bool AddConstraints(GP.Solver model, List<Types_C.Gh_Constraint> gh_Constraints,
+            Dictionary<Types_V.Gh_Variable, GP.Variable> vars_SwapGhToModel, Dictionary<string, int> vars_SetCount)
         {
             for (int i = 0; i < gh_Constraints.Count; i++)
             {
-                Types_Cstr.Gh_Constraint gh_Constraint = gh_Constraints[i];
+                Types_C.Gh_Constraint gh_Constraint = gh_Constraints[i];
 
 
                 //     -----     Variables
 
-                IReadOnlyList<Types_Var.IGH_GooVariable> gh_IVariables = gh_Constraint.Variables;
+                IReadOnlyList<Types_V.IGH_GooVariable> gh_IVariables = gh_Constraint.Variables;
 
                 bool areReplaced = GhToModelVariables(model, gh_IVariables, vars_SwapGhToModel, vars_SetCount,
                     out List<GP.Interfaces.IVariable> modelIVars);
@@ -228,16 +228,16 @@ namespace Frog.Solvers
         /// Replaces the grasshopper variables by model variables. If a model variable doesn't exist, it is added. 
         /// </summary>
         /// <exception cref="InvalidCastException"> A <see cref="GP.Interfaces.IVariable"/> could not be casted into either <see cref="GP.Variable"/>, nor a <see cref="GP.SubVariable"/>. </exception>
-        private bool GhToModelVariables(GP.Solver model, IReadOnlyList<Types_Var.IGH_GooVariable> gh_IVariables, Dictionary<Types_Var.Gh_Variable, GP.Variable> vars_SwapGhToModel, Dictionary<string, int> vars_SetCount,
+        private bool GhToModelVariables(GP.Solver model, IReadOnlyList<Types_V.IGH_GooVariable> gh_IVariables, Dictionary<Types_V.Gh_Variable, GP.Variable> vars_SwapGhToModel, Dictionary<string, int> vars_SetCount,
             out List<GP.Interfaces.IVariable> modelIVars)
         {
             modelIVars = new List<GP.Interfaces.IVariable>(gh_IVariables.Count);
 
             for (int i = 0; i < gh_IVariables.Count; i++)
             {
-                Types_Var.IGH_GooVariable gh_IVariable = gh_IVariables[i];
+                Types_V.IGH_GooVariable gh_IVariable = gh_IVariables[i];
 
-                if (gh_IVariable is Types_Var.Gh_Variable gh_Variable)
+                if (gh_IVariable is Types_V.Gh_Variable gh_Variable)
                 {
                     if (vars_SwapGhToModel.TryGetValue(gh_Variable, out GP.Variable? modelVar)) { modelIVars.Add(modelVar); }
                     else
@@ -254,9 +254,9 @@ namespace Frog.Solvers
                         modelIVars.Add(modelVar);
                     }
                 }
-                else if (gh_IVariable is Types_Var.Gh_SubVariable gh_SubVariable)
+                else if (gh_IVariable is Types_V.Gh_SubVariable gh_SubVariable)
                 {
-                    Types_Var.Gh_Variable gh_ParentVariable = gh_SubVariable.ParentVariable;
+                    Types_V.Gh_Variable gh_ParentVariable = gh_SubVariable.ParentVariable;
                     if (vars_SwapGhToModel.TryGetValue(gh_ParentVariable, out GP.Variable? modelParentVar))
                     {
                         GP.SubVariable modelSubVar = new GP.SubVariable(modelParentVar, gh_SubVariable.RetaindeIndices);
@@ -282,7 +282,7 @@ namespace Frog.Solvers
                 else
                 {
                     this.AddRuntimeMessage(GH_Kernel.GH_RuntimeMessageLevel.Error,
-                        $"A variable could not be casted into neither a {nameof(Types_Var.Gh_Variable)}, nor a {nameof(Types_Var.Gh_Variable)}");
+                        $"A variable could not be casted into neither a {nameof(Types_V.Gh_Variable)}, nor a {nameof(Types_V.Gh_Variable)}");
                     return false;
                 }
             }
@@ -291,7 +291,7 @@ namespace Frog.Solvers
         }
 
 
-        private bool StoreModelVariables(Dictionary<Types_Var.Gh_Variable, GP.Variable> vars_SwapGhToModel, Dictionary<string, int> vars_SetCount)
+        private bool StoreModelVariables(Dictionary<Types_V.Gh_Variable, GP.Variable> vars_SwapGhToModel, Dictionary<string, int> vars_SetCount)
         {
             // Initialise the Set and Helpers
 
@@ -309,7 +309,7 @@ namespace Frog.Solvers
 
             // Adds
 
-            foreach (KeyValuePair<Types_Var.Gh_Variable, GP.Variable> kvp in vars_SwapGhToModel)
+            foreach (KeyValuePair<Types_V.Gh_Variable, GP.Variable> kvp in vars_SwapGhToModel)
             {
                 string name = kvp.Key.SetName;
                 int index = kvp.Key.Index;

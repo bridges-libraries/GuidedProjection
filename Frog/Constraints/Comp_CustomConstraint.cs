@@ -5,10 +5,10 @@ using GH_Kernel = Grasshopper.Kernel;
 
 using GP = BRIDGES.Solvers.GuidedProjection;
 
-using Types_Var = Frog.Types.Variables;
-using Types_Cstr = Frog.Types.Constraints;
-using Params_Var = Frog.Parameters.Variables;
-using Params_Cstr = Frog.Parameters.Constraints;
+using Types_V = Frog.Types.Variables;
+using Types_C = Frog.Types.Constraints;
+using Params_V = Frog.Parameters.Variables;
+using Params_C = Frog.Parameters.Constraints;
 
 
 namespace Frog.Constraints
@@ -41,16 +41,20 @@ namespace Frog.Constraints
         {
             pManager.AddTextParameter("Name", "N", "Name of the constraint.", GH_Kernel.GH_ParamAccess.item);
 
-            pManager.AddParameter(new Params_Var.Param_IVariable(), "Variables", "V", "Ordered list of variables for the custom constraint type.", GH_Kernel.GH_ParamAccess.list);
-            pManager.AddParameter(new Params_Cstr.Param_ConstraintType(), "Constraint Type", "Ct", "Custom constraint type", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_V.Param_IVariable(), "Variables", "V", "Ordered list of variables for the custom constraint type.", GH_Kernel.GH_ParamAccess.list);
+            pManager.AddParameter(new Params_C.Param_ConstraintType(), "Constraint Type", "Ct", "Custom constraint type", GH_Kernel.GH_ParamAccess.item);
 
-            pManager.AddNumberParameter("Weight", "W", "Weight of the constraint.", GH_Kernel.GH_ParamAccess.item, 1.0);
+            pManager.AddParameter(new Parameters.Weights.Param_Weight(), "Weight", "W", "Weight of the constraint.", GH_Kernel.GH_ParamAccess.item);
+
+            // Set default value of the weight 
+            Parameters.Weights.Param_Weight param = (Parameters.Weights.Param_Weight)pManager[3];
+            param.PersistentData.Append(new Types.Weights.Gh_Weight(1.0));
         }
 
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddParameter(new Params_Cstr.Param_Constraint(), "Constraint", "C", "Newly created constraint", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_C.Param_Constraint(), "Constraint", "C", "Newly created constraint", GH_Kernel.GH_ParamAccess.item);
         }
 
 
@@ -61,8 +65,8 @@ namespace Frog.Constraints
 
             string name = string.Empty;
 
-            List<Types_Var.IGH_GooVariable> gh_Variables = new List<Types_Var.IGH_GooVariable>();
-            Types_Cstr.Gh_IConstraintType gh_ConstraintType = new Types_Cstr.Gh_IConstraintType();
+            List<Types_V.IGH_GooVariable> gh_Variables = new List<Types_V.IGH_GooVariable>();
+            Types_C.Gh_IConstraintType gh_ConstraintType = new Types_C.Gh_IConstraintType();
 
             double weight = 0d;
 
@@ -85,7 +89,7 @@ namespace Frog.Constraints
             //     -----     Core     -----     //
 
             // Create the constraint
-            Types_Cstr.Gh_Constraint gh_Constraint = new Types_Cstr.Gh_Constraint(gh_Variables, gh_ConstraintType, weight, name);
+            Types_C.Gh_Constraint gh_Constraint = new Types_C.Gh_Constraint(gh_Variables, gh_ConstraintType, weight, name);
 
 
             //     -----     Set Output     -----     //

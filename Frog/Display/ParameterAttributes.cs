@@ -1,24 +1,24 @@
 ﻿using System;
 using System.Drawing;
 
-using GH_Ker = Grasshopper.Kernel;
+using GH_Kernel = Grasshopper.Kernel;
 using GH_Gui = Grasshopper.GUI.Canvas;
 
 
 namespace Frog.Display
 {
     /// <summary>
-    /// Class controling the attributes of a <see cref="GH_Ker.GH_Param{T}"/>
+    /// Class controling the attributes of a <see cref="GH_Kernel.GH_Param{T}"/>
     /// </summary>
-    public class ParameterAttributes : GH_Ker.Attributes.GH_FloatingParamAttributes
+    public class ParameterAttributes : GH_Kernel.Attributes.GH_FloatingParamAttributes
     {        
         #region Constructors
 
         /// <summary>
-        /// Class defining the attributes of an <see cref="GH_Ker.IGH_Param"/>
+        /// Class defining the attributes of an <see cref="GH_Kernel.IGH_Param"/>
         /// </summary>
         /// <param name="param"> Parameter whose attribute to modify. </param>
-        public ParameterAttributes(GH_Ker.IGH_Param param)
+        public ParameterAttributes(GH_Kernel.IGH_Param param)
             : base(param)
         {
             // Do Nothing

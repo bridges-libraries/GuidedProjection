@@ -6,8 +6,8 @@ using GP = BRIDGES.Solvers.GuidedProjection;
 
 using GH_Kernel = Grasshopper.Kernel;
 
-using Types_Models = Frog.Types.Models;
-using Params_Models = Frog.Parameters.Models;
+using Types_M = Frog.Types.Models;
+using Params_M = Frog.Parameters.Models;
 
 
 namespace Frog.Results.Variables
@@ -20,7 +20,7 @@ namespace Frog.Results.Variables
         #region Event Handlers
 
         /// <summary>
-        /// Method managing the response to a source change for the input <see cref="Params_Models.Param_Model"/>.
+        /// Method managing the response to a source change for the input <see cref="Params_M.Param_Model"/>.
         /// </summary>
         /// <param name="sender"> The <see cref="GH_Kernel.GH_ComponentParamServer"/> raising the event. </param>
         /// <param name="e"> Arguments describing the parameter changes. </param>
@@ -44,10 +44,10 @@ namespace Frog.Results.Variables
             {
                 if (paramServer.Input[1].VolatileDataCount == 0)
                 {
-                    GH_Kernel.Data.GH_Structure<Types_Models.Gh_Model> gh_Models
-                                        = (GH_Kernel.Data.GH_Structure<Types_Models.Gh_Model>)this.Params.Input[0].Sources[0].VolatileData;
+                    GH_Kernel.Data.GH_Structure<Types_M.Gh_Model> gh_Models
+                                        = (GH_Kernel.Data.GH_Structure<Types_M.Gh_Model>)this.Params.Input[0].Sources[0].VolatileData;
 
-                    Types_Models.Gh_Model? gh_Model = gh_Models[0][0];
+                    Types_M.Gh_Model? gh_Model = gh_Models[0][0];
 
                     if (gh_Model is null || !gh_Model.IsValid) { return; }
                     else { AddSetNamesValueList(gh_Model); }
@@ -77,7 +77,7 @@ namespace Frog.Results.Variables
         /// Adds a <see cref="GH_Kernel.Special.GH_ValueList"/> containing the names of the set of constraints.
         /// </summary>
         /// <param name="gh_Model"> Grasshopper model containing the set names. </param>
-        private void AddSetNamesValueList(Types_Models.Gh_Model gh_Model)
+        private void AddSetNamesValueList(Types_M.Gh_Model gh_Model)
         {
             int paramIndex = 1;
 
@@ -128,7 +128,7 @@ namespace Frog.Results.Variables
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterInputParams(GH_InputParamManager)"/>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddParameter(new Params_Models.Param_Model(), "Computed Model", "M", "Computed model obtained with the Guided Projection Algorithm.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_M.Param_Model(), "Computed Model", "M", "Computed model obtained with the Guided Projection Algorithm.", GH_Kernel.GH_ParamAccess.item);
             pManager.AddTextParameter("Name", "N", "Name of the constraints to retrieve.", GH_Kernel.GH_ParamAccess.item);
         }
 
@@ -144,7 +144,7 @@ namespace Frog.Results.Variables
         {
             //     -----     Initialisation     -----     //
 
-            Types_Models.Gh_Model gh_Model = new Types_Models.Gh_Model();
+            Types_M.Gh_Model gh_Model = new Types_M.Gh_Model();
             string name = "";
 
             //     -----      Get Inputs     -----     //

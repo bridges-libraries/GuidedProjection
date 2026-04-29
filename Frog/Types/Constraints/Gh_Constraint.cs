@@ -5,7 +5,7 @@ using GH_Types = Grasshopper.Kernel.Types;
 
 using GP = BRIDGES.Solvers.GuidedProjection;
 
-using Types_Var = Frog.Types.Variables;
+using Types_V = Frog.Types.Variables;
 
 
 namespace Frog.Types.Constraints
@@ -20,7 +20,7 @@ namespace Frog.Types.Constraints
         /// <summary>
         /// Grasshopper variables composing the local vector localX on which the <see cref="ConstraintType"/> is defined.
         /// </summary>
-        private readonly Types_Var.IGH_GooVariable[] _variables;
+        private readonly Types_V.IGH_GooVariable[] _variables;
 
         #endregion
 
@@ -47,7 +47,7 @@ namespace Frog.Types.Constraints
         /// <summary>
         /// Gets the grasshopper variables composing the local vector localX.
         /// </summary>
-        public IReadOnlyList<Types_Var.IGH_GooVariable> Variables => _variables;
+        public IReadOnlyList<Types_V.IGH_GooVariable> Variables => _variables;
 
         /// <summary>
         /// Gets the grasshopper constraint type which defines the local constraint members.
@@ -71,7 +71,7 @@ namespace Frog.Types.Constraints
             //     -----     Initialisations     -----     //
 
             // Initialise Fields
-            _variables = new Types_Var.IGH_GooVariable[0];
+            _variables = new Types_V.IGH_GooVariable[0];
 
             // Initialise Properties
             SetName = string.Empty;
@@ -88,7 +88,7 @@ namespace Frog.Types.Constraints
         /// <param name="gh_ConstraintType"> Constraint type defining the local quantities of this constraint. </param>
         /// <param name="weight"> Weight of this constraint. </param>
         /// <param name="name"> Name of the set to which the grasshopper constraint belongs. </param>
-        public Gh_Constraint(IList<Types_Var.IGH_GooVariable> gh_Variables, Gh_IConstraintType gh_ConstraintType, double weight, string name)
+        public Gh_Constraint(IList<Types_V.IGH_GooVariable> gh_Variables, Gh_IConstraintType gh_ConstraintType, double weight, string name)
         {
             //     -----     Verifications
 
@@ -117,7 +117,7 @@ namespace Frog.Types.Constraints
             //     -----     Initialisations     -----     //
 
             // Initialise Fields
-            _variables = new Types_Var.IGH_GooVariable[gh_Variables.Count];
+            _variables = new Types_V.IGH_GooVariable[gh_Variables.Count];
             for (int i = 0; i < _variables.Length; i++) { _variables[i] = gh_Variables[i]; }
 
             // Initialise Properties
@@ -137,7 +137,7 @@ namespace Frog.Types.Constraints
             //     -----     Initialisations     -----     //
 
             // Initialise Fields
-            _variables = new Types_Var.IGH_GooVariable[gh_Constraint._variables.Length]; 
+            _variables = new Types_V.IGH_GooVariable[gh_Constraint._variables.Length]; 
             Array.Copy(gh_Constraint._variables, _variables, gh_Constraint._variables.Length);
 
             // Initialise Properties
