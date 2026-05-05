@@ -9,7 +9,7 @@ namespace BRIDGES.Solvers.GuidedProjection
     /// <summary>
     /// Constraint for the <see cref="Solver"/>.
     /// </summary>
-    public struct Constraint
+    public class Constraint
     {
         #region Fields
 

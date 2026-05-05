@@ -18,7 +18,7 @@ namespace BRIDGES.Solvers.GuidedProjection
         /// </summary>
         /// <remarks>
         /// The <see cref="ArraySegment{T}"/> initially refers to an array representing only this variable. <br/>
-        /// Once it is provided to the <see cref="Solver"/> and the <see cref="Solver"/> is <see cref="Solver.InitialiseX()"/>,
+        /// Once it is provided to the <see cref="Solver"/> and the <see cref="Solver"/> is <see cref="Solver.Initialise()"/>,
         /// the <see cref="ArraySegment{T}"/> refers to indices in the global vector <see cref="Solver.X"/>.
         /// </remarks>
         private ArraySegment<double> _coordinates;

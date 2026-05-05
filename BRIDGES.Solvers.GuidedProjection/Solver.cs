@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 using Mat = BRIDGES.Numerics.LinearAlgebra.Matrices;
@@ -308,32 +308,13 @@ namespace BRIDGES.Solvers.GuidedProjection
         /// <summary>
         /// Initialises the members of this <see cref="Solver"/>.
         /// </summary>
-        public void InitialiseX()
+        public void Initialise()
         {
             //     -----     Global vector X     -----     //
 
-            double[] array = new double[CoordinateCount];    // CoordinateCount is updated
+            InitialiseX();
 
-            int i_Comp = 0;
-
-            foreach (Variable variable in _variables)
-            {
-                // Set the coordinate in the global vector X
-                for (int i_VarComp = 0; i_VarComp < variable.Size; i_VarComp++)
-                {
-                    array[i_Comp + i_VarComp] = variable[i_VarComp];
-                }
-
-                // Change the reference in the variable to point toward a segment of the global vector X
-                variable.ChangeReference(array, i_Comp);
-
-                
-                i_Comp += variable.Size;
-            }
-
-            _x = array;
-
-            //     -----     Utilities     -----     //
+            //     -----     ε²·I      -----     //
 
             int[] columnPointers = new int[_x.Length + 1];
             List<int> rowIndices = new List<int>(_x.Length);
@@ -352,6 +333,10 @@ namespace BRIDGES.Solvers.GuidedProjection
             Mat.SparseStorages.CompressedColumn<double> storage = new Mat.SparseStorages.CompressedColumn<double>(_x.Length, _x.Length, ref values, ref rowIndices, ref columnPointers);
 
             _epsEpsIdentity = new Mat.SparseMatrix<double>(storage);
+
+            //     -----     Iteration     -----     //
+
+            Iteration = 0;
         }
 
         /// <summary>
@@ -377,6 +362,8 @@ namespace BRIDGES.Solvers.GuidedProjection
 
             // Fill the _x with the actualised values
             for (int i = 0; i < x.Size; i++) { _x[i] = x[i]; }
+
+            Iteration++;
         }
 
         #endregion
@@ -428,12 +415,60 @@ namespace BRIDGES.Solvers.GuidedProjection
         {
             AddConstraint(constraint);
 
-            void constraintWeightUpdater(int iteration) => constraint.Weight = weightFunction(iteration);
-            WeigthUpdate += constraintWeightUpdater;
+            WeigthUpdate += (int iteration) => constraint.Weight = weightFunction(iteration);
         }
 
 
         //     -----     For Solving     -----     //
+
+        /// <summary>
+        /// Initialises the members of this <see cref="Solver"/>.
+        /// </summary>
+        private void InitialiseX()
+        {
+            //     -----     Global vector X     -----     //
+
+            double[] array = new double[CoordinateCount];    // CoordinateCount is updated
+
+            int i_Comp = 0;
+
+            foreach (Variable variable in _variables)
+            {
+                // Set the coordinate in the global vector X
+                for (int i_VarComp = 0; i_VarComp < variable.Size; i_VarComp++)
+                {
+                    array[i_Comp + i_VarComp] = variable[i_VarComp];
+                }
+
+                // Change the reference in the variable to point toward a segment of the global vector X
+                variable.ChangeReference(array, i_Comp);
+
+
+                i_Comp += variable.Size;
+            }
+
+            _x = array;
+
+            //     -----     Utilities     -----     //
+
+            int[] columnPointers = new int[_x.Length + 1];
+            List<int> rowIndices = new List<int>(_x.Length);
+            List<double> values = new List<double>(_x.Length);
+
+            double value = Epsilon * Epsilon;
+            for (int i = 0; i < _x.Length; i++)
+            {
+                columnPointers[i] = i;
+                rowIndices.Add(i);
+                values.Add(value);
+            }
+
+            columnPointers[_x.Length] = _x.Length;
+
+            Mat.SparseStorages.CompressedColumn<double> storage = new Mat.SparseStorages.CompressedColumn<double>(_x.Length, _x.Length, ref values, ref rowIndices, ref columnPointers);
+
+            _epsEpsIdentity = new Mat.SparseMatrix<double>(storage);
+        }
 
         /// <summary>
         /// Computes the members of the system and solve it using Cholesky factorisation.
@@ -458,18 +493,13 @@ namespace BRIDGES.Solvers.GuidedProjection
 
             RHS = Mat.SparseMatrix<double>.TransposeMultiply(H, r);
 
-            Vect.DenseVector<double> eeX = new Vect.DenseVector<double>(_x.Length);
-            for (int i = 0; i < _x.Length; i++) { eeX[i] = (Epsilon * Epsilon) * _x[i]; }
-            RHS = Vect.DenseVector<double>.Add(RHS, eeX);
+            Vect.DenseVector<double> eX = new Vect.DenseVector<double>(_x.Length);
+            for (int i = 0; i < _x.Length; i++) { eX[i] = Epsilon * _x[i]; }
+            RHS = Vect.DenseVector<double>.Add(RHS, eX);
             
             // Solving linear system
             return LHS.SolveCholesky(RHS);
         }
-
-        #endregion
-
-
-        #region Helper - Synchronous
 
         /// <summary>
         /// Forms the global system members derived from the constraints.
@@ -524,15 +554,15 @@ namespace BRIDGES.Solvers.GuidedProjection
                 {
                     //     -----     For r     -----     //
 
-                    if (constraintType.Ci == 0.0) { list_r.Add( 0d ); }
-                    else { list_r.Add(cstr.Weight * (- constraintType.Ci)); }
+                    if (constraintType.Ci == 0.0) { list_r.Add(0d); }
+                    else { list_r.Add(cstr.Weight * (-constraintType.Ci)); }
 
 
                     //     -----     For H     -----     //
 
                     // Local cannot be null since LocalHi already is.
-                    Vect.DenseVector<double> tmp_Vect =  new Vect.DenseVector<double>(constraintType.LocalBi!);
-                    
+                    Vect.DenseVector<double> tmp_Vect = new Vect.DenseVector<double>(constraintType.LocalBi!);
+
 
                     for (int i_Comp = 0; i_Comp < localSize; i_Comp++)
                     {
@@ -543,7 +573,7 @@ namespace BRIDGES.Solvers.GuidedProjection
                     constraintCount++;
                 }
                 else
-                { 
+                {
                     // Temporary values : HiX and XtHiX
 
                     Vect.DenseVector<double> tmp_Vect = constraintType.LocalHi * localX;
@@ -566,7 +596,7 @@ namespace BRIDGES.Solvers.GuidedProjection
 
                     for (int i_Comp = 0; i_Comp < localSize; i_Comp++)
                     {
-                        if (tmp_Vect[i_Comp] == 0d) { continue;  }
+                        if (tmp_Vect[i_Comp] == 0d) { continue; }
                         dok_H.Add(cstr.Weight * tmp_Vect[i_Comp], constraintCount, rowIndices[i_Comp]);
                     }
 
