@@ -575,7 +575,6 @@ namespace BRIDGES.Solvers.GuidedProjection
                 else
                 {
                     // Temporary values : HiX and XtHiX
-
                     Vect.DenseVector<double> tmp_Vect = constraintType.LocalHi * localX;
 
                     double tmp_Val = Vect.DenseVector<double>.TransposeMultiply(localX, tmp_Vect);

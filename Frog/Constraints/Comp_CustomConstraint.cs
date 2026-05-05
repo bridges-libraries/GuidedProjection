@@ -6,8 +6,10 @@ using GH_Kernel = Grasshopper.Kernel;
 using GP = BRIDGES.Solvers.GuidedProjection;
 
 using Types_V = Frog.Types.Variables;
+using Types_W = Frog.Types.Weights;
 using Types_C = Frog.Types.Constraints;
 using Params_V = Frog.Parameters.Variables;
+using Params_W = Frog.Parameters.Weights;
 using Params_C = Frog.Parameters.Constraints;
 
 
@@ -44,11 +46,11 @@ namespace Frog.Constraints
             pManager.AddParameter(new Params_V.Param_IVariable(), "Variables", "V", "Ordered list of variables for the custom constraint type.", GH_Kernel.GH_ParamAccess.list);
             pManager.AddParameter(new Params_C.Param_ConstraintType(), "Constraint Type", "Ct", "Custom constraint type", GH_Kernel.GH_ParamAccess.item);
 
-            pManager.AddParameter(new Parameters.Weights.Param_Weight(), "Weight", "W", "Weight of the constraint.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_W.Param_Weight(), "Weight", "W", "Weight of the constraint.", GH_Kernel.GH_ParamAccess.item);
 
             // Set default value of the weight 
-            Parameters.Weights.Param_Weight param = (Parameters.Weights.Param_Weight)pManager[3];
-            param.PersistentData.Append(new Types.Weights.Gh_Weight(1.0));
+            Params_W.Param_Weight param = (Params_W.Param_Weight)pManager[3];
+            param.PersistentData.Append(new Types_W.Gh_Weight(1.0));
         }
 
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>
@@ -68,7 +70,7 @@ namespace Frog.Constraints
             List<Types_V.IGH_GooVariable> gh_Variables = new List<Types_V.IGH_GooVariable>();
             Types_C.Gh_IConstraintType gh_ConstraintType = new Types_C.Gh_IConstraintType();
 
-            double weight = 0d;
+            Types_W.Gh_Weight? gh_Weight = null;
 
 
             //     -----     Get Inputs     -----     //
@@ -78,18 +80,19 @@ namespace Frog.Constraints
             if (!DA.GetDataList(1, gh_Variables)) { return; }
             if (!DA.GetData(2, ref gh_ConstraintType)) { return; }
 
-            if (!DA.GetData(3, ref weight)) { return; }
+            if (!DA.GetData(3, ref gh_Weight)) { return; }
 
             //     -----     Verifications
 
             ArgumentNullException.ThrowIfNull(gh_Variables, "The input V is null");
             if (gh_Variables.Count == 0) { throw new ArgumentException("The input V is empty."); }
 
+            ArgumentNullException.ThrowIfNull(gh_Weight, "The input W is null");
 
             //     -----     Core     -----     //
 
             // Create the constraint
-            Types_C.Gh_Constraint gh_Constraint = new Types_C.Gh_Constraint(gh_Variables, gh_ConstraintType, weight, name);
+            Types_C.Gh_Constraint gh_Constraint = new Types_C.Gh_Constraint(gh_Variables, gh_ConstraintType, gh_Weight, name);
 
 
             //     -----     Set Output     -----     //

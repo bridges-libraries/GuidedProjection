@@ -13,9 +13,9 @@ namespace Frog.Solvers
 {
 
     /// <summary>
-    /// A grasshopper component creating a <see cref="GP.Solver"/> model.
+    /// A grasshopper component creating a <see cref="GP.Solver"/> model running a given number of iteration.
     /// </summary>
-    public class Comp_Solver : GH_Kernel.GH_Component
+    public class Comp_Solver_IterationCount : GH_Kernel.GH_Component
     {
         #region EventHandlers
 
@@ -69,10 +69,10 @@ namespace Frog.Solvers
         #region Constructors
 
         /// <summary>
-        /// Initialises a new instance of the <see cref="Comp_Solver"/> class.
+        /// Initialises a new instance of the <see cref="Comp_Solver_IterationCount"/> class.
         /// </summary>
-        public Comp_Solver()
-          : base("GPA Solver", "GPA", "Creates and solves a model using the Guided Projection Algorithm (GPA).",
+        public Comp_Solver_IterationCount()
+          : base("GPA Solver (Iteration)", "GPA (I)", "Creates and solves a model using the Guided Projection Algorithm (GPA).",
               GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Solvers])
         {
             _setsOfVariables = new Dictionary<string, GP.Variable[]>();
@@ -115,7 +115,7 @@ namespace Frog.Solvers
             if (!isCreated) { return false; }
 
 
-            gpa.InitialiseX();
+            gpa.Initialise();
 
             for (int i = 0; i < iterationCount; i++)
             {
@@ -207,12 +207,29 @@ namespace Frog.Solvers
                     return false;
                 }
 
+                //     -----     Weight and Constraint
 
-                //     -----     Constraint
+                GP.Constraint modelCstr;
 
-                GP.Constraint modelCstr = model.AddConstraint(cloneCstrType, modelIVars, gh_Constraint.Weight);
+                if(gh_Constraint.Weight.IsConstant)
+                {
+                    modelCstr = model.AddConstraint(cloneCstrType, modelIVars, gh_Constraint.Weight.ConstantValue!.Value);
+                }
+                else if (gh_Constraint.Weight.IsEvolutive)
+                {
+                    modelCstr = model.AddConstraint(cloneCstrType, modelIVars, gh_Constraint.Weight.Function!);
+                }
+                else
+                {
+                    this.AddRuntimeMessage(GH_Kernel.GH_RuntimeMessageLevel.Error,
+                        $"The constraint at index {i} could not be added to the model because of its weight is not valid.");
+                    return false;
+                }
 
-                if(_setsOfConstraints.TryGetValue(gh_Constraint.SetName, out List<GP.Constraint>? set))
+;
+                //     -----     Constraint to Set storage.
+
+                if (_setsOfConstraints.TryGetValue(gh_Constraint.SetName, out List<GP.Constraint>? set))
                 {
                     set.Add(modelCstr);
                 }
@@ -400,8 +417,6 @@ namespace Frog.Solvers
             pManager.AddIntegerParameter("Number of Iterations", "I", "Number of iterations for the Guided Projection Algorithm.", GH_Kernel.GH_ParamAccess.item);
 
             pManager.AddBooleanParameter("Run", "R", "Run the solver of the Guided Projection Algorithm.", GH_Kernel.GH_ParamAccess.item);
-
-            pManager[1].Optional = true;
         }
 
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>

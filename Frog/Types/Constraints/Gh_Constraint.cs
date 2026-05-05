@@ -6,6 +6,7 @@ using GH_Types = Grasshopper.Kernel.Types;
 using GP = BRIDGES.Solvers.GuidedProjection;
 
 using Types_V = Frog.Types.Variables;
+using Types_W = Frog.Types.Weights;
 
 
 namespace Frog.Types.Constraints
@@ -57,7 +58,7 @@ namespace Frog.Types.Constraints
         /// <summary>
         /// Gets or sets the weight of this grasshopper constraint.
         /// </summary>
-        public double Weight { get; internal set; }
+        public Types_W.Gh_Weight Weight { get; private set; }
 
         #endregion
 
@@ -77,7 +78,7 @@ namespace Frog.Types.Constraints
             SetName = string.Empty;
 
             ConstraintType = new Gh_IConstraintType();
-            Weight = 0;
+            Weight = new Types_W.Gh_Weight();
 
         }
 
@@ -88,7 +89,7 @@ namespace Frog.Types.Constraints
         /// <param name="gh_ConstraintType"> Constraint type defining the local quantities of this constraint. </param>
         /// <param name="weight"> Weight of this constraint. </param>
         /// <param name="name"> Name of the set to which the grasshopper constraint belongs. </param>
-        public Gh_Constraint(IList<Types_V.IGH_GooVariable> gh_Variables, Gh_IConstraintType gh_ConstraintType, double weight, string name)
+        public Gh_Constraint(IList<Types_V.IGH_GooVariable> gh_Variables, Gh_IConstraintType gh_ConstraintType, Types_W.Gh_Weight gh_Weight, string name)
         {
             //     -----     Verifications
 
@@ -124,7 +125,7 @@ namespace Frog.Types.Constraints
             SetName = name;
 
             ConstraintType = gh_ConstraintType;
-            Weight = weight;
+            Weight = gh_Weight;
         }
 
 

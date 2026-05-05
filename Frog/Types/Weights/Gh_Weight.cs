@@ -18,7 +18,7 @@ namespace Frog.Types.Weights
         /// <summary>
         /// Stores the <see langword="double"/>-precision value of the grasshopper weight if it is constant.
         /// </summary>
-        internal double? _constant;
+        private double? _constant;
 
         /// <summary>
         /// Stores the function computing the <see langword="double"/>-precision value of the grasshopper weight from the iteration index, if it is evolutive.
@@ -38,6 +38,17 @@ namespace Frog.Types.Weights
         /// Evaluates whether this grasshopper weight is evolutive or not.
         /// </summary>
         public bool IsEvolutive => _constant is null && _function is not null;
+
+
+        /// <summary>
+        /// Gets the constant value of this weight, or <see langword="null"/> if it is evolutive. 
+        /// </summary>
+        public double? ConstantValue => _constant;
+
+        /// <summary>
+        /// Gets the function computing the evolutive value of this weight from the iteration index, or <see langword="null"/> if it is constant. 
+        /// </summary>
+        public Func<int, double>? Function => _function;
 
         #endregion
 
@@ -203,6 +214,13 @@ namespace Frog.Types.Weights
                 return true;
             }
 
+            // Cast a Func<int,double> to a Gh_Weight
+            if (typeof(Func<int, double>).IsAssignableFrom(type))
+            {
+                _function = (Func<int, double>)source;
+
+                return true;
+            }
 
             //     -----     Otherwise     -----     //
 

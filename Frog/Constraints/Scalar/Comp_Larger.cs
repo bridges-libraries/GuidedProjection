@@ -5,8 +5,10 @@ using GH_Kernel = Grasshopper.Kernel;
 using GP = BRIDGES.Solvers.GuidedProjection;
 
 using Types_V = Frog.Types.Variables;
+using Types_W = Frog.Types.Weights;
 using Types_C = Frog.Types.Constraints;
 using Params_V = Frog.Parameters.Variables;
+using Params_W = Frog.Parameters.Weights;
 using Params_C = Frog.Parameters.Constraints;
 
 
@@ -43,11 +45,11 @@ namespace Frog.Constraints.Scalar
             pManager.AddParameter(new Params_V.Param_IVariable(), "Scalar Variable", "V", "Variable whose value should be larger than a fixed value.", GH_Kernel.GH_ParamAccess.item);
             pManager.AddNumberParameter("Lower Bound", "B", "Fixed lower bound of the scalar variable.", GH_Kernel.GH_ParamAccess.item);
 
-            pManager.AddParameter(new Parameters.Weights.Param_Weight(), "Weight", "W", "Weight of the constraint.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_W.Param_Weight(), "Weight", "W", "Weight of the constraint.", GH_Kernel.GH_ParamAccess.item);
 
             // Set default value of the weight 
-            Parameters.Weights.Param_Weight param = (Parameters.Weights.Param_Weight)pManager[3];
-            param.PersistentData.Append(new Types.Weights.Gh_Weight(1.0));
+            Params_W.Param_Weight param = (Params_W.Param_Weight)pManager[3];
+            param.PersistentData.Append(new Types_W.Gh_Weight(1.0));
         }
 
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>
@@ -67,7 +69,7 @@ namespace Frog.Constraints.Scalar
             Types_V.IGH_GooVariable? gh_Scalar = null;
             double bound = 0d;
 
-            double weight = 0d;
+            Types_W.Gh_Weight? gh_Weight = null;
 
 
             //     -----      Get Inputs     -----     //
@@ -77,12 +79,14 @@ namespace Frog.Constraints.Scalar
             if (!DA.GetData(1, ref gh_Scalar)) { return; }
             if (!DA.GetData(2, ref bound)) { return; }
 
-            if (!DA.GetData(3, ref weight)) { return; }
+            if (!DA.GetData(3, ref gh_Weight)) { return; }
 
             //    ----    Verifications
 
             ArgumentNullException.ThrowIfNull(gh_Scalar, "The input V is null");
             if (gh_Scalar.Size != 1) { throw new ArgumentException("The input V is not a scalar variable."); }
+
+            ArgumentNullException.ThrowIfNull(gh_Weight, "The input W is null");
 
 
             //     -----     Core     -----     //
@@ -102,7 +106,7 @@ namespace Frog.Constraints.Scalar
             Types_C.Gh_IConstraintType gh_ConstraintType = new Types_C.Gh_IConstraintType(constraintType);
 
             // Create the constraint
-            Types_C.Gh_Constraint gh_Constraint = new Types_C.Gh_Constraint(gh_Variables, gh_ConstraintType, weight, name);
+            Types_C.Gh_Constraint gh_Constraint = new Types_C.Gh_Constraint(gh_Variables, gh_ConstraintType, gh_Weight, name);
 
 
             //     -----     Set Output     -----     //

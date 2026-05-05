@@ -5,8 +5,10 @@ using GP = BRIDGES.Solvers.GuidedProjection;
 using GH_Kernel = Grasshopper.Kernel;
 
 using Types_V = Frog.Types.Variables;
+using Types_W = Frog.Types.Weights;
 using Types_C = Frog.Types.Constraints;
 using Params_V = Frog.Parameters.Variables;
+using Params_W = Frog.Parameters.Weights;
 using Params_C = Frog.Parameters.Constraints;
 
 
@@ -46,11 +48,11 @@ namespace Frog.Constraints.Segment
 
             pManager.AddVectorParameter("Vector", "V", "Fixed vector to which the segment must be aligned.", GH_Kernel.GH_ParamAccess.item);
 
-            pManager.AddParameter(new Parameters.Weights.Param_Weight(), "Weight", "W", "Weight of the constraint.", GH_Kernel.GH_ParamAccess.item);
+            pManager.AddParameter(new Params_W.Param_Weight(), "Weight", "W", "Weight of the constraint.", GH_Kernel.GH_ParamAccess.item);
 
             // Set default value of the weight 
-            Parameters.Weights.Param_Weight param = (Parameters.Weights.Param_Weight)pManager[5];
-            param.PersistentData.Append(new Types.Weights.Gh_Weight(1.0));
+            Params_W.Param_Weight param = (Params_W.Param_Weight)pManager[5];
+            param.PersistentData.Append(new Types_W.Gh_Weight(1.0));
         }
 
         /// <inheritdoc cref="GH_Kernel.GH_Component.RegisterOutputParams(GH_OutputParamManager)"/>
@@ -73,7 +75,7 @@ namespace Frog.Constraints.Segment
 
             Rhino.Geometry.Vector3d vector3d = new Rhino.Geometry.Vector3d(0d, 0d, 0d);
 
-            double weight = 0d;
+            Types_W.Gh_Weight? gh_Weight = null;
 
 
             //     -----      Get Inputs     -----     //
@@ -86,13 +88,15 @@ namespace Frog.Constraints.Segment
 
             if (!DA.GetData(4, ref vector3d)) { return; }
 
-            if (!DA.GetData(5, ref weight)) { return; }
+            if (!DA.GetData(5, ref gh_Weight)) { return; }
+
 
             //    ----    Verifications
 
             ArgumentNullException.ThrowIfNull(gh_StartPoint, "The input S is null");
             ArgumentNullException.ThrowIfNull(gh_EndPoint, "The input E is null");
             ArgumentNullException.ThrowIfNull(gh_Length, "The input L is null");
+            ArgumentNullException.ThrowIfNull(gh_Weight, "The input W is null");
 
             if (gh_Length.Size != 1) { throw new ArgumentException("The input L is not a scalar variable."); }
 
@@ -117,7 +121,7 @@ namespace Frog.Constraints.Segment
             Types_C.Gh_IConstraintType gh_ConstraintType = new Types_C.Gh_IConstraintType(constraintType);
 
             // Create the constraint
-            Types_C.Gh_Constraint gh_Constraint = new Types_C.Gh_Constraint(gh_Variables, gh_ConstraintType, weight, name);
+            Types_C.Gh_Constraint gh_Constraint = new Types_C.Gh_Constraint(gh_Variables, gh_ConstraintType, gh_Weight, name);
 
 
             //     -----     Set Output     -----     //
