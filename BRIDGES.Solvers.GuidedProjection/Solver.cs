@@ -493,9 +493,9 @@ namespace BRIDGES.Solvers.GuidedProjection
 
             RHS = Mat.SparseMatrix<double>.TransposeMultiply(H, r);
 
-            Vect.DenseVector<double> eX = new Vect.DenseVector<double>(_x.Length);
-            for (int i = 0; i < _x.Length; i++) { eX[i] = Epsilon * _x[i]; }
-            RHS = Vect.DenseVector<double>.Add(RHS, eX);
+            Vect.DenseVector<double> eeX = new Vect.DenseVector<double>(_x.Length);
+            for (int i = 0; i < _x.Length; i++) { eeX[i] = Epsilon * Epsilon * _x[i]; }
+            RHS = Vect.DenseVector<double>.Add(RHS, eeX);
             
             // Solving linear system
             return LHS.SolveCholesky(RHS);
