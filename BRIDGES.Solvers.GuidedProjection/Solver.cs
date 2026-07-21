@@ -76,7 +76,6 @@ namespace BRIDGES.Solvers.GuidedProjection
         /// </summary>
         private double[] _x;
 
-
         //     -----     Utilities     -----     //
 
         /// <summary>
@@ -107,11 +106,6 @@ namespace BRIDGES.Solvers.GuidedProjection
         //     -----     Settings     -----     //
 
         /// <summary>
-        /// Gets or sets the maximum number of iteration after which the solver is stopped.
-        /// </summary>
-        public int MaxIteration { get; set; }
-
-        /// <summary>
         /// Gets index of the current iteration.
         /// </summary>
         /// <remarks> Zero means that no iteration was runned. </remarks>
@@ -131,7 +125,7 @@ namespace BRIDGES.Solvers.GuidedProjection
         /// <summary>
         /// Vector containg the variables.
         /// </summary>
-        public IReadOnlyList<double> X => _x; 
+        public IReadOnlyList<double> X => _x;
 
         #endregion
 
@@ -141,8 +135,7 @@ namespace BRIDGES.Solvers.GuidedProjection
         /// Initialises a new instance of the <see cref="Solver"/> class.
         /// </summary>
         /// <param name="epsilon"> The weights of the distance to the previous iteration. </param>
-        /// <param name="maxIteration"> The iteration index after which the solver is stopped. </param>
-        public Solver(double epsilon, int maxIteration)
+        public Solver(double epsilon)
         {
             //     -----     Instanciate Fields
 
@@ -151,14 +144,11 @@ namespace BRIDGES.Solvers.GuidedProjection
 
             _x = new double[0];
 
-
             //     -----    Initialise Properties
 
-            MaxIteration = maxIteration;
             Iteration = 0;
 
             Epsilon = epsilon;
-
         }
 
         #endregion
@@ -475,6 +465,7 @@ namespace BRIDGES.Solvers.GuidedProjection
         /// </summary>
         /// <returns> The solution of the system. </returns>
         private Vect.DenseVector<double> FormAndSolveSystem()
+
         {
             //     -----     Create H and r     -----     //
 
@@ -560,7 +551,7 @@ namespace BRIDGES.Solvers.GuidedProjection
 
                     //     -----     For H     -----     //
 
-                    // Local cannot be null since LocalHi already is.
+                    // LocalBi cannot be null since LocalHi already is.
                     Vect.DenseVector<double> tmp_Vect = new Vect.DenseVector<double>(constraintType.LocalBi!);
 
 

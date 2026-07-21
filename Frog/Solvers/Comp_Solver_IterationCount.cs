@@ -89,7 +89,7 @@ namespace Frog.Solvers
         /// Contains the actual content for creating and solving the model with the Guided Projection Algorithm.
         /// </summary>
         /// <param name="DA"> Data Access object, used to retrieve the retrieve data from input parameter and assign data to output parameters. </param>
-        /// <exception cref="ArgumentException"></exception>
+        /// <exception cref="ArgumentException"> The input C is empty. </exception>
         private bool ActualSolveInstance(GH_Kernel.IGH_DataAccess DA)
         {
             //     -----     Initialisation     -----     //
@@ -111,7 +111,7 @@ namespace Frog.Solvers
 
             //     -----     Core     -----     //
 
-            bool isCreated = CreateGPAModel(Epsilon, iterationCount, gh_Constraints, out GP.Solver gpa);
+            bool isCreated = CreateGPAModel(Epsilon, gh_Constraints, out GP.Solver gpa);
             if (!isCreated) { return false; }
 
 
@@ -132,10 +132,10 @@ namespace Frog.Solvers
         /// Creates a Guided Projection Algorithm model.
         /// </summary>
         /// <returns> <see langword="true"/> if the model was created, <see langword="false"/> otherwise.  </returns>
-        private bool CreateGPAModel(double epsilon, int maxIteration, List<Types_C.Gh_Constraint> gh_Constraints,
+        private bool CreateGPAModel(double epsilon, List<Types_C.Gh_Constraint> gh_Constraints,
             out GP.Solver model)
         {
-            model = new GP.Solver(epsilon, maxIteration);
+            model = new GP.Solver(epsilon);
 
             Dictionary<string, int> vars_SetCount = new Dictionary<string, int>();
             Dictionary<Types_V.Gh_Variable, GP.Variable> vars_GhToModel = new Dictionary<Types_V.Gh_Variable, GP.Variable>();
@@ -226,7 +226,7 @@ namespace Frog.Solvers
                     return false;
                 }
 
-;
+
                 //     -----     Constraint to Set storage.
 
                 if (_setsOfConstraints.TryGetValue(gh_Constraint.SetName, out List<GP.Constraint>? set))
@@ -299,7 +299,7 @@ namespace Frog.Solvers
                 else
                 {
                     this.AddRuntimeMessage(GH_Kernel.GH_RuntimeMessageLevel.Error,
-                        $"A variable could not be casted into neither a {nameof(Types_V.Gh_Variable)}, nor a {nameof(Types_V.Gh_Variable)}");
+                        $"A variable could not be casted into neither a {nameof(Types_V.Gh_Variable)}, nor a {nameof(Types_V.Gh_SubVariable)}");
                     return false;
                 }
             }
