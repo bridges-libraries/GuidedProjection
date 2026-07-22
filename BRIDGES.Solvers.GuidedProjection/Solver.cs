@@ -9,17 +9,104 @@ using BRIDGES.Numerics.LinearAlgebra.Matrices.Double;
 using BRIDGES.Solvers.GuidedProjection.Interfaces;
 using BRIDGES.Solvers.GuidedProjection.Abstracts;
 
-using Helpers = BRIDGES.Solvers.GuidedProjection.Helpers;
-
 
 namespace BRIDGES.Solvers.GuidedProjection
 {
+    
+
     /// <summary>
     /// Class defining a Guided Projection Algorithm solver.<br/>
     /// The algorithm is described in <see href="https://doi.org/10.1145/2601097.2601213"/>.
     /// </summary>
     public sealed class Solver
     {
+        /// <summary>
+        /// Status of the Sovler.
+        /// </summary>
+        public enum SolverStatus : short
+        {
+            /// <summary>
+            /// The solver as been created but does not contain data.
+            /// </summary>
+            Empty = 0,
+
+
+            //     -----     For Updates     -----     //
+
+            /// <summary>
+            /// The data of the solver has been modified (either the Variables or the Constraints)
+            /// </summary>
+            Modified = 10,
+
+            /// <summary>
+            /// The variables or the constraints have been modified.
+            /// </summary>
+            AddedData = 20,
+            /// <summary>
+            /// The variables have been modified.
+            /// </summary>
+            AddedVariables = 21,
+            /// <summary>
+            /// The constraints have been modified.
+            /// </summary>
+            AddedConstraints = 22,
+
+
+            //     -----     For Preparation     -----     //
+
+            /// <summary>
+            /// The solver is being prepared.
+            /// </summary>
+            Preparing = 100,
+            /// <summary>
+            /// The solver is ready to run.
+            /// </summary>
+            Prepared = 101,
+
+
+            //     -----     For Building     -----     //
+
+            /// <summary>
+            /// The matrix <see cref="_H"/> and the column vector <see cref="_r"/> are being assembled.
+            /// </summary>
+            Assembling = 110,
+            /// <summary>
+            /// The matrix <see cref="_H"/> and the column vector <see cref="_r"/> are assembled.
+            /// </summary>
+            Assembled = 111,
+
+
+            //     -----     For Solving     -----     //
+
+            /// <summary>
+            /// The solver is running.
+            /// </summary>
+            Solving = 120,
+            /// <summary>
+            /// The solver is runned.
+            /// </summary>
+            Solved = 121,
+
+
+            //     -----     For Final Status     -----     //
+
+            /// <summary>
+            /// The solving has been stopped because of the number of iteration.
+            /// </summary>
+            Stopped = 200,
+
+            /// <summary>
+            /// The global remainder reached a low value.
+            /// </summary>
+            Converged = 210,
+
+            /// <summary>
+            /// The vector X is not significantly changing.
+            /// </summary>
+            Stagnates = 220,
+        }
+
+
         #region Events
 
         //     -----     For Weigths     -----     //
@@ -72,9 +159,16 @@ namespace BRIDGES.Solvers.GuidedProjection
 
 
         /// <summary>
-        /// Array containing the variables of this <see cref="Solver"/>.
+        /// Array containing the current values of the variables of this <see cref="Solver"/>.
         /// </summary>
         private double[] _x;
+
+        private Mat.SparseMatrix<double> _H;
+
+        private Vect.DenseVector<double> _r;
+
+        private double _remainder;
+
 
         //     -----     Utilities     -----     //
 
@@ -103,6 +197,7 @@ namespace BRIDGES.Solvers.GuidedProjection
         public int ConstraintCount => _constraints.Count;
 
 
+
         //     -----     Settings     -----     //
 
         /// <summary>
@@ -111,6 +206,10 @@ namespace BRIDGES.Solvers.GuidedProjection
         /// <remarks> Zero means that no iteration was runned. </remarks>
         public int Iteration { get; internal set; }
 
+        /// <summary>
+        /// Gets or sets the maximum number of iteration.
+        /// </summary>
+        public int MaxIteration { get; set; }
 
         //     -----     For Solving     -----     //
 
@@ -126,6 +225,11 @@ namespace BRIDGES.Solvers.GuidedProjection
         /// Vector containg the variables.
         /// </summary>
         public IReadOnlyList<double> X => _x;
+
+        /// <summary>
+        /// Gets the Status of te Solver.
+        /// </summary>
+        public SolverStatus Status { get; private set; } = SolverStatus.Empty;
 
         #endregion
 
@@ -194,26 +298,6 @@ namespace BRIDGES.Solvers.GuidedProjection
         }
 
 
-        /// <summary>
-        /// Attempts to add the specified variable to this model.
-        /// </summary>
-        /// <param name="variable"> Variable to add. </param>
-        /// <returns> <see langword="true"/> if the variable was added, <see langword="false"/> if the variable already exists in the model. </returns>
-        public bool TryAddVariable(Variable variable)
-        {
-            if(_variables.Contains(variable)) // Complexity : O(1) 
-            { 
-                return false; 
-            }
-            else
-            {
-                AddVariable(variable);
-
-                return true;
-            }
-        }
-
-
         //     -----     For Constraints     -----     //
 
         /// <summary>
@@ -252,109 +336,46 @@ namespace BRIDGES.Solvers.GuidedProjection
             return constraint;
         }
 
-
-        /// <summary>
-        /// Attempts to add the specified constraint to this model.
-        /// </summary>
-        /// <param name="constraint"> Constraint to add. </param>
-        /// <returns> <see langword="true"/> if the constraint was added, <see langword="false"/> if the constraint already exists in the model. </returns>
-        public bool TryAddConstraint(Constraint constraint)
-        {
-            if (_constraints.Contains(constraint)) // Complexity : O(1) 
-            {
-                return false;
-            }
-            else
-            {
-                AddConstraint(constraint);
-
-                return true;
-            }
-        }
-
-        /// <summary>
-        /// Attempts to add the specified constraint with a varying weight to this model.
-        /// </summary>
-        /// <param name="constraint"> Constraint to add. </param>
-        /// <param name="weightFunction"> Function computing the weight from the iteration index. </param>
-        /// <returns> <see langword="true"/> if the constraint was added, <see langword="false"/> if the constraint already exists in the model. </returns>
-        public bool TryAddConstraint(Constraint constraint, Func<int, double> weightFunction)
-        {
-            if (_constraints.Contains(constraint)) // Complexity : O(1) 
-            {
-                return false;
-            }
-            else
-            {
-                AddConstraint(constraint, weightFunction);
-
-                return true;
-            }
-        }
-
-
         //     -----     For Solving     -----     //
 
-        /// <summary>
-        /// Initialises the members of this <see cref="Solver"/>.
-        /// </summary>
-        public void Initialise()
+        public void Run(int maxIteration)
         {
-            //     -----     Global vector X     -----     //
-
-            InitialiseX();
-
-            //     -----     ε²·I      -----     //
-
-            int[] columnPointers = new int[_x.Length + 1];
-            List<int> rowIndices = new List<int>(_x.Length);
-            List<double> values = new List<double>(_x.Length);
-
-            double value = Epsilon * Epsilon;
-            for (int i = 0; i < _x.Length; i++)
+            while (Status < SolverStatus.Stopped)
             {
-                columnPointers[i] = i;
-                rowIndices.Add(i);
-                values.Add(value);
+                RunOneIteration();
             }
-
-            columnPointers[_x.Length] = _x.Length;
-
-            Mat.SparseStorages.CompressedColumn<double> storage = new Mat.SparseStorages.CompressedColumn<double>(_x.Length, _x.Length, ref values, ref rowIndices, ref columnPointers);
-
-            _epsEpsIdentity = new Mat.SparseMatrix<double>(storage);
-
-            //     -----     Iteration     -----     //
-
-            Iteration = 0;
         }
 
-        /// <summary>
-        /// Runs one iteration.
-        /// </summary>
-        public void RunIteration()
+
+        public void RunOneIteration()
         {
-            // ----- Iteration Updates ----- //
+            //     -----     Actualise Status     -----     //
 
-            OnConstraintUpdate();
+            if (Status < SolverStatus.Prepared) { Prepare(); }
 
-            OnWeigthUpdate(Iteration);
-
-
-            // ----- Formulate and Solve the System ----- //
-
-            Vect.DenseVector<double> x;
-            
-            x = FormAndSolveSystem();
+            if (Status < SolverStatus.Assembled) { Assemble(); }
 
 
-            // ----- Update Variables ----- //
+            // ----- Solve ----- //
 
-            // Fill the _x with the actualised values
-            for (int i = 0; i < x.Size; i++) { _x[i] = x[i]; }
+            Vect.DenseVector<double> x = Solve();
 
-            Iteration++;
+            double previousRemainder = _remainder;
+            double[] previousX = new double[_x.Length];
+            Array.Copy(_x, previousX, _x.Length);
+
+            _x = x.ToArray();
+
+            //     -----     Compute H, r and the remainder    -----     //
+
+            Assemble();
+
+            //     -----     Convergence     -----     //
+
+            EvaluateConvergence(previousX, previousRemainder);
+
         }
+
 
         #endregion
 
@@ -370,6 +391,8 @@ namespace BRIDGES.Solvers.GuidedProjection
         {
             _variables.Add(variable);
             CoordinateCount += variable.Size;
+
+            ManageStatus_AddedVariable();
         }
 
 
@@ -394,6 +417,8 @@ namespace BRIDGES.Solvers.GuidedProjection
                     updatedConstraintType.Ci = ci;
                 };
             }
+
+
         }
 
         /// <summary>
@@ -409,15 +434,29 @@ namespace BRIDGES.Solvers.GuidedProjection
         }
 
 
-        //     -----     For Solving     -----     //
+        //     -----     For Preparation     -----     //
 
         /// <summary>
-        /// Initialises the members of this <see cref="Solver"/>.
+        /// Prepares the solver for running after updates.
         /// </summary>
-        private void InitialiseX()
+        /// <returns> <see langword="true"/> if the preparation suceeded, <see langword="false"/> otherwise. </returns>
+        private void Prepare()
         {
-            //     -----     Global vector X     -----     //
+            Status = SolverStatus.Preparing;
 
+            Prepare_X();
+            Prepare_eeI();
+
+            Status = SolverStatus.Prepared;
+        }
+
+
+        /// <summary>
+        /// Fills the vector <see cref="X"/> and updates the reference of the <see cref="_variables"/>.
+        /// </summary>
+        /// <returns> <see langword="true"/> if the preparation suceeded, <see langword="false"/> otherwise. </returns>
+        private void Prepare_X()
+        {
             double[] array = new double[CoordinateCount];    // CoordinateCount is updated
 
             int i_Comp = 0;
@@ -438,8 +477,11 @@ namespace BRIDGES.Solvers.GuidedProjection
             }
 
             _x = array;
+        }
 
-            //     -----     Utilities     -----     //
+        private void Prepare_eeI()
+        {
+            //     -----     ε²·I      -----     //
 
             int[] columnPointers = new int[_x.Length + 1];
             List<int> rowIndices = new List<int>(_x.Length);
@@ -460,48 +502,49 @@ namespace BRIDGES.Solvers.GuidedProjection
             _epsEpsIdentity = new Mat.SparseMatrix<double>(storage);
         }
 
+
+        //     -----     Building the System     -----     //
+
         /// <summary>
-        /// Computes the members of the system and solve it using Cholesky factorisation.
+        /// Assemble the matrix <see cref="_H"/>, and the column vector <see cref="_r"/>.
         /// </summary>
-        /// <returns> The solution of the system. </returns>
-        private Vect.DenseVector<double> FormAndSolveSystem()
-
+        private void Assemble()
         {
-            //     -----     Create H and r     -----     //
+            Status = SolverStatus.Assembling;
 
-            FormConstraintMembers(out Mat.SparseMatrix<double> H, out Vect.DenseVector<double> r);
+            //     -----     Update Constraints     -----     //
 
-            //     -----     Solve the minimisation problem     -----     //
-            
-            // Left hand side of the equation
-            Mat.SparseMatrix<double> LHS;
+            OnConstraintUpdate();
 
-            LHS = Mat.SparseMatrix<double>.TransposeMultiply(H, H);
-            LHS = Mat.SparseMatrix<double>.Add(LHS, _epsEpsIdentity!);
+            OnWeigthUpdate(Iteration + 1);
 
-            // Right hand side of the equation
-            Vect.DenseVector<double> RHS; 
+            //     -----     Assemble Constraints     -----     //
 
-            RHS = Mat.SparseMatrix<double>.TransposeMultiply(H, r);
+            AssembleConstraintMembers(out Mat.SparseMatrix<double> H, out Vect.DenseVector<double> r, out double remainder);
 
-            Vect.DenseVector<double> eeX = new Vect.DenseVector<double>(_x.Length);
-            for (int i = 0; i < _x.Length; i++) { eeX[i] = Epsilon * Epsilon * _x[i]; }
-            RHS = Vect.DenseVector<double>.Add(RHS, eeX);
-            
-            // Solving linear system
-            return LHS.SolveCholesky(RHS);
+            //     -----     Finalise     -----     //
+
+            _H = H;
+            _r = r;
+            _remainder = remainder;
+
+            Status = SolverStatus.Assembled;
         }
+
 
         /// <summary>
         /// Forms the global system members derived from the constraints.
         /// </summary>
         /// <param name="H"> The global matrix H. </param>
         /// <param name="r"> The global vector r. </param>
-        private void FormConstraintMembers(out Mat.SparseMatrix<double> H, out Vect.DenseVector<double> r)
+        /// <param name="remainder"> sum of the squared remainders of each constraint. </param>
+        private void AssembleConstraintMembers(out Mat.SparseMatrix<double> H, out Vect.DenseVector<double> r,
+            out double remainder)
         {
             Helpers.DictionaryOfKeys dok_H = new Helpers.DictionaryOfKeys(10 * _constraints.Count /* Random */);
             List<double> list_r = new List<double>(_constraints.Count);
 
+            remainder = 0d;
             int constraintCount = 0;
 
             foreach (Constraint cstr in _constraints)
@@ -552,29 +595,35 @@ namespace BRIDGES.Solvers.GuidedProjection
                     //     -----     For H     -----     //
 
                     // LocalBi cannot be null since LocalHi already is.
-                    Vect.DenseVector<double> tmp_Vect = new Vect.DenseVector<double>(constraintType.LocalBi!);
-
-
-                    for (int i_Comp = 0; i_Comp < localSize; i_Comp++)
+                    foreach ((int Index, double Value) component in constraintType.LocalBi!.NonZeros())
                     {
-                        if (tmp_Vect[i_Comp] == 0d) { continue; }
-                        dok_H.Add(cstr.Weight * tmp_Vect[i_Comp], constraintCount, rowIndices[i_Comp]);
+                        dok_H.Add(cstr.Weight * component.Value, constraintCount, rowIndices[component.Index]);
                     }
 
+
+                    //     -----     For remainders     -----     //
+
+                    double tmp_BiLocalX = Vect.DenseVector<double>.TransposeMultiply(constraintType.LocalBi, localX);
+
+                    remainder += Math.Pow(cstr.Weight * (tmp_BiLocalX + constraintType.Ci), 2);
+
+                    //     -----     Finalise     -----     //
+
                     constraintCount++;
+                    continue;
                 }
                 else
                 {
                     // Temporary values : HiX and XtHiX
                     Vect.DenseVector<double> tmp_Vect = constraintType.LocalHi * localX;
 
-                    double tmp_Val = Vect.DenseVector<double>.TransposeMultiply(localX, tmp_Vect);
+                    double tmp_LocalXHiLocalX = Vect.DenseVector<double>.TransposeMultiply(localX, tmp_Vect);
 
 
                     //     -----     For r     -----     //
 
-                    if (constraintType.Ci == 0.0) { list_r.Add(cstr.Weight * 0.5 * tmp_Val); }
-                    else { list_r.Add(cstr.Weight * ((0.5 * tmp_Val) - constraintType.Ci)); }
+                    if (constraintType.Ci == 0.0) { list_r.Add(cstr.Weight * 0.5 * tmp_LocalXHiLocalX); }
+                    else { list_r.Add(cstr.Weight * ((0.5 * tmp_LocalXHiLocalX) - constraintType.Ci)); }
 
 
                     //     -----     For H     -----     //
@@ -590,7 +639,24 @@ namespace BRIDGES.Solvers.GuidedProjection
                         dok_H.Add(cstr.Weight * tmp_Vect[i_Comp], constraintCount, rowIndices[i_Comp]);
                     }
 
+
+                    //     -----     For remainders     -----     //
+
+                    if (!(constraintType.LocalBi is null))
+                    {
+                        remainder += Math.Pow(cstr.Weight * ((0.5 * tmp_LocalXHiLocalX) + constraintType.Ci), 2);
+                    }
+                    else
+                    {
+                        double tmp_BiLocalX = Vect.DenseVector<double>.TransposeMultiply(constraintType.LocalBi!, localX);
+                        remainder += Math.Pow(cstr.Weight * ((0.5 * tmp_LocalXHiLocalX) + tmp_BiLocalX + constraintType.Ci), 2);
+                    }
+
+
+                    //     -----     Finalise     -----     //
+
                     constraintCount++;
+                    continue;
                 }
             }
 
@@ -598,6 +664,132 @@ namespace BRIDGES.Solvers.GuidedProjection
             H = new Mat.SparseMatrix<double>(storage);
 
             r = new Vect.DenseVector<double>(list_r.ToArray());
+        }
+
+
+        //     -----     Solving the System     -----     //
+
+        /// <summary>
+        /// Solve the linear system using Cholesky factorisation.
+        /// </summary>
+        /// <returns> The solution of the system. </returns>
+        private Vect.DenseVector<double> Solve()
+        {
+            Status = SolverStatus.Solving;
+
+            //     -----     Solve the minimisation problem     -----     //
+
+            // Left hand side of the equation
+            Mat.SparseMatrix<double> LHS;
+
+            LHS = Mat.SparseMatrix<double>.TransposeMultiply(_H, _H);
+            LHS = Mat.SparseMatrix<double>.Add(LHS, _epsEpsIdentity!);
+
+            // Right hand side of the equation
+            Vect.DenseVector<double> RHS;
+
+            RHS = Mat.SparseMatrix<double>.TransposeMultiply(_H, _r);
+
+            Vect.DenseVector<double> eeX = new Vect.DenseVector<double>(_x.Length);
+            for (int i = 0; i < _x.Length; i++) { eeX[i] = Epsilon * Epsilon * _x[i]; }
+            RHS = Vect.DenseVector<double>.Add(RHS, eeX);
+
+            // Solving linear system
+            Vect.DenseVector<double> x = LHS.SolveCholesky(RHS);
+
+            //     -----     Finalise     -----     //
+
+            Status = SolverStatus.Solved;
+            Iteration++;
+            return x;
+        }
+
+
+        //     -----     Evaluate Convergence     -----     //
+
+        private void EvaluateConvergence(double[] previousX, double previousRemainder)
+        {
+
+            // Evaluate for exceeding iteration; 
+            if (Iteration >= MaxIteration)
+            {
+                Status = SolverStatus.Stopped;
+                return;
+            }
+            // Evaluate for convergence 
+            if (_remainder > previousRemainder)
+            {
+                Status = SolverStatus.Converged;
+                _x = previousX;
+                return;
+            }
+
+            // Evaluate for stagnation
+            double dist = 0d;
+            for (int i = 0; i < _x.Length; i++) { dist = Math.Pow(_x[i] - previousX[i], 2); }
+            if (dist < 1e-12) 
+            { 
+                Status = SolverStatus.Stagnates;
+                return;
+            }
+
+        }
+
+        #endregion
+
+        #region Status Methods
+
+        /// <summary>
+        /// Changes the status of the solver with regard to the proposed <paramref name="status"/>.
+        /// </summary>
+        /// <param name="status"> Proposed status.</param>
+        private void ManagedStatus(SolverStatus status)
+        {
+            switch (status)
+            {
+                case SolverStatus.AddedVariables: ManageStatus_AddedVariable(); break;
+                case SolverStatus.AddedConstraints: ManageStatus_AddedConstraint(); break;
+                default: throw new NotImplementedException($"The change of status to {status.ToString()} has not been implemented.");
+            }
+        }
+
+        /// <summary>
+        /// Changes the status of the solver when a variable is added.
+        /// </summary>
+        private void ManageStatus_AddedVariable()
+        {
+            switch (Status)
+            {
+                case SolverStatus.Empty: 
+                    Status = SolverStatus.AddedVariables; break;
+                case SolverStatus.Modified | SolverStatus.AddedData | SolverStatus.AddedVariables: 
+                    break;
+                case SolverStatus.AddedConstraints: 
+                    Status = SolverStatus.AddedData; break;
+
+                default: 
+                    Status = SolverStatus.AddedVariables; break;
+            }
+        }
+
+        /// <summary>
+        /// Changes the status of the solver when a constraint is added.
+        /// </summary>
+        /// <exception cref="NotImplementedException"> The change of status from <see cref="Status"/> to <see cref="SolverStatus.AddedConstraints"/> has not been implemented.</exception>
+        private void ManageStatus_AddedConstraint()
+        {
+            switch (Status)
+            {
+                case SolverStatus.Empty:
+                    Status = SolverStatus.AddedConstraints; break;
+                case SolverStatus.Modified | SolverStatus.AddedData | SolverStatus.AddedConstraints: 
+                    break;
+                case SolverStatus.AddedVariables: 
+                    Status = SolverStatus.AddedData; break;
+
+                default:
+                    Status = SolverStatus.AddedConstraints; break;
+            }
         }
 
         #endregion
