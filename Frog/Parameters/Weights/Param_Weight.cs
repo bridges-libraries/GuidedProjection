@@ -142,7 +142,6 @@ namespace Frog.Parameters.Weights
         /// <inheritdoc cref="GH_Kernel.GH_PersistentParam{T}.Prompt_Plural(ref List{T})"/>
         protected override GH_Kernel.GH_GetterResult Prompt_Plural(ref List<Types_W.Gh_Weight> values)
         {
-
             return GH_Kernel.GH_GetterResult.cancel;
         }
 

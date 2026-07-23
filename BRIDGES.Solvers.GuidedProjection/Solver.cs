@@ -8,6 +8,7 @@ using BRIDGES.Numerics.LinearAlgebra.Matrices.Double;
 
 using BRIDGES.Solvers.GuidedProjection.Interfaces;
 using BRIDGES.Solvers.GuidedProjection.Abstracts;
+using System.Reflection.Metadata.Ecma335;
 
 
 namespace BRIDGES.Solvers.GuidedProjection
@@ -145,6 +146,8 @@ namespace BRIDGES.Solvers.GuidedProjection
 
         #region Fields
 
+        //     -----     Datas     -----     //
+
         /// <summary>
         /// Collection of variables of this <see cref="Solver"/>.
         /// </summary>
@@ -158,17 +161,31 @@ namespace BRIDGES.Solvers.GuidedProjection
         private readonly HashSet<Constraint> _constraints;
 
 
+        //     -----     Solving     -----     //
+
         /// <summary>
         /// Array containing the current values of the variables of this <see cref="Solver"/>.
         /// </summary>
         private double[] _x;
 
+        /// <summary>
+        /// Global matrix H, assembling the constraints gradient.
+        /// </summary>
         private Mat.SparseMatrix<double> _H;
 
+        /// <summary>
+        /// Global column vector r, assembling the constraints.
+        /// </summary>
         private Vect.DenseVector<double> _r;
 
+        /// <summary>
+        /// Global remainders, obtained by adding the square of the remainder of each constraint.
+        /// </summary>
         private double _remainder;
 
+
+        private double[] _x_1;
+        private double _remainder_1;
 
         //     -----     Utilities     -----     //
 
@@ -197,7 +214,6 @@ namespace BRIDGES.Solvers.GuidedProjection
         public int ConstraintCount => _constraints.Count;
 
 
-
         //     -----     Settings     -----     //
 
         /// <summary>
@@ -210,6 +226,7 @@ namespace BRIDGES.Solvers.GuidedProjection
         /// Gets or sets the maximum number of iteration.
         /// </summary>
         public int MaxIteration { get; set; }
+
 
         //     -----     For Solving     -----     //
 
@@ -247,10 +264,17 @@ namespace BRIDGES.Solvers.GuidedProjection
             _constraints = new HashSet<Constraint>();
 
             _x = new double[0];
+            _H = new Mat.SparseMatrix<double>(new Mat.SparseStorages.CompressedColumn<double>(1, 1, 0));
+            _r = new Vect.DenseVector<double>(0);
+            _remainder = -1d;
+
+            _x_1 = new double[0];
+            _remainder_1 = -1d;
 
             //     -----    Initialise Properties
 
             Iteration = 0;
+            MaxIteration = 100;
 
             Epsilon = epsilon;
         }
@@ -336,8 +360,13 @@ namespace BRIDGES.Solvers.GuidedProjection
             return constraint;
         }
 
+
         //     -----     For Solving     -----     //
 
+        /// <summary>
+        /// Runs the model until it is <see cref="SolverStatus.Stopped"/>, <see cref="SolverStatus.Converged"/>, <see cref="SolverStatus.Stagnates"/>.
+        /// </summary>
+        /// <param name="maxIteration"> Maximum number of iteration, after which it is <see cref="SolverStatus.Stopped"/>. </param>
         public void Run(int maxIteration)
         {
             while (Status < SolverStatus.Stopped)
@@ -346,7 +375,9 @@ namespace BRIDGES.Solvers.GuidedProjection
             }
         }
 
-
+        /// <summary>
+        /// Runs one iteration of the model.
+        /// </summary>
         public void RunOneIteration()
         {
             //     -----     Actualise Status     -----     //
@@ -355,16 +386,18 @@ namespace BRIDGES.Solvers.GuidedProjection
 
             if (Status < SolverStatus.Assembled) { Assemble(); }
 
-
             // ----- Solve ----- //
 
             Vect.DenseVector<double> x = Solve();
 
-            double previousRemainder = _remainder;
-            double[] previousX = new double[_x.Length];
-            Array.Copy(_x, previousX, _x.Length);
+            double remainder_2 = _remainder_1;
+            double[] x_2 = new double[_x_1.Length];
+            Array.Copy(_x_1, x_2, _x_1.Length);
 
-            _x = x.ToArray();
+            _remainder_1 = _remainder;
+            Array.Copy(_x, _x_1, _x.Length);
+
+            for (int i = 0; i < _x.Length; i++) { _x[i] = x[i]; }
 
             //     -----     Compute H, r and the remainder    -----     //
 
@@ -372,8 +405,7 @@ namespace BRIDGES.Solvers.GuidedProjection
 
             //     -----     Convergence     -----     //
 
-            EvaluateConvergence(previousX, previousRemainder);
-
+            EvaluateConvergence(x_2, remainder_2);
         }
 
 
@@ -477,6 +509,7 @@ namespace BRIDGES.Solvers.GuidedProjection
             }
 
             _x = array;
+            _x_1 = new double[CoordinateCount];
         }
 
         private void Prepare_eeI()
@@ -605,7 +638,8 @@ namespace BRIDGES.Solvers.GuidedProjection
 
                     double tmp_BiLocalX = Vect.DenseVector<double>.TransposeMultiply(constraintType.LocalBi, localX);
 
-                    remainder += Math.Pow(cstr.Weight * (tmp_BiLocalX + constraintType.Ci), 2);
+                    double tmp = cstr.Weight * (tmp_BiLocalX + constraintType.Ci);
+                    remainder += tmp * tmp;
 
                     //     -----     Finalise     -----     //
 
@@ -642,14 +676,16 @@ namespace BRIDGES.Solvers.GuidedProjection
 
                     //     -----     For remainders     -----     //
 
-                    if (!(constraintType.LocalBi is null))
+                    if (constraintType.LocalBi is null)
                     {
-                        remainder += Math.Pow(cstr.Weight * ((0.5 * tmp_LocalXHiLocalX) + constraintType.Ci), 2);
+                        double tmp = cstr.Weight * ((0.5 * tmp_LocalXHiLocalX) + constraintType.Ci);
+                        remainder += tmp * tmp;
                     }
                     else
                     {
                         double tmp_BiLocalX = Vect.DenseVector<double>.TransposeMultiply(constraintType.LocalBi!, localX);
-                        remainder += Math.Pow(cstr.Weight * ((0.5 * tmp_LocalXHiLocalX) + tmp_BiLocalX + constraintType.Ci), 2);
+                        double tmp = cstr.Weight * ((0.5 * tmp_LocalXHiLocalX) + tmp_BiLocalX + constraintType.Ci);
+                        remainder += tmp * tmp;
                     }
 
 
@@ -707,7 +743,7 @@ namespace BRIDGES.Solvers.GuidedProjection
 
         //     -----     Evaluate Convergence     -----     //
 
-        private void EvaluateConvergence(double[] previousX, double previousRemainder)
+        private void EvaluateConvergence(double[] x_2, double remainder_2)
         {
 
             // Evaluate for exceeding iteration; 
@@ -716,22 +752,28 @@ namespace BRIDGES.Solvers.GuidedProjection
                 Status = SolverStatus.Stopped;
                 return;
             }
-            // Evaluate for convergence 
-            if (_remainder > previousRemainder)
+            if (remainder_2 >= 0)           // There is enough iterations to conclude to convergence.
             {
-                Status = SolverStatus.Converged;
-                _x = previousX;
-                return;
+                // Evaluate for convergence 
+                if (_remainder > _remainder_1 & _remainder > remainder_2 & _remainder_1 > remainder_2)
+                {
+                    Status = SolverStatus.Converged;
+                    Array.Copy(x_2, _x, x_2.Length) ;
+                    return;
+                }
+
+                // Evaluate for stagnation
+                double dist_1 = 0d, dist_2 = 0d;
+                for (int i = 0; i < _x.Length; i++) { dist_1 = Math.Pow(_x[i] - _x_1[i], 2); }
+                for (int i = 0; i < _x.Length; i++) { dist_2 = Math.Pow(_x_1[i] - x_2[i], 2); }
+
+                if (dist_1 < 1e-12 & dist_2 < 1e-12)
+                {
+                    Status = SolverStatus.Stagnates;
+                    return;
+                }
             }
 
-            // Evaluate for stagnation
-            double dist = 0d;
-            for (int i = 0; i < _x.Length; i++) { dist = Math.Pow(_x[i] - previousX[i], 2); }
-            if (dist < 1e-12) 
-            { 
-                Status = SolverStatus.Stagnates;
-                return;
-            }
 
         }
 

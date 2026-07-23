@@ -115,11 +115,10 @@ namespace Frog.Solvers
             if (!isCreated) { return false; }
 
 
-            gpa.Initialise();
 
             for (int i = 0; i < iterationCount; i++)
             {
-                gpa.RunIteration();
+                gpa.RunOneIteration();
             }
 
             //     -----     Finalise     -----     //
