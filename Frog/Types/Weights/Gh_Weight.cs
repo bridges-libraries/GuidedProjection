@@ -98,11 +98,6 @@ namespace Frog.Types.Weights
         /// <param name="Gh_Weight"> <see cref="Gh_Weight"/> to deep copy. </param>
         public Gh_Weight(Gh_Weight gh_Weight)
         {
-            //     -----     Verifications     -----     //
-
-            if (!gh_Weight.IsValid) { throw new ArgumentException($"The {typeof(Gh_Weight)} to duplicate is not valid."); }
-
-
             //     -----     Initialisations     -----     //
 
             // Initialise Fields
@@ -194,13 +189,36 @@ namespace Frog.Types.Weights
             else if (typeof(GH_Types.GH_String).IsAssignableFrom(type))
             {
                 GH_Types.GH_String gh_String = (GH_Types.GH_String)source;
+                
+                // Try cast to constant value
                 try
                 {
                     _constant = Convert.ToDouble(gh_String.Value);
+                    return true;
                 }
-                catch (Exception) { return false; }
+                catch { /* Do Nothing */}
 
-                return true;
+                // Try cast to string into an expression
+                try
+                {
+                    string clean = GH_Kernel.Expressions.GH_ExpressionSyntaxWriter.RewriteAll(gh_String.Value);
+
+                    var parser = new GH_Kernel.Expressions.GH_ExpressionParser();
+                    if (!parser.CacheSymbols(clean)) { return false; }
+
+                    parser.AddVariable("i", 1);
+                    double result = parser.Evaluate()._Double;
+
+                    _function = i =>
+                    {
+                        parser.ClearVariables(); parser.AddVariable("i", i);
+                        return parser.Evaluate()._Double;
+                    };
+                    return true;
+                }
+                catch { /* Do Nothing */}
+
+                return false;
             }
 
 

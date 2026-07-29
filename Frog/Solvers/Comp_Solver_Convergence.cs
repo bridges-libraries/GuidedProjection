@@ -7,7 +7,6 @@ using GH_Kernel = Grasshopper.Kernel;
 
 using Types_V = Frog.Types.Variables;
 using Types_C = Frog.Types.Constraints;
-using System.Windows.Forms;
 
 
 namespace Frog.Solvers
@@ -412,7 +411,7 @@ namespace Frog.Solvers
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddParameter(new Parameters.Constraints.Param_Constraint(), "Constraints", "C", "Constraints for the model.", GH_Kernel.GH_ParamAccess.list);
-
+            
             pManager.AddBooleanParameter("Run", "Run", "Run the solver of the Guided Projection Algorithm.", GH_Kernel.GH_ParamAccess.item);
             pManager.AddBooleanParameter("Reset", "Rst", "Reset the solver of the Guided Projection Algorithm.", GH_Kernel.GH_ParamAccess.item);
         }
@@ -428,47 +427,63 @@ namespace Frog.Solvers
         {
             //     -----     Initialisation     -----     //
 
-            bool run = false;
+            bool toRun = false;
             bool reset = false;
 
 
             //     -----     Get Inputs     -----     //
-
-            if (!DA.GetData(1, ref run)) { return; }
+             
+            if (!DA.GetData(1, ref toRun)) { return; }
             if (!DA.GetData(2, ref reset)) { return; }
 
 
             //     -----     Core     -----     //
 
-            if(reset) 
+            bool runned = false;
+
+            if (reset) 
             { 
                 _setsOfVariables = new Dictionary<string, GP.Variable[]>();
                 _setsOfConstraints = new Dictionary<string, List<GP.Constraint>>();
 
                 _model = new GP.Solver(Epsilon);
-
-                this.Message = _model.Status.ToString();
-                return; 
             }
-            if (run)
+            else if (toRun)
             {
-                bool runned = ActualSolveInstance(DA);
+                _model = new GP.Solver(Epsilon); //To remove for continuous updates
+
+                runned = ActualSolveInstance(DA);
                 SaveRuntimeMessages();
 
-                this.Message = _model.Status.ToString() + "\r\n" + "Iteration : " + _model.Iteration;
+                this.Message = " " + _model.Status.ToString() + " " + "\r\n"
+                    + " " + "Iteration : " + _model.Iteration + " ";
             }
+            
 
             //     -----     Set Output     -----     //
 
-            if (_setsOfVariables is null)
+            if (_setsOfVariables is null || _setsOfVariables.Count == 0)
             {
-                this.AddRuntimeMessage(GH_Kernel.GH_RuntimeMessageLevel.Warning, string.Empty);
-                this.Message = "Not Runned";
-
+                this.Message = "To Run";
                 return;
             }
             else
             {
+                if (!runned)
+                {
+                    if (this.Message.StartsWith(" ") & this.Message.EndsWith(" ")) 
+                    {
+                        string message = "";
+                        foreach (var span in this.Message.EnumerateLines())
+                        {
+                            string line = span.ToString(); line.Trim();
+                            message += line + "\r\n";
+                        }
+                        this.Message = message; 
+                    }
+                    else { this.Message = "To Update"; }
+                }
+
                 Types.Models.Gh_Model gh_Model = new Types.Models.Gh_Model(ref _setsOfVariables, ref _setsOfConstraints);
 
                 DA.SetData(0, gh_Model);

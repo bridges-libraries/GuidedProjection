@@ -72,5 +72,15 @@ namespace Frog.Parameters.Variables
         }
 
         #endregion
+
+        #region Override : GH_Param<T>
+
+        /// <inheritdoc cref="GH_Kernel.GH_Param{T}.InstantiateT()"/>
+        protected override Types_V.IGH_GooVariable InstantiateT()
+        {
+            return new Types_V.Gh_Variable();
+        }
+
+        #endregion
     }
 }
