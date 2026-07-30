@@ -11,55 +11,69 @@ namespace Frog.Types.Weights
     /// <summary>
     /// Class defining a grasshopper type which represents a weight for a <see cref="GP.Constraint"/>.
     /// </summary>
+    /// <remarks> The weight can be either constant or evolutive. </remarks>
     public class Gh_Weight : GH_Types.IGH_Goo
     {
         #region Fields
 
         /// <summary>
-        /// Stores the <see langword="double"/>-precision value of the grasshopper weight if it is constant.
+        /// Weight function computed from the iteration index and returning a <see langword="double"/>-precision value.
+        /// </summary>
+        private Func<int, double> _function;
+
+
+        //     -----     Constant Weight     -----     //
+
+        /// <summary>
+        /// Constant <see langword="double"/>-precision value weight.
         /// </summary>
         private double? _constant;
 
+
+        //     -----     Evolutive Weight     -----     //
+
         /// <summary>
-        /// Stores the function computing the <see langword="double"/>-precision value of the grasshopper weight from the iteration index, if it is evolutive.
+        /// Expression from which the <see cref="_function"/> is built by parsing and wrapping.
         /// </summary>
-        private Func<int, double>? _function;
+        private string? _expression;
 
         #endregion
 
         #region Properties
 
         /// <summary>
-        /// Evaluates whether this grasshopper weight is constant or not.
+        /// Evaluates whether this weight is constant.
         /// </summary>
-        public bool IsConstant => _constant.HasValue && _function is null;
+        public bool IsConstant => _constant.HasValue && _expression is null;
 
         /// <summary>
-        /// Evaluates whether this grasshopper weight is evolutive or not.
+        /// Evaluates whether this weight is evolutive.
         /// </summary>
-        public bool IsEvolutive => _constant is null && _function is not null;
+        public bool IsEvolutive => _constant is null && _expression is not null;
 
 
         /// <summary>
-        /// Gets the constant value of this weight, or <see langword="null"/> if it is evolutive. 
+        /// Gets the function computing the weight from the iteration index. 
         /// </summary>
-        public double? ConstantValue => _constant;
-
-        /// <summary>
-        /// Gets the function computing the evolutive value of this weight from the iteration index, or <see langword="null"/> if it is constant. 
-        /// </summary>
-        public Func<int, double>? Function => _function;
+        public Func<int, double> Function => _function;
 
         #endregion
 
         #region Constructors
 
+// Non-nullable field must contain a non-null value when exiting constructor.
+#pragma warning disable CS8618
+
         /// <summary>
-        /// Initialises a new instance of <see cref= "Gh_Weight" /> class.
+        /// Initialises a new instance of <see cref= "Gh_Weight" /> class. 
+        /// The weight is initialised to a constant value of 1.0.
         /// </summary>
+
         public Gh_Weight()
         {
-            // Do Nothing
+            //     -----     Initialise Fields
+
+            TryChangeWeight(1d);
         }
 
         /// <summary>
@@ -70,8 +84,10 @@ namespace Frog.Types.Weights
         {
             //     -----     Initialisations     -----     //
 
-            // Initialise Fields
-            _constant = weight;
+            if (!TryChangeWeight(weight))
+            {
+                throw new ArgumentOutOfRangeException(nameof(weight), weight, "The weight must be non-negative.");
+            }
         }
 
         /// <summary>
@@ -87,28 +103,130 @@ namespace Frog.Types.Weights
 
             //     -----     Initialisations     -----     //
 
-            // Initialise Fields
-            _function = (Func<int, double>)_function!.Clone();
+            if (!TryChangeWeight(function))
+            {
+                throw new ArgumentException("The function could not be stored.", nameof(function));
+            }
+            
         }
 
+#pragma warning restore CS8618 
 
         /// <summary>
         /// Initialises a new instance of <see cref= "Gh_Weight" /> class from another <see cref="Gh_Weight"/>.
         /// </summary>
-        /// <param name="Gh_Weight"> <see cref="Gh_Weight"/> to deep copy. </param>
+        /// <param name="Gh_Weight"> <see cref="Gh_Weight"/> to shallow copy. </param>
         public Gh_Weight(Gh_Weight gh_Weight)
         {
+            //     -----     Verifications     -----     //
+
+            ArgumentNullException.ThrowIfNull(gh_Weight, nameof(gh_Weight));
+
             //     -----     Initialisations     -----     //
 
-            // Initialise Fields
-            if (gh_Weight.IsConstant)
+            _constant = gh_Weight._constant;
+            _expression = gh_Weight._expression;
+            _function = gh_Weight._function;
+        }
+
+        #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// Evaluates the weight at a given iteration index.
+        /// </summary>
+        /// <param name="i"> Index of the iteration. </param>
+        /// <returns> The <see langword="double"/>-precision value of the weight. </returns>
+        public double EvaluateAt(int i) => _function.Invoke(i);
+
+        #endregion
+
+        #region Private Methods
+
+        private bool TryChangeWeight(double constant)
+        {
+            //     -----     Verifications
+
+            if(constant < 0d) { return false; }
+
+
+            //     -----
+
+            _constant = constant;
+            _expression = null;
+
+            _function = (int i) => { return constant; };
+
+            return true;
+        }
+
+        private bool TryChangeWeight(string expression)
+        {
+            //     -----     Verifications
+
+            if (expression is null || expression == string.Empty) { return false; }
+
+
+            //     -----     For Constant
+
+            if (double.TryParse(expression, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double c)
+                || double.TryParse(expression, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.CurrentCulture, out c))
             {
-                _constant = gh_Weight._constant;
+                return TryChangeWeight(c);
             }
-            else if (gh_Weight.IsEvolutive)
+
+            //     -----     For Evolutive
+
+            string cleanExpression;
+            try { cleanExpression = GH_Kernel.Expressions.GH_ExpressionSyntaxWriter.RewriteAll(expression); }
+            catch { return false; }
+
+            var parser = new GH_Kernel.Expressions.GH_ExpressionParser();
+            if (!parser.CacheSymbols(cleanExpression)) { return false; }
+
+            // Probe once so an unusable expression is rejected at cast time.
+            try
             {
-                _function = (Func<int, double>)gh_Weight._function!.Clone();
+                parser.ClearVariables();
+                parser.AddVariable("i", 1);
+                var probe = parser.Evaluate();
+                if (probe is null || !probe.IsNumeric) { return false; }
             }
+            catch { return false; }
+
+            // Used to lock to avoid clashes when accessed multiple times.
+            object gate = new object();
+
+            _constant = null;
+            _expression = expression;
+            _function = i =>
+            {
+                lock (gate)
+                {
+                    parser.ClearVariables();
+                    parser.AddVariable("i", i);
+
+                    var variant = parser.Evaluate();
+                    if (variant is null || !variant.IsNumeric)
+                    {
+                        throw new InvalidOperationException(
+                            $"The weight expression '{expression}' did not evaluate to a number at iteration {i}.");
+                    }
+                    return variant._Double;
+                }
+            };
+
+            return true;
+        }
+
+        private bool TryChangeWeight(Func<int,double> function)
+        {
+            _constant = null;
+            _expression = "";
+            _function = function;
+
+            return true;
         }
 
         #endregion
@@ -119,15 +237,19 @@ namespace Frog.Types.Weights
         /// <inheritdoc cref="object.ToString()"/>
         public override string ToString()
         {
-            if (IsValid && IsConstant)
+            if (!IsValid)
+            {
+                return $"Invalid {TypeName}";
+            }
+            else if (IsConstant)
             {
                 return GH_Kernel.GH_Format.FormatDouble(_constant!.Value);
             }
-            else if (IsValid && IsEvolutive)
+            else // IsEvolutive
             {
-                return "Evolutive Weight";
+                if ( 0 < _expression?.Length) { return _expression!; }
+                else { return "Evolutive Weight"; }
             }
-            else { return $"Invalid {TypeName}"; }
         }
 
         #endregion
@@ -138,7 +260,7 @@ namespace Frog.Types.Weights
         //     -----     Properties     -----     //
 
         /// <inheritdoc cref="GH_Types.IGH_Goo.IsValid"/>
-        public bool IsValid => (_constant.HasValue && _function is null) || (_constant is null && _function is not null);
+        public bool IsValid => IsConstant || IsEvolutive;
 
         /// <inheritdoc cref="GH_Types.IGH_Goo.IsValidWhyNot"/>
         public string IsValidWhyNot
@@ -148,8 +270,7 @@ namespace Frog.Types.Weights
                 if (IsValid) { return string.Empty; }
                 else
                 {
-                    if (_constant.HasValue && _function is not null) { return "The grasshopper type stores both a constant and a function."; }
-                    else if (_constant is null && _function is null) { return "The grasshopper type stores neither a constant nor a function."; }
+                    if (_constant is null && _expression is null) { return "The grasshopper type stores neither a constant nor a function."; }
                     else { return $"This {TypeName} is not valid, but the reason is not detailed"; }
                 }
             }
@@ -171,73 +292,41 @@ namespace Frog.Types.Weights
         /// <inheritdoc cref="GH_Types.IGH_Goo.CastFrom(object)"/>
         public bool CastFrom(object source)
         {
+            //     -----     Verifications
+
             if (source == null) { return false; }
+
 
             var type = source.GetType();
 
-            //     -----     Grasshopper Objects     -----     //
+            //     -----     From Grasshopper Objects
 
             // Cast a GH_Types.GH_Number to a Gh_Weight
             if (typeof(GH_Types.GH_Number).IsAssignableFrom(type))
             {
                 GH_Types.GH_Number gh_Number = (GH_Types.GH_Number)source;
-                _constant = gh_Number.Value;
-
-                return true;
+                return TryChangeWeight(gh_Number.Value);
             }
             // Cast a GH_Types.GH_String to a Gh_Weight
             else if (typeof(GH_Types.GH_String).IsAssignableFrom(type))
             {
                 GH_Types.GH_String gh_String = (GH_Types.GH_String)source;
-                
-                // Try cast to constant value
-                try
-                {
-                    _constant = Convert.ToDouble(gh_String.Value);
-                    return true;
-                }
-                catch { /* Do Nothing */}
-
-                // Try cast to string into an expression
-                try
-                {
-                    string clean = GH_Kernel.Expressions.GH_ExpressionSyntaxWriter.RewriteAll(gh_String.Value);
-
-                    var parser = new GH_Kernel.Expressions.GH_ExpressionParser();
-                    if (!parser.CacheSymbols(clean)) { return false; }
-
-                    parser.AddVariable("i", 1);
-                    double result = parser.Evaluate()._Double;
-
-                    _function = i =>
-                    {
-                        parser.ClearVariables(); parser.AddVariable("i", i);
-                        return parser.Evaluate()._Double;
-                    };
-                    return true;
-                }
-                catch { /* Do Nothing */}
-
-                return false;
+                return TryChangeWeight(gh_String.Value);
             }
 
 
-            //     -----     C# Objects     -----     //
+            //     -----     From C# Objects     -----     //
 
             // Cast a double to a Gh_Weight
             if (typeof(double).IsAssignableFrom(type))
             {
-                _constant = (double)source;
-
-                return true;
+                return TryChangeWeight((double)source);
             }
 
             // Cast a Func<int,double> to a Gh_Weight
             if (typeof(Func<int, double>).IsAssignableFrom(type))
             {
-                _function = (Func<int, double>)source;
-
-                return true;
+                return TryChangeWeight((Func<int, double>)source);
             }
 
             //     -----     Otherwise     -----     //
@@ -245,15 +334,15 @@ namespace Frog.Types.Weights
             return false;
         }
 
-        /// <inheritdoc cref="GH_Types.IGH_Goo.CastTo{Q}(ref Q)"/>
+        /// <inheritdoc cref="GH_Types.IGH_Goo.CastTo{T}(out T)"/>
         public bool CastTo<T>(out T? target)
         {
             target = default;
 
-            //     -----     Grasshopper Objects     -----     //
+            //     -----     To Grasshopper Objects     -----     //
 
             // Casts a Gh_Weight to a GH_Types.GH_Number
-            if (IsValid & IsConstant & typeof(T).IsAssignableFrom(typeof(GH_Types.GH_Number)))
+            if (IsValid && IsConstant && typeof(T).IsAssignableFrom(typeof(GH_Types.GH_Number)))
             {
                 GH_Types.GH_Number gh_Number = new GH_Types.GH_Number(_constant!.Value);
                 target = (T)(object)gh_Number;
@@ -262,11 +351,18 @@ namespace Frog.Types.Weights
             }
 
 
-            //     -----     C# Objects     -----     //
+            //     -----     To C# Objects     -----     //
 
-            if (IsValid & IsConstant & typeof(T).IsAssignableFrom(typeof(double)))
+            if (IsValid && IsConstant && typeof(T).IsAssignableFrom(typeof(double)))
             {
                 target = (T)(object)_constant!.Value;
+
+                return true;
+            }
+
+            if (IsValid && typeof(T).IsAssignableFrom(typeof(Func<int, double>)))
+            {
+                target = (T)(object)_function;
 
                 return true;
             }
@@ -278,17 +374,42 @@ namespace Frog.Types.Weights
 
 
         /// <inheritdoc cref="GH_Types.IGH_Goo.ScriptVariable()"/>
-        public object ScriptVariable()
-        {
-            throw new NotImplementedException();
-        }
+        public object ScriptVariable() => _constant ?? (object)_function!;
 
 
         /// <inheritdoc cref="GH_IO.GH_ISerializable.Write(GH_IO.Serialization.GH_IWriter)"/>
-        public bool Write(GH_IO.Serialization.GH_IWriter writer) => true;
+        public bool Write(GH_IO.Serialization.GH_IWriter writer)
+        {
+            if (IsConstant) 
+            { 
+                writer.SetDouble("Constant", _constant!.Value); 
+                return true; 
+            }
+            else if (0 < _expression?.Length) 
+            { 
+                writer.SetString("Expression", _expression); 
+                return true; 
+            }
+            // Serialisation not managed is the evolutive function is not wrapping an expression.
+
+            return false;   
+        }
+        
 
         /// <inheritdoc cref="GH_IO.GH_ISerializable.Read(GH_IO.Serialization.GH_IReader)"/>
-        public bool Read(GH_IO.Serialization.GH_IReader reader) => true;
+        public bool Read(GH_IO.Serialization.GH_IReader reader)
+        {
+            if (reader.ItemExists("Constant")) 
+            { 
+                return TryChangeWeight(reader.GetDouble("Constant")); 
+            }
+            else if (reader.ItemExists("Expression")) 
+            { 
+                return TryChangeWeight(reader.GetString("Expression")); 
+            }
+
+            return false;
+        }
 
 
         /// <inheritdoc cref="GH_Types.IGH_Goo.EmitProxy()"/>

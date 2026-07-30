@@ -11,39 +11,34 @@ namespace BRIDGES.Solvers.GuidedProjection.Interfaces
         #region Properties 
 
         /// <summary>
-        /// Evaluates whether this variable references an external array for its coordinates.
-        /// </summary>
-        bool IsReference { get; }
-
-        /// <summary>
         /// Gets the coordinate at the specified index in this variable.
         /// </summary>
         /// <param name="index"> The zero-based index of the variable's coordinate. </param>
         /// <returns> The coordinate at the specified index. </returns>
-        double this[int index] { get; }
+        public double this[int index] { get; }
 
         /// <summary>
         /// Get the number of coordinate of this variable.
         /// </summary>
-        int Size { get; }
+        public int Size { get; }
 
         #endregion
 
-        #region Methods
+        #region Public Methods
 
         /// <summary>
         /// Translate the coordinate's index into the coordinate index of the referenced array.
         /// </summary>
         /// <param name="index"> The zero-based index of the coordinate. </param>
         /// <returns> The zero-based index of the coordinate in the referenced array. </returns>
-        int ReferenceIndex(int index);
+        public int ReferenceIndex(int index);
 
 
         /// <summary>
         /// Creates an array representation of the variable.
         /// </summary>
         /// <returns> The <see langword="double"/>-precision array representing the variable. </returns>
-        double[] ToArray();
+        public double[] ToArray();
 
         #endregion
     }

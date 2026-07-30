@@ -18,8 +18,7 @@ namespace BRIDGES.Solvers.GuidedProjection
         /// </summary>
         /// <remarks>
         /// The <see cref="ArraySegment{T}"/> initially refers to an array representing only this variable. <br/>
-        /// Once it is provided to the <see cref="Solver"/> and the <see cref="Solver"/> is <see cref="Solver.Initialise()"/>,
-        /// the <see cref="ArraySegment{T}"/> refers to indices in the global vector <see cref="Solver.X"/>.
+        /// Once the <see cref="Solver"/> is <see cref="Solver.SolverStatus.Prepared"/>, the <see cref="ArraySegment{T}"/> refers to indices in the global vector <see cref="Solver.X"/>.
         /// </remarks>
         private ArraySegment<double> _coordinates;
 
@@ -28,15 +27,9 @@ namespace BRIDGES.Solvers.GuidedProjection
         #region Properties
 
         /// <inheritdoc/>
-        /// <remarks> If <see langword="true"/>, the variable was added to a <see cref="Solver"/> and it references the global vector X. </remarks>
-        public bool IsReference => !(_coordinates.Count == _coordinates.Array!.Length);
-
-
-        /// <inheritdoc/>
         /// <exception cref="IndexOutOfRangeException"> The index must be positive and smaller than the size of the variable. </exception>
         public double this[int index] => _coordinates.Array![_coordinates.Offset + index];
         
-
         /// <inheritdoc/>
         public int Size => _coordinates.Count;
 
@@ -78,27 +71,6 @@ namespace BRIDGES.Solvers.GuidedProjection
         #endregion
 
         #region Public Methods
-
-        /// <summary>
-        /// Creates a <see cref="Span{T}"/> representation of the variable
-        /// </summary>
-        /// <returns> The <see cref="Span{T}"/> representation of the variable. </returns>
-        public Span<double> ToSpan()
-        {
-            return new Span<double>(_coordinates.Array, _coordinates.Offset, _coordinates.Count);
-        }
-
-        /// <summary>
-        /// Creates a <see cref="Span{T}"/> representation of the variable
-        /// </summary>
-        /// <param name="start"> Zero-based index of the first coordinate to include in the <see cref="Span{T}"/>. </param>
-        /// <param name="count"> Number of coordinate to include in the <see cref="Span{T}"/>. </param>
-        /// <returns> The <see cref="Span{T}"/> representation of the variable. </returns>
-        public Span<double> ToSpan(int start, int count)
-        {
-            return new Span<double>(_coordinates.Array, _coordinates.Offset + start, count);
-        }
-
 
         //     -----     Implement IVariable     -----     //
 

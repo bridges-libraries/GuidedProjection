@@ -160,7 +160,8 @@ namespace Frog.Parameters.Weights
                 Types_W.Gh_Weight gh_Weight = base.PersistentData.get_FirstItem(filter_nulls: false);
                 if (gh_Weight != null && gh_Weight.IsConstant)
                 {
-                    text = gh_Weight.ConstantValue!.Value.ToString();
+                    double constant = gh_Weight.EvaluateAt(1);
+                    text = constant.ToString();
                 }
             }
 

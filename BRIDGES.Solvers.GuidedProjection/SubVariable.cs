@@ -30,10 +30,6 @@ namespace BRIDGES.Solvers.GuidedProjection
 
 
         /// <inheritdoc/>
-        public bool IsReference => true;
-
-
-        /// <inheritdoc/>
         public double this[int index] => ReferenceVariable[_indices[index]];
 
         /// <inheritdoc/>

@@ -211,7 +211,8 @@ namespace Frog.Solvers
 
                 if(gh_Constraint.Weight.IsConstant)
                 {
-                    modelCstr = model.AddConstraint(cloneCstrType, modelIVars, gh_Constraint.Weight.ConstantValue!.Value);
+                    double constant = gh_Constraint.Weight.EvaluateAt(1);
+                    modelCstr = model.AddConstraint(cloneCstrType, modelIVars, constant);
                 }
                 else if (gh_Constraint.Weight.IsEvolutive)
                 {
