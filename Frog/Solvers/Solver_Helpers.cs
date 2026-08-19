@@ -82,7 +82,7 @@ namespace Frog.Solvers
                 // Context
                 Text = label,
                 // Display
-                Width = label.Length * 4,
+                Width = label.Length * 7,
                 Height = 20,
                 Location = new System.Drawing.Point(5, 2),
             };
@@ -92,7 +92,7 @@ namespace Frog.Solvers
                 // Context
                 Text = initialText,
                 // Display
-                Width = 150,
+                Width = 120,
                 Height = Label.Height,
                 Location = new System.Drawing.Point(Label.Right + 5, 0),
                 // Feature

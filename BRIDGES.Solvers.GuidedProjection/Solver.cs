@@ -13,8 +13,6 @@ using System.Reflection.Metadata.Ecma335;
 
 namespace BRIDGES.Solvers.GuidedProjection
 {
-    
-
     /// <summary>
     /// Class defining a Guided Projection Algorithm solver.<br/>
     /// The algorithm is described in <see href="https://doi.org/10.1145/2601097.2601213"/>.
@@ -231,9 +229,14 @@ namespace BRIDGES.Solvers.GuidedProjection
         //     -----     For Solving     -----     //
 
         /// <summary>
-        /// Gets or sets the weight of the distance to the previous iteration.
+        /// Gets the weight of the distance to the previous iteration.
         /// </summary>
         public double Epsilon { get; private set; }
+
+        /// <summary>
+        /// Gets the value of the distance between consecutive remainders under which the solver is considered to stagnate.
+        /// </summary>
+        public double Threshold { get; private set; }  
 
 
         //     -----     For Results     -----     //
@@ -256,7 +259,8 @@ namespace BRIDGES.Solvers.GuidedProjection
         /// Initialises a new instance of the <see cref="Solver"/> class.
         /// </summary>
         /// <param name="epsilon"> The weights of the distance to the previous iteration. </param>
-        public Solver(double epsilon)
+        /// <param name="threshold"> The value of the distance between consecutive remainders under which the solver is considered to stagnate. </param>
+        public Solver(double epsilon, double threshold)
         {
             //     -----     Instanciate Fields
 
@@ -277,6 +281,7 @@ namespace BRIDGES.Solvers.GuidedProjection
             MaxIteration = 100;
 
             Epsilon = epsilon;
+            Threshold = threshold;
         }
 
         #endregion
@@ -369,6 +374,8 @@ namespace BRIDGES.Solvers.GuidedProjection
         /// <param name="maxIteration"> Maximum number of iteration, after which it is <see cref="SolverStatus.Stopped"/>. </param>
         public void Run(int maxIteration)
         {
+            MaxIteration = maxIteration;
+
             while (Status < SolverStatus.Stopped)
             {
                 RunOneIteration();
@@ -764,10 +771,10 @@ namespace BRIDGES.Solvers.GuidedProjection
 
                 // Evaluate for stagnation
                 double dist_1 = 0d, dist_2 = 0d;
-                for (int i = 0; i < _x.Length; i++) { dist_1 = Math.Pow(_x[i] - _x_1[i], 2); }
-                for (int i = 0; i < _x.Length; i++) { dist_2 = Math.Pow(_x_1[i] - x_2[i], 2); }
+                for (int i = 0; i < _x.Length; i++) { dist_1 += Math.Pow(_x[i] - _x_1[i], 2); }
+                for (int i = 0; i < _x.Length; i++) { dist_2 += Math.Pow(_x_1[i] - x_2[i], 2); }
 
-                if (dist_1 < 1e-12 & dist_2 < 1e-12)
+                if (dist_1 < Threshold & dist_2 < Threshold)
                 {
                     Status = SolverStatus.Stagnates;
                     return;

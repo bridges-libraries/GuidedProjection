@@ -36,6 +36,40 @@ namespace Frog.Solvers
             ExpireSolution(true);
         }
 
+        /// <summary>
+        /// EventHandler for the text box defining the value of <see cref="Imax"/>.
+        /// </summary>
+        /// <param name="sender"> A <see cref="System.Windows.Forms.TextBox"/> for the value of <see cref="Imax"/>. </param>
+        /// <param name="e"> An <see cref="EventArgs"/>. </param>
+        private void TextBox_Imax_LostFocus(object? sender, EventArgs e)
+        {
+            System.Windows.Forms.TextBox textBox = (System.Windows.Forms.TextBox)sender!;
+
+            RecordUndoEvent("Imax");
+
+            int newValue = Convert.ToInt32(textBox.Text);
+            Imax = newValue;
+
+            ExpireSolution(true);
+        }
+
+        /// <summary>
+        /// EventHandler for the text box defining the value of <see cref="Threshold"/>.
+        /// </summary>
+        /// <param name="sender"> A <see cref="System.Windows.Forms.TextBox"/> for the value of <see cref="Threshold"/>. </param>
+        /// <param name="e"> An <see cref="EventArgs"/>. </param>
+        private void TextBox_Threshold_LostFocus(object? sender, EventArgs e)
+        {
+            System.Windows.Forms.TextBox textBox = (System.Windows.Forms.TextBox)sender!;
+
+            RecordUndoEvent("Threshold");
+
+            double newValue = Convert.ToDouble(textBox.Text);
+            Threshold = newValue;
+
+            ExpireSolution(true);
+        }
+
         #endregion
 
         #region Private Fields
@@ -67,6 +101,16 @@ namespace Frog.Solvers
         /// </summary>
         public double Epsilon { get; private set; } = 1e-3;
 
+        /// <summary>
+        /// Gets the value under which the Solver is considered to stagnate.
+        /// </summary>
+        public double Threshold { get; private set; } = 1e-6;
+
+        /// <summary>
+        /// Gets the maximum number of iteration for the solver.
+        /// </summary>
+        public int Imax { get; private set; } = 250;
+
         #endregion
 
         #region Constructors
@@ -82,7 +126,7 @@ namespace Frog.Solvers
             _setsOfVariables = new Dictionary<string, GP.Variable[]>();
             _setsOfConstraints = new Dictionary<string, List<GP.Constraint>>();
 
-            _model = new GP.Solver(Epsilon);
+            _model = new GP.Solver(Epsilon, Threshold);
         }
 
         #endregion
@@ -120,7 +164,7 @@ namespace Frog.Solvers
             if (!isCreated) { return false; }
 
 
-            _model.Run(100);
+            _model.Run(Imax);
 
 
             //     -----     Finalise     -----     //
@@ -447,11 +491,11 @@ namespace Frog.Solvers
                 _setsOfVariables = new Dictionary<string, GP.Variable[]>();
                 _setsOfConstraints = new Dictionary<string, List<GP.Constraint>>();
 
-                _model = new GP.Solver(Epsilon);
+                _model = new GP.Solver(Epsilon, Threshold);
             }
             else if (toRun)
             {
-                _model = new GP.Solver(Epsilon); //To remove for continuous updates
+                _model = new GP.Solver(Epsilon, Threshold); //To remove for continuous updates
 
                 runned = ActualSolveInstance(DA);
                 SaveRuntimeMessages();
@@ -496,12 +540,18 @@ namespace Frog.Solvers
         protected override void AppendAdditionalComponentMenuItems(System.Windows.Forms.ToolStripDropDown menu)
         {
             // Append the item to the menu
-            LabeledTextBox customItem = new LabeledTextBox("ε : ", Epsilon.ToString());
+            LabeledTextBox epsilon_MenuItem = new LabeledTextBox("ε :         ", Epsilon.ToString());
+            LabeledTextBox imax_MenuItem = new LabeledTextBox("I\u2098\u2090\u2093 :      ", Imax.ToString());
+            LabeledTextBox threshold_MenuItem = new LabeledTextBox("Threshold : ", Threshold.ToString());
 
-            Menu_AppendCustomItem(menu, customItem);
+            Menu_AppendCustomItem(menu, epsilon_MenuItem);
+            Menu_AppendCustomItem(menu, imax_MenuItem);
+            Menu_AppendCustomItem(menu, threshold_MenuItem);
 
             // Manage the behavior of the text box.
-            customItem.TextBox.LostFocus += TextBox_Epsilon_LostFocus;
+            epsilon_MenuItem.TextBox.LostFocus += TextBox_Epsilon_LostFocus;
+            imax_MenuItem.TextBox.LostFocus += TextBox_Imax_LostFocus;
+            threshold_MenuItem.TextBox.LostFocus += TextBox_Threshold_LostFocus;
 
         }
 

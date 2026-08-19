@@ -62,7 +62,13 @@ namespace Frog.Solvers
         /// <summary>
         /// Gets the weight for the regulariser.
         /// </summary>
-        public double Epsilon { get; private set; } = 1e-5;
+        public double Epsilon { get; private set; } = 1e-3;
+
+        /// <summary>
+        /// Gets the value under which the Solver is considered to stagnate.
+        /// </summary>
+        /// <remarks> Not relevant for this solver as the convergence is not studied. </remarks>
+        public double Threshold { get; private set; } = 1e-6;
 
         #endregion
 
@@ -134,7 +140,7 @@ namespace Frog.Solvers
         private bool CreateGPAModel(double epsilon, List<Types_C.Gh_Constraint> gh_Constraints,
             out GP.Solver model)
         {
-            model = new GP.Solver(epsilon);
+            model = new GP.Solver(epsilon, Threshold);
 
             Dictionary<string, int> vars_SetCount = new Dictionary<string, int>();
             Dictionary<Types_V.Gh_Variable, GP.Variable> vars_GhToModel = new Dictionary<Types_V.Gh_Variable, GP.Variable>();
@@ -324,13 +330,13 @@ namespace Frog.Solvers
                 isOrdered.Add(kvp.Key, null);
             }
 
-            // Adds
-
+            // Adds the variables to the local registery
             foreach (KeyValuePair<Types_V.Gh_Variable, GP.Variable> kvp in vars_SwapGhToModel)
             {
                 string name = kvp.Key.SetName;
                 int index = kvp.Key.Index;
 
+                // If there is no index for the variables
                 if (index == -1)
                 {
                     // Verifications
