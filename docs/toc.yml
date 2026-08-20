@@ -1,0 +1,14 @@
+- name: Get Started
+  href: docs/get-started.md
+- name: Learn
+  items:
+  - name: Components
+    href: docs/learn/components/
+  - name: Tutorials
+    href: docs/learn/tutorials/
+  - name: Examples
+    href: docs/learn/examples/
+- name: API
+  href: api/
+- name: About
+  href: docs/about.md

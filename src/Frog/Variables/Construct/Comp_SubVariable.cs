@@ -21,7 +21,7 @@ namespace Frog.Variables.Construct
         /// Initialises a new instance of the <see cref="Comp_SubVariable"/> class.
         /// </summary>
         public Comp_SubVariable()
-          : base("Sub-Variable", "Sub Var.",
+          : base("Construct Sub-Variable", "Sub Var.",
               "Defines a sub-variable from an variable.",
               GhLibraryInfo.CategoryName, GhLibraryInfo.SubCategoryName[Frog.SubCategory.Variables])
         {

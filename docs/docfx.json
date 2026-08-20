@@ -1,0 +1,51 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": "../src/BRIDGES.Solvers.GuidedProjection/",
+          "files": [
+            "**/*.csproj"
+          ]
+        }
+      ],
+      "dest": "api",
+      "namespaceLayout": "nested"
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "**/*.{md,yml}"
+        ],
+        "exclude": [
+          "_site/**"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "images/**"
+        ]
+      }
+    ],
+    "output": "_site",
+    "template": [
+      "default",
+      "modern",
+      "templates"
+    ],
+    "globalMetadata": {
+      "_appName": "FROG",
+      "_appTitle": "FROG",
+      "_appLogoPath": "images/logo.svg",
+      "_appFaviconPath": "images/logo.svg",
+      "_appFooter": "<span style=\"font-size: 0.9rem;\">Developed by the <a style=\"color:#5F656B; text-decoration:none; font-weight: bold;\" href=\"https://www.buildin-enpc.fr\">Build'In</a> team at <a style=\"color:#5F656B; text-decoration:none; font-weight: bold;\" href=\"https://ecoledesponts.fr\">ENPC</a><br/><div style=\"font-size: 0.6rem;\">Generated with <a style=\"color:#5F656B; text-decoration:none; font-weight: bold;\" href=\"https://dotnet.github.io/docfx\">DocFX</a></div></span>",
+      "_enableSearch": true,
+      "pdf": false
+    }
+  }
+}

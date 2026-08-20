@@ -416,3 +416,12 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+
+#
+# Personal ignore
+#
+
+# For DocFX
+*docs/_site
+*docs/api
