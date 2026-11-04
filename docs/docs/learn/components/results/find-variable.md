@@ -1,11 +1,3 @@
-# Components
+# Find Variable
 
-## Parameters
-
-## Variables
-
-## Constraints
-
-## Solvers
-
-## Results
+This component retrieves a set of `Variables` in a computed `Model` from their name.

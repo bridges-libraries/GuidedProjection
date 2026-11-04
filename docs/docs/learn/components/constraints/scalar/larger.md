@@ -1,11 +1,5 @@
-# Components
+# Larger
 
-## Parameters
+This component creates `Constraint` enforcing a scalar `Variable` to be larger than a fixed value. 
 
-## Variables
-
-## Constraints
-
-## Solvers
-
-## Results
+This `Constraint` requires the creation of a dummy `Variable`, named 'Dummy - Larger'.

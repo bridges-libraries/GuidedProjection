@@ -2,10 +2,9 @@
 _layout: landing
 ---
 
-# This is the **HOMEPAGE**.
+# FROG
 
-Refer to [Markdown](http://daringfireball.net/projects/markdown/) for how to write markdown files.
+FROG (for Fabrication, Rationalisation and Optimisation of Geometries) is a plug-in for Rhino and Grasshopper. 
+FROG is an quadratic constraint solver which can account for Physical and Geometrical objectives.
 
-## Quick Start Notes:
-
-1. Add images to the *images* folder if the file is referencing an image.
+This website in under a work in progress

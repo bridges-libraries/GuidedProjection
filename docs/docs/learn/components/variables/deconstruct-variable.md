@@ -1,11 +1,3 @@
-# Components
+# Deconstruct Variable
 
-## Parameters
-
-## Variables
-
-## Constraints
-
-## Solvers
-
-## Results
+ This component takes an input `Variable` and outputs its coordinate values as a list. 

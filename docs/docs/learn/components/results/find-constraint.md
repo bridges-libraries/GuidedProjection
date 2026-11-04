@@ -1,9 +1,3 @@
+# Find Constraint
 
-
-### Segment
-
-### Vector
-
-## Solvers
-
-## Results
+This component retrieves a set of `Constraint` in a computed `Model` from their name.

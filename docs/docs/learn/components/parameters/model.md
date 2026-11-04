@@ -1,11 +1,3 @@
-# Components
+# Model
 
-## Parameters
-
-## Variables
-
-## Constraints
-
-## Solvers
-
-## Results
+This parameter contains the result of the optimisation.
