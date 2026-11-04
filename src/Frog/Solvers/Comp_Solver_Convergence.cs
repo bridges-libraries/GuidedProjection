@@ -575,7 +575,7 @@ namespace Frog.Solvers
 
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
-        protected override System.Drawing.Bitmap? Icon => Properties.Resources.Comp_Solver_Convergence;
+        protected override System.Drawing.Bitmap? Icon => null;
 
 
         //     -----     Methods     -----     //

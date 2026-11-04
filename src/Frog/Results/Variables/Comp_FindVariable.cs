@@ -196,7 +196,7 @@ namespace Frog.Results.Variables
         public override Guid ComponentGuid => new Guid("{48082F7A-C36C-431C-88C3-6A52008FCEE5}");
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
-        protected override System.Drawing.Bitmap? Icon => Properties.Resources.Comp_Find_Variable;
+        protected override System.Drawing.Bitmap? Icon => null;
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Exposure"/>
         public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Variables;

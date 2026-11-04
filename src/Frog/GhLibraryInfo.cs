@@ -44,7 +44,7 @@ namespace Frog
 
 
         /// <inheritdoc cref="GH_Ker.GH_AssemblyInfo.Icon"/>
-        public override Bitmap Icon => Properties.Resources.LibraryLogo_Head;
+        public override Bitmap Icon => null;
 
         #endregion
 
@@ -103,7 +103,7 @@ namespace Frog
     {
         public override GH_Ker.GH_LoadingInstruction PriorityLoad()
         {
-            Grasshopper.Instances.ComponentServer.AddCategoryIcon(GhLibraryInfo.CategoryName, Properties.Resources.LibraryLogo_Head);
+            Grasshopper.Instances.ComponentServer.AddCategoryIcon(GhLibraryInfo.CategoryName, null);
             //Grasshopper.Instances.ComponentServer.AddCategoryShortName(GhLibraryInfo.CategoryName, GhLibraryInfo.CategoryName);
             Grasshopper.Instances.ComponentServer.AddCategorySymbolName(GhLibraryInfo.CategoryName, 'F');
             return GH_Ker.GH_LoadingInstruction.Proceed;

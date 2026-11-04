@@ -128,7 +128,7 @@ namespace Frog.Constraints.Vector
         public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Vector;
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
-        protected override System.Drawing.Bitmap? Icon => Properties.Resources.Comp_Vector_Length;
+        protected override System.Drawing.Bitmap? Icon => null;
 
         #endregion
     }
