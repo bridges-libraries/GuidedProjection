@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Collections.Generic;
 
 using GH_Ker = Grasshopper.Kernel;
@@ -40,6 +41,11 @@ namespace Frog
 
         /// <inheritdoc cref="GH_Ker.GH_AssemblyInfo.AuthorContact"/>
         public override string AuthorContact => "romain.mesnil@enpc.fr";
+
+
+        /// <inheritdoc cref="GH_Ker.GH_AssemblyInfo.AssemblyIcon"/>
+        public override Bitmap AssemblyIcon => Properties.Resources.LibraryLogo;
+
 
         #endregion
         
@@ -86,6 +92,28 @@ namespace Frog
             }
 
             return dictionary;
+        }
+
+        #endregion
+    }
+
+
+    /// <summary>
+    /// Information for the grasshopper library.
+    /// </summary>
+    public class GhLibraryIcon : GH_Ker.GH_AssemblyPriority
+    {
+        #region Public Methods
+
+        public override GH_Ker.GH_LoadingInstruction PriorityLoad()
+        {
+            // Must exactly match the Category string used by your components
+            Grasshopper.Instances.ComponentServer.AddCategoryIcon(GhLibraryInfo.CategoryName, Properties.Resources.LibraryLogo_Zoomed);
+
+            // Optional: the letter shown if the user disables icon display in tabs
+            Grasshopper.Instances.ComponentServer.AddCategorySymbolName(GhLibraryInfo.CategoryName, 'F');
+
+            return GH_Ker.GH_LoadingInstruction.Proceed;
         }
 
         #endregion

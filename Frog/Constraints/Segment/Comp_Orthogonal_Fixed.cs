@@ -138,7 +138,7 @@ namespace Frog.Constraints.Segment
         public override GH_Kernel.GH_Exposure Exposure => (GH_Kernel.GH_Exposure)TabExposure.Segment;
 
         /// <inheritdoc cref="GH_Kernel.GH_DocumentObject.Icon"/>
-        protected override System.Drawing.Bitmap? Icon => null;
+        protected override System.Drawing.Bitmap? Icon => Properties.Resources.Comp_Segment_Ortho_Fixed;
 
         #endregion
     }
